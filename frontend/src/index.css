@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* ── Theme: Function (default) ── */
+.theme-function {
+    --bg: #FEF9EF;
+    --bg-secondary: #FBF2E3;
+    --text: #2D2418;
+    --text-secondary: #5C4A32;
+    --accent: #B67B5E;
+    --accent-hover: #A06A4E;
+    --card: #FFFFFF;
+    --border: #E8DCC8;
+    --hover: #F5EBD8;
+    --muted: #8B7355;
+    --success: #6B8F71;
+    --input-bg: #FFFFFF;
+}
+
+/* ── Theme: Dark ── */
+.theme-dark {
+    --bg: #0F1117;
+    --bg-secondary: #1A1D27;
+    --text: #E4E4E7;
+    --text-secondary: #A1A1AA;
+    --accent: #818CF8;
+    --accent-hover: #6366F1;
+    --card: #1E2030;
+    --border: #2E3044;
+    --hover: #282A3A;
+    --muted: #71717A;
+    --success: #4ADE80;
+    --input-bg: #1A1D27;
+}
+
+/* ── Theme: Light ── */
+.theme-light {
+    --bg: #FAFAFA;
+    --bg-secondary: #F4F4F5;
+    --text: #18181B;
+    --text-secondary: #52525B;
+    --accent: #2563EB;
+    --accent-hover: #1D4ED8;
+    --card: #FFFFFF;
+    --border: #E4E4E7;
+    --hover: #F4F4F5;
+    --muted: #71717A;
+    --success: #16A34A;
+    --input-bg: #FFFFFF;
+}
+
+/* ── Base reset ── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+input,
+select,
+textarea,
+button {
+    font-family: inherit;
+    color: inherit;
+}
+
+/* Override date input color for dark themes */
+.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
