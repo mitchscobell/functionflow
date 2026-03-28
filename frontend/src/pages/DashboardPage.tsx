@@ -4,6 +4,7 @@ import type { Task, TaskList, TaskListResponse } from "../types";
 import Layout from "../components/Layout";
 import TaskCard from "../components/TaskCard";
 import TaskModal from "../components/TaskModal";
+import EmojiPicker from "../components/EmojiPicker";
 import {
   Plus,
   Search,
@@ -57,6 +58,9 @@ export default function DashboardPage() {
   const [newListName, setNewListName] = useState("");
   const [editingList, setEditingList] = useState<number | null>(null);
   const [editListName, setEditListName] = useState("");
+  const [emojiPickerListId, setEmojiPickerListId] = useState<number | null>(
+    null,
+  );
 
   const pageSize = 100; // fetch more for swimlane view
 
@@ -268,7 +272,34 @@ export default function DashboardPage() {
                         : "hover:bg-[var(--hover)]"
                     }`}
                   >
-                    <span>{list.emoji || "📋"}</span>
+                    <span
+                      className="relative cursor-pointer hover:scale-125 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEmojiPickerListId(
+                          emojiPickerListId === list.id ? null : list.id,
+                        );
+                      }}
+                      title="Change emoji"
+                    >
+                      {list.emoji || "📋"}
+                      {emojiPickerListId === list.id && (
+                        <div className="absolute top-6 left-0 z-50">
+                          <EmojiPicker
+                            onSelect={async (emoji) => {
+                              try {
+                                await api.updateList(list.id, { emoji });
+                                fetchLists();
+                              } catch {
+                                toast.error("Failed to update emoji");
+                              }
+                              setEmojiPickerListId(null);
+                            }}
+                            onClose={() => setEmojiPickerListId(null)}
+                          />
+                        </div>
+                      )}
+                    </span>
                     <span className="truncate flex-1 text-left">
                       {list.name}
                     </span>
