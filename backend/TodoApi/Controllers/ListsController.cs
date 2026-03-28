@@ -2,10 +2,9 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Data;
 using TodoApi.DTOs;
 using TodoApi.Models;
+using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
 
@@ -18,7 +17,7 @@ namespace TodoApi.Controllers;
 [Authorize]
 public class ListsController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IListRepository _lists;
     private readonly IValidator<CreateListDto> _createValidator;
     private readonly IValidator<UpdateListDto> _updateValidator;
 
@@ -28,11 +27,11 @@ public class ListsController : ControllerBase
     };
 
     public ListsController(
-        AppDbContext db,
+        IListRepository lists,
         IValidator<CreateListDto> createValidator,
         IValidator<UpdateListDto> updateValidator)
     {
-        _db = db;
+        _lists = lists;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -46,32 +45,20 @@ public class ListsController : ControllerBase
     public async Task<ActionResult<IEnumerable<ListDto>>> GetLists()
     {
         var userId = GetUserId();
-        var lists = await _db.TaskLists
-            .Where(l => l.UserId == userId)
-            .OrderBy(l => l.SortOrder)
-            .Select(l => new ListDto(
-                l.Id, l.Name, l.Emoji, l.Color, l.SortOrder,
-                l.Tasks.Count(t => !t.IsDeleted),
-                l.CreatedAt))
-            .ToListAsync();
-
-        return Ok(lists);
+        var results = await _lists.GetListsAsync(userId);
+        var dtos = results.Select(r => new ListDto(
+            r.List.Id, r.List.Name, r.List.Emoji, r.List.Color, r.List.SortOrder,
+            r.TaskCount, r.List.CreatedAt));
+        return Ok(dtos);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ListDto>> GetList(int id)
     {
         var userId = GetUserId();
-        var list = await _db.TaskLists
-            .Where(l => l.Id == id && l.UserId == userId)
-            .Select(l => new ListDto(
-                l.Id, l.Name, l.Emoji, l.Color, l.SortOrder,
-                l.Tasks.Count(t => !t.IsDeleted),
-                l.CreatedAt))
-            .FirstOrDefaultAsync();
-
+        var (list, taskCount) = await _lists.GetByIdAsync(id, userId);
         if (list == null) return NotFound(new { message = "List not found." });
-        return Ok(list);
+        return Ok(new ListDto(list.Id, list.Name, list.Emoji, list.Color, list.SortOrder, taskCount, list.CreatedAt));
     }
 
     [HttpPost]
@@ -82,7 +69,7 @@ public class ListsController : ControllerBase
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
         var userId = GetUserId();
-        var existingCount = await _db.TaskLists.CountAsync(l => l.UserId == userId);
+        var existingCount = await _lists.GetCountAsync(userId);
 
         var list = new TaskList
         {
@@ -93,9 +80,7 @@ public class ListsController : ControllerBase
             UserId = userId
         };
 
-        _db.TaskLists.Add(list);
-        await _db.SaveChangesAsync();
-
+        await _lists.CreateAsync(list);
         return CreatedAtAction(nameof(GetList), new { id = list.Id },
             new ListDto(list.Id, list.Name, list.Emoji, list.Color, list.SortOrder, 0, list.CreatedAt));
     }
@@ -108,7 +93,7 @@ public class ListsController : ControllerBase
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
         var userId = GetUserId();
-        var list = await _db.TaskLists.FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId);
+        var (list, _) = await _lists.GetByIdAsync(id, userId);
         if (list == null) return NotFound(new { message = "List not found." });
 
         if (dto.Name != null) list.Name = dto.Name;
@@ -116,9 +101,8 @@ public class ListsController : ControllerBase
         if (dto.Color != null) list.Color = dto.Color;
         if (dto.SortOrder.HasValue) list.SortOrder = dto.SortOrder.Value;
 
-        await _db.SaveChangesAsync();
-
-        var taskCount = await _db.Tasks.CountAsync(t => t.ListId == id && t.UserId == userId);
+        await _lists.UpdateAsync(list);
+        var taskCount = await _lists.GetTaskCountAsync(id, userId);
         return Ok(new ListDto(list.Id, list.Name, list.Emoji, list.Color, list.SortOrder, taskCount, list.CreatedAt));
     }
 
@@ -126,18 +110,10 @@ public class ListsController : ControllerBase
     public async Task<IActionResult> DeleteList(int id)
     {
         var userId = GetUserId();
-        var list = await _db.TaskLists
-            .Include(l => l.Tasks)
-            .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId);
+        var (list, _) = await _lists.GetByIdAsync(id, userId);
         if (list == null) return NotFound(new { message = "List not found." });
 
-        // Move tasks to inbox (unassigned) rather than deleting them
-        foreach (var task in list.Tasks)
-            task.ListId = null;
-
-        _db.TaskLists.Remove(list);
-        await _db.SaveChangesAsync();
-
+        await _lists.DeleteAsync(list, userId);
         return NoContent();
     }
 }

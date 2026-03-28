@@ -3,9 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using TodoApi.Data;
+using TodoApi.Repositories;
 
 namespace TodoApi.Services;
 
@@ -15,15 +14,15 @@ namespace TodoApi.Services;
 /// </summary>
 public class ApiKeyAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly AppDbContext _db;
+    private readonly IApiKeyRepository _apiKeys;
 
     public ApiKeyAuthHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        AppDbContext db) : base(options, logger, encoder)
+        IApiKeyRepository apiKeys) : base(options, logger, encoder)
     {
-        _db = db;
+        _apiKeys = apiKeys;
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -37,9 +36,7 @@ public class ApiKeyAuthHandler : AuthenticationHandler<AuthenticationSchemeOptio
 
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawKey))).ToLowerInvariant();
 
-        var key = await _db.ApiKeys
-            .Include(k => k.User)
-            .FirstOrDefaultAsync(k => k.KeyHash == hash && !k.IsRevoked);
+        var key = await _apiKeys.GetByHashAsync(hash);
 
         if (key == null)
             return AuthenticateResult.Fail("Invalid API key.");

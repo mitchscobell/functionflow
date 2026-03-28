@@ -2,10 +2,9 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Data;
 using TodoApi.DTOs;
 using TodoApi.Models;
+using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
 
@@ -18,16 +17,16 @@ namespace TodoApi.Controllers;
 [Authorize]
 public class TasksController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly ITaskRepository _tasks;
     private readonly IValidator<CreateTaskDto> _createValidator;
     private readonly IValidator<UpdateTaskDto> _updateValidator;
 
     public TasksController(
-        AppDbContext db,
+        ITaskRepository tasks,
         IValidator<CreateTaskDto> createValidator,
         IValidator<UpdateTaskDto> updateValidator)
     {
-        _db = db;
+        _tasks = tasks;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -54,47 +53,8 @@ public class TasksController : ControllerBase
         pageSize = Math.Clamp(pageSize, 1, 100);
         page = Math.Max(1, page);
 
-        var query = _db.Tasks.Where(t => t.UserId == userId);
-
-        // Search filter
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var term = search.ToLower();
-            query = query.Where(t =>
-                t.Title.ToLower().Contains(term) ||
-                (t.Description != null && t.Description.ToLower().Contains(term)));
-        }
-
-        // Status filter
-        if (status.HasValue)
-            query = query.Where(t => t.Status == status.Value);
-
-        // Priority filter
-        if (priority.HasValue)
-            query = query.Where(t => t.Priority == priority.Value);
-
-        // Tag filter — performed in-memory since tags are stored as JSON
-        var totalCount = await query.CountAsync();
-
-        // Sorting
-        query = (sortBy.ToLower(), sortDir.ToLower()) switch
-        {
-            ("title", "asc") => query.OrderBy(t => t.Title),
-            ("title", _) => query.OrderByDescending(t => t.Title),
-            ("duedate", "asc") => query.OrderBy(t => t.DueDate),
-            ("duedate", _) => query.OrderByDescending(t => t.DueDate),
-            ("priority", "asc") => query.OrderBy(t => t.Priority),
-            ("priority", _) => query.OrderByDescending(t => t.Priority),
-            ("status", "asc") => query.OrderBy(t => t.Status),
-            ("status", _) => query.OrderByDescending(t => t.Status),
-            ("createdat", "asc") => query.OrderBy(t => t.CreatedAt),
-            _ => query.OrderByDescending(t => t.CreatedAt)
-        };
-
-        var tasks = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var (tasks, totalCount) = await _tasks.GetTasksAsync(
+            userId, search, status, priority, sortBy, sortDir, page, pageSize);
 
         // In-memory tag filter (tags are stored as serialized JSON)
         var taskDtos = tasks
@@ -108,7 +68,7 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<TaskDto>> GetTask(int id)
     {
         var userId = GetUserId();
-        var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+        var task = await _tasks.GetByIdAsync(id, userId);
         if (task == null) return NotFound(new { message = "Task not found." });
 
         return Ok(ToDto(task));
@@ -136,9 +96,7 @@ public class TasksController : ControllerBase
             UserId = userId
         };
 
-        _db.Tasks.Add(task);
-        await _db.SaveChangesAsync();
-
+        await _tasks.CreateAsync(task);
         return CreatedAtAction(nameof(GetTask), new { id = task.Id }, ToDto(task));
     }
 
@@ -150,7 +108,7 @@ public class TasksController : ControllerBase
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
         var userId = GetUserId();
-        var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+        var task = await _tasks.GetByIdAsync(id, userId);
         if (task == null) return NotFound(new { message = "Task not found." });
 
         if (dto.Title != null) task.Title = dto.Title;
@@ -163,7 +121,7 @@ public class TasksController : ControllerBase
         if (dto.Tags != null) task.Tags = dto.Tags;
         if (dto.ListId.HasValue) task.ListId = dto.ListId.Value == 0 ? null : dto.ListId.Value;
 
-        await _db.SaveChangesAsync();
+        await _tasks.UpdateAsync(task);
         return Ok(ToDto(task));
     }
 
@@ -175,12 +133,10 @@ public class TasksController : ControllerBase
     public async Task<IActionResult> DeleteTask(int id)
     {
         var userId = GetUserId();
-        var task = await _db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+        var task = await _tasks.GetByIdAsync(id, userId);
         if (task == null) return NotFound(new { message = "Task not found." });
 
-        task.IsDeleted = true;
-        await _db.SaveChangesAsync();
-
+        await _tasks.DeleteAsync(task);
         return NoContent();
     }
 

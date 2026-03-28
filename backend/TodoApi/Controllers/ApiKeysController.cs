@@ -1,12 +1,10 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Data;
 using TodoApi.DTOs;
 using TodoApi.Models;
+using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
 
@@ -19,12 +17,12 @@ namespace TodoApi.Controllers;
 [Authorize]
 public class ApiKeysController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IApiKeyRepository _apiKeys;
     private readonly IValidator<CreateApiKeyDto> _validator;
 
-    public ApiKeysController(AppDbContext db, IValidator<CreateApiKeyDto> validator)
+    public ApiKeysController(IApiKeyRepository apiKeys, IValidator<CreateApiKeyDto> validator)
     {
-        _db = db;
+        _apiKeys = apiKeys;
         _validator = validator;
     }
 
@@ -37,13 +35,9 @@ public class ApiKeysController : ControllerBase
     public async Task<ActionResult<IEnumerable<ApiKeyDto>>> GetKeys()
     {
         var userId = GetUserId();
-        var keys = await _db.ApiKeys
-            .Where(k => k.UserId == userId)
-            .OrderByDescending(k => k.CreatedAt)
-            .Select(k => new ApiKeyDto(k.Id, k.Name, k.KeyPrefix, k.CreatedAt, k.ExpiresAt, k.IsRevoked))
-            .ToListAsync();
-
-        return Ok(keys);
+        var keys = await _apiKeys.GetByUserIdAsync(userId);
+        var dtos = keys.Select(k => new ApiKeyDto(k.Id, k.Name, k.KeyPrefix, k.CreatedAt, k.ExpiresAt, k.IsRevoked));
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -68,9 +62,7 @@ public class ApiKeysController : ControllerBase
             UserId = userId
         };
 
-        _db.ApiKeys.Add(key);
-        await _db.SaveChangesAsync();
-
+        await _apiKeys.CreateAsync(key);
         return CreatedAtAction(nameof(GetKeys), null,
             new ApiKeyCreatedDto(key.Id, key.Name, rawKey, prefix, key.CreatedAt));
     }
@@ -80,12 +72,11 @@ public class ApiKeysController : ControllerBase
     public async Task<IActionResult> RevokeKey(int id)
     {
         var userId = GetUserId();
-        var key = await _db.ApiKeys.FirstOrDefaultAsync(k => k.Id == id && k.UserId == userId);
+        var key = await _apiKeys.GetByIdAsync(id, userId);
         if (key == null) return NotFound(new { message = "API key not found." });
 
         key.IsRevoked = true;
-        await _db.SaveChangesAsync();
-
+        await _apiKeys.UpdateAsync(key);
         return NoContent();
     }
 }

@@ -11,6 +11,7 @@ using TodoApi.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using TodoApi.Services;
+using TodoApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,13 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddHostedService<DemoSessionCleanupService>();
 builder.Services.AddScoped<IAdminNotifier, AdminNotifier>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// --- Repositories ---
+builder.Services.AddScoped<ITaskRepository, EfTaskRepository>();
+builder.Services.AddScoped<IListRepository, EfListRepository>();
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IAuthCodeRepository, EfAuthCodeRepository>();
+builder.Services.AddScoped<IApiKeyRepository, EfApiKeyRepository>();
 
 // --- Controllers & JSON ---
 builder.Services.AddControllers()

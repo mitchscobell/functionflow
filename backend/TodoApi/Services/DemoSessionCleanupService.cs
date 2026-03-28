@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Data;
+using TodoApi.Repositories;
 
 namespace TodoApi.Services;
 
@@ -42,38 +41,26 @@ public class DemoSessionCleanupService : BackgroundService
         try
         {
             using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var users = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            var tasks = scope.ServiceProvider.GetRequiredService<ITaskRepository>();
+            var lists = scope.ServiceProvider.GetRequiredService<IListRepository>();
+            var authCodes = scope.ServiceProvider.GetRequiredService<IAuthCodeRepository>();
+            var apiKeys = scope.ServiceProvider.GetRequiredService<IApiKeyRepository>();
 
-            var cutoff = DateTime.UtcNow - _maxAge;
-            var staleUsers = await db.Users
-                .Where(u => u.Email.EndsWith("@functionflow.local") && u.CreatedAt < cutoff)
-                .ToListAsync(cancellationToken);
+            var staleUsers = (await users.GetStaleDemoUsersAsync(_maxAge)).ToList();
 
             if (staleUsers.Count == 0)
                 return;
 
             foreach (var user in staleUsers)
             {
-                var tasks = await db.Tasks.IgnoreQueryFilters()
-                    .Where(t => t.UserId == user.Id).ToListAsync(cancellationToken);
-                db.Tasks.RemoveRange(tasks);
-
-                var lists = await db.TaskLists
-                    .Where(l => l.UserId == user.Id).ToListAsync(cancellationToken);
-                db.TaskLists.RemoveRange(lists);
-
-                var codes = await db.AuthCodes
-                    .Where(c => c.UserId == user.Id).ToListAsync(cancellationToken);
-                db.AuthCodes.RemoveRange(codes);
-
-                var keys = await db.ApiKeys
-                    .Where(k => k.UserId == user.Id).ToListAsync(cancellationToken);
-                db.ApiKeys.RemoveRange(keys);
-
-                db.Users.Remove(user);
+                await tasks.DeleteAllByUserIdAsync(user.Id);
+                await lists.DeleteAllByUserIdAsync(user.Id);
+                await authCodes.DeleteByUserIdAsync(user.Id);
+                await apiKeys.DeleteByUserIdAsync(user.Id);
+                await users.DeleteAsync(user);
             }
 
-            await db.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Cleaned up {Count} stale demo session(s)", staleUsers.Count);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

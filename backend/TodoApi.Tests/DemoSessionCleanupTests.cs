@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using TodoApi.Data;
 using TodoApi.Models;
+using TodoApi.Repositories;
 using TodoApi.Services;
 
 namespace TodoApi.Tests;
@@ -16,6 +17,11 @@ public class DemoSessionCleanupTests
         var dbName = "CleanupTest_" + Guid.NewGuid();
         var provider = new ServiceCollection()
             .AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase(dbName), ServiceLifetime.Transient)
+            .AddTransient<IUserRepository, EfUserRepository>()
+            .AddTransient<ITaskRepository, EfTaskRepository>()
+            .AddTransient<IListRepository, EfListRepository>()
+            .AddTransient<IAuthCodeRepository, EfAuthCodeRepository>()
+            .AddTransient<IApiKeyRepository, EfApiKeyRepository>()
             .BuildServiceProvider();
 
         var config = new ConfigurationBuilder()

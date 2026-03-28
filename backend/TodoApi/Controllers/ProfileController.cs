@@ -2,9 +2,8 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Data;
 using TodoApi.DTOs;
+using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
 
@@ -17,12 +16,12 @@ namespace TodoApi.Controllers;
 [Authorize]
 public class ProfileController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IUserRepository _users;
     private readonly IValidator<UpdateProfileDto> _validator;
 
-    public ProfileController(AppDbContext db, IValidator<UpdateProfileDto> validator)
+    public ProfileController(IUserRepository users, IValidator<UpdateProfileDto> validator)
     {
-        _db = db;
+        _users = users;
         _validator = validator;
     }
 
@@ -33,7 +32,7 @@ public class ProfileController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<UserDto>> GetProfile()
     {
-        var user = await _db.Users.FindAsync(GetUserId());
+        var user = await _users.GetByIdAsync(GetUserId());
         if (user == null) return NotFound();
 
         return Ok(new UserDto(user.Id, user.Email, user.DisplayName, user.ThemePreference));
@@ -46,13 +45,13 @@ public class ProfileController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
-        var user = await _db.Users.FindAsync(GetUserId());
+        var user = await _users.GetByIdAsync(GetUserId());
         if (user == null) return NotFound();
 
         if (dto.DisplayName != null) user.DisplayName = dto.DisplayName;
         if (dto.ThemePreference != null) user.ThemePreference = dto.ThemePreference;
 
-        await _db.SaveChangesAsync();
+        await _users.UpdateAsync(user);
         return Ok(new UserDto(user.Id, user.Email, user.DisplayName, user.ThemePreference));
     }
 }

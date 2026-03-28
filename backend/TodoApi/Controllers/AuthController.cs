@@ -1,12 +1,11 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Data;
 using TodoApi.DTOs;
 using TodoApi.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using TodoApi.Services;
+using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
 
@@ -18,30 +17,48 @@ namespace TodoApi.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IUserRepository _users;
+    private readonly IAuthCodeRepository _authCodes;
+    private readonly ITaskRepository _tasks;
+    private readonly IListRepository _lists;
+    private readonly IApiKeyRepository _apiKeys;
     private readonly IEmailService _emailService;
     private readonly ITokenService _tokenService;
     private readonly IValidator<RequestCodeDto> _requestCodeValidator;
     private readonly IValidator<VerifyCodeDto> _verifyCodeValidator;
+    private readonly IValidator<ConvertDemoDto> _convertDemoValidator;
+    private readonly IValidator<VerifyConversionDto> _verifyConversionValidator;
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<AuthController> _logger;
     private readonly IAdminNotifier _adminNotifier;
 
     public AuthController(
-        AppDbContext db,
+        IUserRepository users,
+        IAuthCodeRepository authCodes,
+        ITaskRepository tasks,
+        IListRepository lists,
+        IApiKeyRepository apiKeys,
         IEmailService emailService,
         ITokenService tokenService,
         IValidator<RequestCodeDto> requestCodeValidator,
         IValidator<VerifyCodeDto> verifyCodeValidator,
+        IValidator<ConvertDemoDto> convertDemoValidator,
+        IValidator<VerifyConversionDto> verifyConversionValidator,
         IWebHostEnvironment env,
         ILogger<AuthController> logger,
         IAdminNotifier adminNotifier)
     {
-        _db = db;
+        _users = users;
+        _authCodes = authCodes;
+        _tasks = tasks;
+        _lists = lists;
+        _apiKeys = apiKeys;
         _emailService = emailService;
         _tokenService = tokenService;
         _requestCodeValidator = requestCodeValidator;
         _verifyCodeValidator = verifyCodeValidator;
+        _convertDemoValidator = convertDemoValidator;
+        _verifyConversionValidator = verifyConversionValidator;
         _env = env;
         _logger = logger;
         _adminNotifier = adminNotifier;
@@ -61,12 +78,12 @@ public class AuthController : ControllerBase
         var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
 
         // Invalidate any existing unused codes for this email
-        var existingCodes = await _db.AuthCodes
-            .Where(c => c.Email == normalizedEmail && !c.IsUsed && c.ExpiresAt > DateTime.UtcNow)
-            .ToListAsync();
-
+        var existingCodes = await _authCodes.GetActiveCodesAsync(normalizedEmail);
         foreach (var existing in existingCodes)
+        {
             existing.IsUsed = true;
+            await _authCodes.UpdateAsync(existing);
+        }
 
         var code = CodeGenerator.GenerateSixDigitCode();
         var authCode = new AuthCode
@@ -76,8 +93,7 @@ public class AuthController : ControllerBase
             ExpiresAt = DateTime.UtcNow.AddMinutes(10)
         };
 
-        _db.AuthCodes.Add(authCode);
-        await _db.SaveChangesAsync();
+        await _authCodes.CreateAsync(authCode);
 
         await _emailService.SendAuthCodeAsync(normalizedEmail, code);
 
@@ -104,10 +120,7 @@ public class AuthController : ControllerBase
 
         var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
 
-        var authCode = await _db.AuthCodes
-            .Where(c => c.Email == normalizedEmail && c.Code == dto.Code && !c.IsUsed && c.ExpiresAt > DateTime.UtcNow)
-            .OrderByDescending(c => c.CreatedAt)
-            .FirstOrDefaultAsync();
+        var authCode = await _authCodes.GetValidCodeAsync(normalizedEmail, dto.Code);
 
         if (authCode == null)
             return Unauthorized(new { message = "Invalid or expired code." });
@@ -115,7 +128,7 @@ public class AuthController : ControllerBase
         authCode.IsUsed = true;
 
         // Find or create user
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+        var user = await _users.GetByEmailAsync(normalizedEmail);
         if (user == null)
         {
             user = new User
@@ -123,12 +136,11 @@ public class AuthController : ControllerBase
                 Email = normalizedEmail,
                 DisplayName = normalizedEmail.Split('@')[0]
             };
-            _db.Users.Add(user);
-            await _db.SaveChangesAsync();
+            await _users.CreateAsync(user);
         }
 
         authCode.UserId = user.Id;
-        await _db.SaveChangesAsync();
+        await _authCodes.UpdateAsync(authCode);
 
         var token = _tokenService.GenerateToken(user.Id, user.Email, dto.RememberMe);
 
@@ -164,15 +176,15 @@ public class AuthController : ControllerBase
             Email = ephemeralEmail,
             DisplayName = "Demo User"
         };
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        await _users.CreateAsync(user);
 
         // Seed lists
         var workList = new TaskList { Name = "Work", Emoji = "💼", Color = "blue", SortOrder = 0, UserId = user.Id };
         var personalList = new TaskList { Name = "Personal", Emoji = "🏠", Color = "green", SortOrder = 1, UserId = user.Id };
         var projectList = new TaskList { Name = "Side Project", Emoji = "🚀", Color = "purple", SortOrder = 2, UserId = user.Id };
-        _db.TaskLists.AddRange(workList, personalList, projectList);
-        await _db.SaveChangesAsync();
+        await _lists.CreateAsync(workList);
+        await _lists.CreateAsync(personalList);
+        await _lists.CreateAsync(projectList);
 
         // Seed tasks with dates relative to today
         var today = DateTime.UtcNow.Date;
@@ -292,14 +304,121 @@ public class AuthController : ControllerBase
             }
         };
 
-        _db.Tasks.AddRange(seedTasks);
-        await _db.SaveChangesAsync();
+        foreach (var task in seedTasks)
+            await _tasks.CreateAsync(task);
 
         var token = _tokenService.GenerateToken(user.Id, user.Email);
 
         await _adminNotifier.SendAsync(
             "Demo Session Started",
             $"Demo session {ephemeralEmail} started at {DateTime.UtcNow:u}.");
+
+        return Ok(new AuthResponseDto(
+            token,
+            new UserDto(user.Id, user.Email, user.DisplayName, user.ThemePreference)
+        ));
+    }
+
+    /// <summary>
+    /// Step 1 of demo-to-real account conversion. Sends a verification code
+    /// to the real email address. Only works for demo accounts.
+    /// </summary>
+    [HttpPost("convert-demo")]
+    [Authorize]
+    public async Task<IActionResult> ConvertDemo([FromBody] ConvertDemoDto dto)
+    {
+        var validation = await _convertDemoValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var user = await _users.GetByIdAsync(userId);
+        if (user == null || !user.Email.EndsWith("@functionflow.local"))
+            return BadRequest(new { message = "Only demo accounts can be converted." });
+
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+
+        // Check if a real account already exists with this email
+        var existing = await _users.GetByEmailAsync(normalizedEmail);
+        if (existing != null)
+            return Conflict(new { message = "An account with this email already exists." });
+
+        // Invalidate any existing unused codes for this email
+        var existingCodes = await _authCodes.GetActiveCodesAsync(normalizedEmail);
+        foreach (var ec in existingCodes)
+        {
+            ec.IsUsed = true;
+            await _authCodes.UpdateAsync(ec);
+        }
+
+        var code = CodeGenerator.GenerateSixDigitCode();
+        var authCode = new AuthCode
+        {
+            Email = normalizedEmail,
+            Code = code,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+            UserId = user.Id
+        };
+
+        await _authCodes.CreateAsync(authCode);
+        await _emailService.SendAuthCodeAsync(normalizedEmail, code);
+
+        if (_env.IsDevelopment())
+            _logger.LogInformation("[DEV] Conversion code for {Email}: {Code}", normalizedEmail, code);
+
+        return Ok(new { message = "Verification code sent to your email." });
+    }
+
+    /// <summary>
+    /// Step 2 of demo-to-real account conversion. Verifies the code and
+    /// updates the demo account's email (and optionally display name).
+    /// Returns a new JWT with the updated email.
+    /// </summary>
+    [HttpPost("verify-conversion")]
+    [Authorize]
+    public async Task<IActionResult> VerifyConversion([FromBody] VerifyConversionDto dto)
+    {
+        var validation = await _verifyConversionValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var user = await _users.GetByIdAsync(userId);
+        if (user == null || !user.Email.EndsWith("@functionflow.local"))
+            return BadRequest(new { message = "Only demo accounts can be converted." });
+
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+
+        var authCode = await _authCodes.GetValidCodeAsync(normalizedEmail, dto.Code);
+        if (authCode == null)
+            return Unauthorized(new { message = "Invalid or expired code." });
+
+        // Double check no one claimed this email in the meantime
+        var existing = await _users.GetByEmailAsync(normalizedEmail);
+        if (existing != null)
+            return Conflict(new { message = "An account with this email already exists." });
+
+        authCode.IsUsed = true;
+        await _authCodes.UpdateAsync(authCode);
+
+        // Convert the account
+        user.Email = normalizedEmail;
+        user.DisplayName = normalizedEmail.Split('@')[0];
+        user.UpdatedAt = DateTime.UtcNow;
+        await _users.UpdateAsync(user);
+
+        // Issue a fresh token with the new email
+        var token = _tokenService.GenerateToken(user.Id, user.Email);
+
+        await _adminNotifier.SendAsync(
+            "Demo Converted",
+            $"Demo session {userId} converted to {normalizedEmail} at {DateTime.UtcNow:u}.");
 
         return Ok(new AuthResponseDto(
             token,
@@ -319,26 +438,16 @@ public class AuthController : ControllerBase
         if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var user = await _db.Users.FindAsync(userId);
+        var user = await _users.GetByIdAsync(userId);
         if (user == null || !user.Email.EndsWith("@functionflow.local"))
             return BadRequest(new { message = "Not a demo account." });
 
         // Remove all related data
-        var tasks = await _db.Tasks.IgnoreQueryFilters()
-            .Where(t => t.UserId == userId).ToListAsync();
-        _db.Tasks.RemoveRange(tasks);
-
-        var lists = await _db.TaskLists.Where(l => l.UserId == userId).ToListAsync();
-        _db.TaskLists.RemoveRange(lists);
-
-        var codes = await _db.AuthCodes.Where(c => c.UserId == userId).ToListAsync();
-        _db.AuthCodes.RemoveRange(codes);
-
-        var keys = await _db.ApiKeys.Where(k => k.UserId == userId).ToListAsync();
-        _db.ApiKeys.RemoveRange(keys);
-
-        _db.Users.Remove(user);
-        await _db.SaveChangesAsync();
+        await _tasks.DeleteAllByUserIdAsync(userId);
+        await _lists.DeleteAllByUserIdAsync(userId);
+        await _authCodes.DeleteByUserIdAsync(userId);
+        await _apiKeys.DeleteByUserIdAsync(userId);
+        await _users.DeleteAsync(user);
 
         await _adminNotifier.SendAsync(
             "Demo Session Ended",
