@@ -17,6 +17,7 @@ import {
   Check,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import ConvertAccountWizard from "./ConvertAccountWizard";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, isDemo, logout } = useAuth();
@@ -24,6 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [themeOpen, setThemeOpen] = useState(false);
+  const [showConvert, setShowConvert] = useState(false);
   const themeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,7 +73,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-1.5 text-center text-xs text-amber-600 dark:text-amber-400 flex items-center justify-center gap-2">
           <AlertTriangle size={14} />
           Demo mode — data will be deleted on logout.
+          <button
+            onClick={() => setShowConvert(true)}
+            className="ml-1 underline font-medium hover:text-amber-800 dark:hover:text-amber-200 transition-colors"
+          >
+            Keep your account
+          </button>
         </div>
+      )}
+      {showConvert && (
+        <ConvertAccountWizard onClose={() => setShowConvert(false)} />
       )}
       <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--bg)]/80">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">

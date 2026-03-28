@@ -59,6 +59,21 @@ export const api = {
   demoLogout: () =>
     request<{ message: string }>("/auth/demo-logout", { method: "POST" }),
 
+  convertDemo: (email: string, displayName?: string) =>
+    request<{ message: string }>("/auth/convert-demo", {
+      method: "POST",
+      body: JSON.stringify({ email, displayName }),
+    }),
+
+  verifyConversion: (email: string, code: string) =>
+    request<{ token: string; user: import("../types").User }>(
+      "/auth/verify-conversion",
+      {
+        method: "POST",
+        body: JSON.stringify({ email, code }),
+      },
+    ),
+
   // Profile
   getProfile: () => request<import("../types").User>("/profile"),
 
@@ -126,5 +141,11 @@ export const api = {
 
   // Health
   getVersion: () =>
-    request<{ name: string; version: string; status: string; database: string; timestamp: string }>("/version"),
+    request<{
+      name: string;
+      version: string;
+      status: string;
+      database: string;
+      timestamp: string;
+    }>("/version"),
 };
