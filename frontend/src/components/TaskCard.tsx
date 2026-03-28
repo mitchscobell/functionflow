@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   Circle,
   Clock,
+  ExternalLink,
+  StickyNote,
 } from "lucide-react";
 
 const priorityColors: Record<string, string> = {
@@ -107,6 +109,26 @@ export default function TaskCard({
                   {tag}
                 </span>
               ))}
+
+              {task.url && (
+                <a
+                  href={task.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-[var(--accent)] hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink size={10} />
+                  Link
+                </a>
+              )}
+
+              {task.notes && (
+                <span className="flex items-center gap-1 text-xs text-[var(--muted)]">
+                  <StickyNote size={10} />
+                  Notes
+                </span>
+              )}
             </div>
           </div>
         </div>

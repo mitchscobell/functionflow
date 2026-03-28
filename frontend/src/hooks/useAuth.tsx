@@ -1,16 +1,11 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import type { User } from "../types";
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => void;
+  isDemo: boolean;
+  login: (token: string, user: User, demo?: boolean) => void;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -25,19 +20,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem("token"),
   );
+  const [isDemo, setIsDemo] = useState(
+    () => localStorage.getItem("isDemo") === "true",
+  );
 
-  const login = (token: string, user: User) => {
+  const login = (token: string, user: User, demo = false) => {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
+    if (demo) localStorage.setItem("isDemo", "true");
+    else localStorage.removeItem("isDemo");
     setToken(token);
     setUser(user);
+    setIsDemo(demo);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("isDemo");
     setToken(null);
     setUser(null);
+    setIsDemo(false);
   };
 
   const updateUser = (updated: User) => {
@@ -46,7 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, token, isDemo, login, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

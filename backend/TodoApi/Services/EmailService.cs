@@ -2,11 +2,16 @@ using System.Security.Cryptography;
 
 namespace TodoApi.Services;
 
+/// <summary>Sends authentication codes to users via email.</summary>
 public interface IEmailService
 {
     Task SendAuthCodeAsync(string email, string code);
 }
 
+/// <summary>
+/// SMTP-based implementation of <see cref="IEmailService"/>.
+/// Falls back to logging when SMTP is not configured.
+/// </summary>
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _config;
@@ -61,6 +66,7 @@ public class EmailService : IEmailService
     }
 }
 
+/// <summary>Cryptographically secure random code generator.</summary>
 public static class CodeGenerator
 {
     public static string GenerateSixDigitCode()

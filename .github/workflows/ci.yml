@@ -1,0 +1,123 @@
+name: Build, Test, Version Bump
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  backend:
+    name: Backend — Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-restore --verbosity normal
+
+  frontend:
+    name: Frontend — Build & Typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+  version-bump:
+    name: Version Bump & Release
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract current version
+        id: get_version
+        run: |
+          VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' backend/TodoApi/TodoApi.csproj)
+          echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Increment version
+        id: increment_version
+        run: |
+          CURRENT_VERSION="${{ steps.get_version.outputs.current_version }}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Update backend version
+        run: |
+          sed -i "s|<Version>${{ steps.get_version.outputs.current_version }}</Version>|<Version>${{ steps.increment_version.outputs.new_version }}</Version>|" backend/TodoApi/TodoApi.csproj
+          sed -i "s|<AssemblyVersion>${{ steps.get_version.outputs.current_version }}</AssemblyVersion>|<AssemblyVersion>${{ steps.increment_version.outputs.new_version }}</AssemblyVersion>|" backend/TodoApi/TodoApi.csproj
+          sed -i "s|<FileVersion>${{ steps.get_version.outputs.current_version }}</FileVersion>|<FileVersion>${{ steps.increment_version.outputs.new_version }}</FileVersion>|" backend/TodoApi/TodoApi.csproj
+
+      - name: Update frontend version
+        run: |
+          cd frontend
+          npm version ${{ steps.increment_version.outputs.new_version }} --no-git-tag-version
+
+      - name: Commit version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add backend/TodoApi/TodoApi.csproj frontend/package.json frontend/package-lock.json
+          git commit -m "Bump version to ${{ steps.increment_version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.increment_version.outputs.new_version }}
+          release_name: Release v${{ steps.increment_version.outputs.new_version }}
+          body: |
+            Auto-generated release v${{ steps.increment_version.outputs.new_version }}
+          draft: false
+          prerelease: false

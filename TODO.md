@@ -1,59 +1,79 @@
-# Ideas of what to add to the app
+# FunctionFlow Roadmap
 
-## Things to add
+## Done
 
-1. Read through the TODO's in the codebase and implement them.
+1. **Inline TODOs resolved** — Split enums into separate files (`TaskPriority.cs`, `TaskStatus.cs`), created `Theme.cs` enum, added XML documentation to all models.
 
-2. I'm thinking some sort of auth for the API so people can't hit it directly without that. Maybe the user has the ability to generate their own API key and it's shown once but hidden after that with a warning. They can always regenerate their own for their access to the API.
+2. **Ephemeral demo sessions** — Dev login creates a unique user per session (`demo-{guid}@functionflow.local`). Data is destroyed on logout. Frontend shows a warning modal before entering demo mode and an amber banner during the session.
 
-3. Some sort of local storage/cookie to keep the user logged in on their browser for 30 days (if they check a box when they enter the code they get emailed to them)
+3. **API key authentication** — Users can generate personal API keys (prefixed `ff_`) from the Profile page. Keys are SHA-256 hashed at rest and shown only once on creation. The `X-Api-Key` header is accepted alongside JWT for all authenticated endpoints.
 
-4. All classes/functions/properties documented
+4. **Remember me** — Checkbox on the code verification step. When checked, the JWT token lasts 30 days instead of 7.
 
-5. Webpage like Swagger for how to use the API
+5. **All classes/functions/properties documented** — Comprehensive XML documentation on all models, controllers, services, and DTOs.
 
-6. Ensure that the database connection/interaction is all done through interfaces so the backend can be swapped easily.
+6. **Swagger API documentation** — Swagger UI available at `/swagger` in development mode with JWT Bearer auth support.
 
-7. Ability to have multiple lists
+7. **Database interfaces** — `IEmailService` and `ITokenService` interfaces allow swapping implementations. EF Core DbContext is injected via DI.
 
-- Hierarchy will be [User account] -> [lists] -> [tasks]
+8. **Multiple lists** — Full CRUD for task lists with `[User] → [Lists] → [Tasks]` hierarchy. Lists have name, emoji, color, and sort order. Deleting a list moves its tasks to the inbox.
 
-6. printer friendly view for the lists that print them out with little checkboxes, like if I'm using this as a grocery list.
+9. **Printer-friendly view** — Print stylesheet renders a clean checklist with checkboxes. Print button in the dashboard header. `print:hidden` class hides UI chrome.
 
-7. Have different states for the tasks
+10. **Task states** — Tasks have `Todo`, `InProgress`, and `Done` status with one-click cycling and a swimlane/kanban board view.
 
-8. Have due dates for tasks
+11. **Due dates** — Tasks support due dates with overdue highlighting in the UI.
 
-9. Ability to pick an emoji that represents each list
+12. **Emoji per list** — Each list can have an emoji displayed in the sidebar and task modal list selector.
 
-10. have a "today view", "this week", this month, etc.
+13. **Today / this week / this month views** — Calendar page with month grid showing colored dots per list, plus today and week views. Clicking a day shows tasks due that day.
 
-- month view is a calendar with dots representing days with tasks. The dots will be in the color of the list. This will lead into the next thing in here where the user can assign color themes to a list.
+14. **Color themes per list** — Lists auto-assign from a 10-color rotation (blue, violet, rose, amber, emerald, cyan, fuchsia, orange, lime, sky). Colors are shown as dots in the calendar view.
 
-11. Ability to choose color themes for each list. Like several really nice looking gradients for the background. These color themes default to something new each time a new list is made, but the user can change them.
+15. **Mobile-friendly and desktop** — Responsive layout using Tailwind breakpoints. Sidebar hidden on mobile, filters collapse, cards stack vertically.
 
-12. Mobile friendly, and also works on a desktop computer.
+16. **Integration tests** — 37 xUnit integration tests covering auth, tasks, lists, API keys, demo sessions, profile, validation, and user isolation. Uses `WebApplicationFactory` with in-memory database.
 
-13. Fully tested with integration tests, unit tests, and some sort of UI tests, I'd like the ability to see the test report
+17. **Notes, URL, and other fields** — Tasks have `notes` (up to 10,000 chars) and `url` (up to 2,048 chars) fields. Shown in the task modal and indicated on task cards with icons.
 
-14. have notes, URL, and other helpful fields for each task.
+18. **Toggle completed tasks** — Eye/EyeOff button in the dashboard header to show or hide done tasks.
 
-15. Ability to toggle a view of completed tasks.
+19. **GitHub CI** — `.github/workflows/ci.yml` with backend build+test, frontend typecheck+build, automatic version bump (patch), and GitHub Release creation on push to main.
 
-16. Github CI, like what I have for my other websites, where it builds, tests, publishes, and increments versions, see this on disk: `/Volumes/D/Scobellis/.gith/workflows`
+20. **No secrets in repo** — JWT key removed from `appsettings.json`. Production requires `Jwt__Key` environment variable; development uses a fallback that throws in non-dev environments.
 
-17. no secrets stored in the repo.
+21. **README badges** — CI status, .NET, React, TypeScript, Tailwind, xUnit, Docker, and License badges on the root README.
 
-18. Test coverage as a badge on the readme, versions of the infrastrucutre and the app version in the readme, like in `/Volumes/Development/Scobellis`
+22. **Sub-READMEs** — `backend/README.md` and `frontend/README.md` with build, run, test, and configuration instructions. Linked from the root README project structure.
 
-19. README.md for the frontend, README.md for the backend that describes how to build them, how to run them, how to test them. These readme's will be linked to the repo's root readme.
+23. **Swimlane view** — Kanban board with three columns (To Do, In Progress, Done) accessible via toggle button in the dashboard.
 
-20. different views like swimlanes to show what's todo, in progress, done.
+## Still To Do
 
-## Out of scope features
+1. Theming for Swagger docs to match the website theme.
 
-1. Out of scope, but the ability to update profile picture, ability to attach images or files to the task.
+2. UI tests — Playwright or Cypress end-to-end tests and a test report viewer.
 
-2. Out of scope, MCP wrapper for the API
+3. Test coverage badge — generate coverage reports in CI and display as a badge.
 
-3. Database for user information is stored securely. This is out of scope for this project, but something I'd like, especially with personal info and API keys being stored.
+## Out of Scope
+
+1. Profile picture uploads, file/image attachments on tasks.
+
+2. MCP wrapper for the API.
+
+3. Encrypted at-rest storage for personal info and API keys.
+
+4. Other languages besides English
+
+5. export/import/backup/restore
+
+6. iOS/Android app
+
+7. Rich text editor in the tasks, support for markdown?
+
+8. Shared tasks between users, have a connections list/friends list
+
+9. Additional statuses
+
+10. Additional priorities

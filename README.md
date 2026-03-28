@@ -2,31 +2,45 @@
 
 A clean, themeable task management app built with .NET 8 and React.
 
-![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4)
-![React](https://img.shields.io/badge/React-19-61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6)
-![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4)
+[![CI](https://github.com/mitchscobell/functionflow/actions/workflows/ci.yml/badge.svg)](https://github.com/mitchscobell/functionflow/actions/workflows/ci.yml)
+[![.NET Version](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
+[![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4.svg)](https://tailwindcss.com/)
+[![xUnit](https://img.shields.io/badge/xUnit-48_tests-orange.svg)](backend/TodoApi.Tests/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Features
 
 - **Passwordless auth** — email-based login with 6-digit verification codes
+- **API key auth** — generate personal API keys for programmatic access
 - **Full task CRUD** — create, edit, delete, search, filter, sort, and paginate
-- **Three themes** — Function (warm terracotta), Dark, and Light
+- **Multiple lists** — organize tasks into named lists with emoji and color coding
+- **Swimlane view** — kanban board with To Do / In Progress / Done columns
+- **Calendar view** — month grid, today, and week views with colored task dots
+- **Five themes** — Function (warm terracotta), Dark (indigo), Light (blue), Vaporwave (neon pink), Cyberpunk (cyan)
 - **Status workflow** — Todo → In Progress → Done with one-click cycling
 - **Priority + tags** — organize tasks with High/Medium/Low priority and custom tags
+- **Notes & URLs** — attach extended notes and links to any task
 - **Due date tracking** — overdue tasks are highlighted
+- **Printer-friendly** — print view with clean checklist layout
+- **Toggle completed** — show/hide done tasks with one click
+- **Remember me** — optional 30-day JWT token
+- **Demo mode** — try the app instantly with isolated ephemeral data
+- **Admin notifications** — configurable email alerts for sign-ups, logins, and demo sessions
+- **Health check** — `/version` endpoint with API and database status
 - **User profiles** — display name and theme preference per user
-- **Dev login** — instant login bypass in development mode
 
 ## Tech Stack
 
-| Layer    | Technology                                          |
-| -------- | --------------------------------------------------- |
-| Backend  | .NET 8 Web API, Entity Framework Core, SQLite       |
-| Auth     | JWT (passwordless email codes via MailKit)          |
-| Frontend | React 19, Vite 8, TypeScript 5.9, Tailwind CSS 4    |
-| Testing  | xUnit, WebApplicationFactory (20 integration tests) |
-| Infra    | Docker, docker-compose, nginx                       |
+| Layer    | Technology                                                  |
+| -------- | ----------------------------------------------------------- |
+| Backend  | .NET 8 Web API, Entity Framework Core, SQLite               |
+| Auth     | JWT + API Key (dual scheme), passwordless email via MailKit |
+| Frontend | React 19, Vite 8, TypeScript 5.9, Tailwind CSS 4            |
+| Testing  | xUnit, WebApplicationFactory (48 integration tests)         |
+| Infra    | Docker, docker-compose, nginx, GitHub Actions CI            |
 
 ## Quick Start
 
@@ -59,28 +73,29 @@ Open **http://localhost** — the app runs on port 80.
 
 ## Project Structure
 
-```
+```text
 functionflow/
-├── backend/
-│   ├── TodoApi/              # .NET 8 Web API
-│   │   ├── Controllers/      # Auth, Tasks, Profile
-│   │   ├── Models/           # User, TodoTask, AuthCode
+├── backend/                  # .NET 8 Web API → see backend/README.md
+│   ├── TodoApi/              # API source code
+│   │   ├── Controllers/      # Auth, Tasks, Lists, ApiKeys, Profile
+│   │   ├── Models/           # User, TodoTask, TaskList, ApiKey, AuthCode
 │   │   ├── Data/             # EF Core DbContext
 │   │   ├── DTOs/             # Request/response records
-│   │   ├── Services/         # Email, Token
+│   │   ├── Services/         # Email, Token, AdminNotifier, ApiKey auth, Cleanup
 │   │   ├── Validators/       # FluentValidation
 │   │   └── Middleware/       # Global error handler
-│   ├── TodoApi.Tests/        # Integration tests (20 tests)
+│   ├── TodoApi.Tests/        # Integration tests (48 tests)
 │   └── Dockerfile
-├── frontend/
+├── frontend/                 # React SPA → see frontend/README.md
 │   ├── src/
 │   │   ├── components/       # Layout, TaskCard, TaskModal
-│   │   ├── pages/            # Login, Dashboard, Profile
+│   │   ├── pages/            # Login, Dashboard, Profile, Calendar, Version
 │   │   ├── hooks/            # useAuth, useTheme
 │   │   ├── lib/              # API client
 │   │   └── types/            # TypeScript interfaces
 │   ├── nginx.conf
 │   └── Dockerfile
+├── .github/workflows/        # CI: build, test, version bump
 └── docker-compose.yml
 ```
 
@@ -89,15 +104,27 @@ functionflow/
 | Method | Route                    | Auth | Description                                 |
 | ------ | ------------------------ | ---- | ------------------------------------------- |
 | POST   | `/api/auth/request-code` | No   | Send login code to email                    |
-| POST   | `/api/auth/verify-code`  | No   | Verify code, get JWT                        |
-| POST   | `/api/auth/dev-login`    | No   | Dev-only instant login                      |
+| POST   | `/api/auth/verify-code`  | No   | Verify code, get JWT (optional remember me) |
+| POST   | `/api/auth/dev-login`    | No   | Dev-only instant login (ephemeral session)  |
+| POST   | `/api/auth/demo-logout`  | Yes  | Destroy demo session data                   |
 | GET    | `/api/tasks`             | Yes  | List tasks (filter, search, sort, paginate) |
 | POST   | `/api/tasks`             | Yes  | Create task                                 |
 | GET    | `/api/tasks/:id`         | Yes  | Get single task                             |
 | PUT    | `/api/tasks/:id`         | Yes  | Update task                                 |
 | DELETE | `/api/tasks/:id`         | Yes  | Soft-delete task                            |
+| GET    | `/api/lists`             | Yes  | List all task lists                         |
+| POST   | `/api/lists`             | Yes  | Create a list                               |
+| GET    | `/api/lists/:id`         | Yes  | Get single list                             |
+| PUT    | `/api/lists/:id`         | Yes  | Update list                                 |
+| DELETE | `/api/lists/:id`         | Yes  | Delete list (tasks move to inbox)           |
+| GET    | `/api/keys`              | Yes  | List API keys (prefix only)                 |
+| POST   | `/api/keys`              | Yes  | Create API key (shown once)                 |
+| DELETE | `/api/keys/:id`          | Yes  | Revoke API key                              |
 | GET    | `/api/profile`           | Yes  | Get user profile                            |
 | PUT    | `/api/profile`           | Yes  | Update display name / theme                 |
+| GET    | `/api/version`           | No   | Health check + version info                 |
+
+Authentication supports both `Authorization: Bearer <JWT>` and `X-Api-Key: <key>` headers.
 
 ## Email Setup (Production)
 
@@ -120,14 +147,17 @@ cd backend
 dotnet test --verbosity normal
 ```
 
-20 integration tests covering auth, task CRUD, profile, input validation, and user isolation.
+48 integration tests covering auth, task CRUD, lists, API keys, demo sessions, profile, admin notifications, health check, input validation, and user isolation.
 
 ## Architecture Decisions
 
 - **SQLite** — zero-config database, perfect for a single-server deployment. Data persists in `data/todo.db`.
 - **Passwordless auth** — simpler UX, no password storage/hashing concerns. Codes expire after 10 minutes.
+- **Dual auth schemes** — JWT for browser sessions, API keys for programmatic access. Keys are SHA-256 hashed at rest.
 - **Soft delete** — tasks are never truly deleted, enabling future undo/audit features.
 - **CSS custom properties for theming** — theme switching is instant with no re-render, and new themes can be added with just CSS.
+- **Ephemeral demo sessions** — each demo login creates a unique user with sample lists and tasks; all data is destroyed on logout.
+- **No secrets in repo** — JWT key falls back to a dev-only default and throws in production if not configured via environment.
 - **Rate limiting** — auth endpoints are rate-limited (10 req/min per IP) to prevent abuse.
 
 ## License

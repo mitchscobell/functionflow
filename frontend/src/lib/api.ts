@@ -10,10 +10,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (res.status === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
+    if (token) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || "Unauthorized");
   }
 
   if (!res.ok) {
@@ -35,12 +38,12 @@ export const api = {
       body: JSON.stringify({ email }),
     }),
 
-  verifyCode: (email: string, code: string) =>
+  verifyCode: (email: string, code: string, rememberMe: boolean = false) =>
     request<{ token: string; user: import("../types").User }>(
       "/auth/verify-code",
       {
         method: "POST",
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email, code, rememberMe }),
       },
     ),
 
@@ -52,6 +55,9 @@ export const api = {
         body: JSON.stringify({ email }),
       },
     ),
+
+  demoLogout: () =>
+    request<{ message: string }>("/auth/demo-logout", { method: "POST" }),
 
   // Profile
   getProfile: () => request<import("../types").User>("/profile"),
@@ -84,4 +90,41 @@ export const api = {
 
   deleteTask: (id: number) =>
     request<void>(`/tasks/${id}`, { method: "DELETE" }),
+
+  // Lists
+  getLists: () => request<import("../types").TaskList[]>("/lists"),
+
+  createList: (data: { name: string; emoji?: string; color?: string }) =>
+    request<import("../types").TaskList>("/lists", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateList: (
+    id: number,
+    data: { name?: string; emoji?: string; color?: string; sortOrder?: number },
+  ) =>
+    request<import("../types").TaskList>(`/lists/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteList: (id: number) =>
+    request<void>(`/lists/${id}`, { method: "DELETE" }),
+
+  // API Keys
+  getApiKeys: () => request<import("../types").ApiKey[]>("/keys"),
+
+  createApiKey: (name: string) =>
+    request<import("../types").ApiKeyCreated>("/keys", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
+
+  revokeApiKey: (id: number) =>
+    request<void>(`/keys/${id}`, { method: "DELETE" }),
+
+  // Health
+  getVersion: () =>
+    request<{ name: string; version: string; status: string; database: string; timestamp: string }>("/version"),
 };

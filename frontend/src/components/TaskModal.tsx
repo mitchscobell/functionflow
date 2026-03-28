@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Task } from "../types";
+import type { Task, TaskList } from "../types";
 import { X } from "lucide-react";
 
 interface Props {
@@ -7,33 +7,51 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSave: (data: Partial<Task>) => void;
+  lists?: TaskList[];
+  activeListId?: number | null;
 }
 
-export default function TaskModal({ task, open, onClose, onSave }: Props) {
+export default function TaskModal({
+  task,
+  open,
+  onClose,
+  onSave,
+  lists = [],
+  activeListId,
+}: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [notes, setNotes] = useState("");
+  const [url, setUrl] = useState("");
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("Medium");
   const [status, setStatus] = useState<"Todo" | "InProgress" | "Done">("Todo");
   const [dueDate, setDueDate] = useState("");
   const [tagsInput, setTagsInput] = useState("");
+  const [listId, setListId] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (task) {
       setTitle(task.title);
       setDescription(task.description || "");
+      setNotes(task.notes || "");
+      setUrl(task.url || "");
       setPriority(task.priority);
       setStatus(task.status);
       setDueDate(task.dueDate ? task.dueDate.split("T")[0] : "");
       setTagsInput(task.tags.join(", "));
+      setListId(task.listId);
     } else {
       setTitle("");
       setDescription("");
+      setNotes("");
+      setUrl("");
       setPriority("Medium");
       setStatus("Todo");
       setDueDate("");
       setTagsInput("");
+      setListId(activeListId ?? undefined);
     }
-  }, [task, open]);
+  }, [task, open, activeListId]);
 
   if (!open) return null;
 
@@ -47,10 +65,13 @@ export default function TaskModal({ task, open, onClose, onSave }: Props) {
     onSave({
       title,
       description: description || undefined,
+      notes: notes || undefined,
+      url: url || undefined,
       priority,
       status: task ? status : undefined,
       dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
       tags,
+      listId: listId ?? undefined,
     });
   };
 
@@ -99,6 +120,30 @@ export default function TaskModal({ task, open, onClose, onSave }: Props) {
               rows={3}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none"
               placeholder="Add details..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              maxLength={10000}
+              rows={3}
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none"
+              placeholder="Checklists, extra details, reminders..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">URL</label>
+            <input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              type="url"
+              maxLength={2048}
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+              placeholder="https://..."
             />
           </div>
 
@@ -155,6 +200,27 @@ export default function TaskModal({ task, open, onClose, onSave }: Props) {
               placeholder="work, personal, urgent (comma separated)"
             />
           </div>
+
+          {lists.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium mb-1">List</label>
+              <select
+                value={listId ?? ""}
+                onChange={(e) =>
+                  setListId(e.target.value ? Number(e.target.value) : undefined)
+                }
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+              >
+                <option value="">Inbox (no list)</option>
+                {lists.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.emoji ? `${l.emoji} ` : ""}
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <button

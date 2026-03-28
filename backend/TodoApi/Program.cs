@@ -2,11 +2,14 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TodoApi.Data;
 using TodoApi.Middleware;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 using TodoApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,8 +22,12 @@ Directory.CreateDirectory(Path.GetDirectoryName(fullDbPath)!);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={fullDbPath}"));
 
-// --- Authentication ---
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "FunctionFlowDevKey_ChangeInProduction_MinLength32Chars!";
+// --- Authentication (JWT + API Key) ---
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? (builder.Environment.IsDevelopment()
+        ? "FunctionFlowDevKey_ChangeInProduction_MinLength32Chars!"
+        : throw new InvalidOperationException("Jwt:Key must be configured in production."));
+builder.Configuration["Jwt:Key"] = jwtKey;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -34,9 +41,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "FunctionFlow",
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
-    });
+    })
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>("ApiKey", null);
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder(
+        JwtBearerDefaults.AuthenticationScheme, "ApiKey")
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 // --- Rate Limiting ---
 builder.Services.AddRateLimiter(options =>
@@ -56,6 +70,8 @@ builder.Services.AddRateLimiter(options =>
 // --- Services ---
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddHostedService<DemoSessionCleanupService>();
+builder.Services.AddScoped<IAdminNotifier, AdminNotifier>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // --- Controllers & JSON ---
@@ -72,14 +88,14 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "FunctionFlow API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new()
     {
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT"
     });
     c.AddSecurityRequirement(new()
     {
         {
-            new() { Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
+            new() { Reference = new() { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
             Array.Empty<string>()
         }
     });

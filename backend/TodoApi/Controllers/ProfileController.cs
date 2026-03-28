@@ -8,6 +8,10 @@ using TodoApi.DTOs;
 
 namespace TodoApi.Controllers;
 
+/// <summary>
+/// Manages the authenticated user's profile, including display name
+/// and theme preference.
+/// </summary>
 [ApiController]
 [Route("api/profile")]
 [Authorize]

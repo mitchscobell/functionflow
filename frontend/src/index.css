@@ -48,6 +48,38 @@
     --input-bg: #FFFFFF;
 }
 
+/* ── Theme: Vaporwave ── */
+.theme-vaporwave {
+    --bg: #1A1025;
+    --bg-secondary: #241536;
+    --text: #E8D5F5;
+    --text-secondary: #B794D6;
+    --accent: #FF6AD5;
+    --accent-hover: #E84FC0;
+    --card: #2A1840;
+    --border: #3D2560;
+    --hover: #331E50;
+    --muted: #9E7BB5;
+    --success: #01CDFE;
+    --input-bg: #241536;
+}
+
+/* ── Theme: Cyberpunk ── */
+.theme-cyberpunk {
+    --bg: #0A0A12;
+    --bg-secondary: #12121E;
+    --text: #E0F0FF;
+    --text-secondary: #8899AA;
+    --accent: #00F0FF;
+    --accent-hover: #00C8D8;
+    --card: #141424;
+    --border: #1E2040;
+    --hover: #1A1A30;
+    --muted: #556677;
+    --success: #39FF14;
+    --input-bg: #12121E;
+}
+
 /* ── Base reset ── */
 *,
 *::before,
@@ -73,6 +105,8 @@ button {
 }
 
 /* Override date input color for dark themes */
-.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
+.theme-dark input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-vaporwave input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-cyberpunk input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }

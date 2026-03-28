@@ -6,7 +6,7 @@ import {
   ReactNode,
 } from "react";
 
-type Theme = "function" | "dark" | "light";
+type Theme = "function" | "dark" | "light" | "vaporwave" | "cyberpunk";
 
 interface ThemeContextType {
   theme: Theme;
@@ -19,7 +19,15 @@ const themeClasses: Record<Theme, string> = {
   function: "theme-function",
   dark: "theme-dark",
   light: "theme-light",
+  vaporwave: "theme-vaporwave",
+  cyberpunk: "theme-cyberpunk",
 };
+
+const darkThemes: ReadonlySet<Theme> = new Set([
+  "dark",
+  "vaporwave",
+  "cyberpunk",
+]);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
@@ -39,7 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.classList.add(themeClasses[theme]);
 
     // Set dark mode for Tailwind
-    if (theme === "dark") {
+    if (darkThemes.has(theme)) {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");

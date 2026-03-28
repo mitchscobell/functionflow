@@ -9,6 +9,10 @@ using TodoApi.Models;
 
 namespace TodoApi.Controllers;
 
+/// <summary>
+/// CRUD operations for tasks with search, filtering, sorting, and pagination.
+/// All endpoints are scoped to the authenticated user.
+/// </summary>
 [ApiController]
 [Route("api/tasks")]
 [Authorize]
@@ -122,10 +126,13 @@ public class TasksController : ControllerBase
         {
             Title = dto.Title,
             Description = dto.Description,
+            Notes = dto.Notes,
+            Url = dto.Url,
             DueDate = dto.DueDate,
             Priority = dto.Priority,
             Status = Models.TaskStatus.Todo,
             Tags = dto.Tags ?? Array.Empty<string>(),
+            ListId = dto.ListId,
             UserId = userId
         };
 
@@ -148,10 +155,13 @@ public class TasksController : ControllerBase
 
         if (dto.Title != null) task.Title = dto.Title;
         if (dto.Description != null) task.Description = dto.Description;
+        if (dto.Notes != null) task.Notes = dto.Notes;
+        if (dto.Url != null) task.Url = dto.Url;
         if (dto.DueDate.HasValue) task.DueDate = dto.DueDate;
         if (dto.Priority.HasValue) task.Priority = dto.Priority.Value;
         if (dto.Status.HasValue) task.Status = dto.Status.Value;
         if (dto.Tags != null) task.Tags = dto.Tags;
+        if (dto.ListId.HasValue) task.ListId = dto.ListId.Value == 0 ? null : dto.ListId.Value;
 
         await _db.SaveChangesAsync();
         return Ok(ToDto(task));
@@ -175,8 +185,8 @@ public class TasksController : ControllerBase
     }
 
     private static TaskDto ToDto(TodoTask t) => new(
-        t.Id, t.Title, t.Description, t.DueDate,
-        t.Priority, t.Status, t.Tags,
+        t.Id, t.Title, t.Description, t.Notes, t.Url, t.DueDate,
+        t.Priority, t.Status, t.Tags, t.ListId,
         t.CreatedAt, t.UpdatedAt
     );
 }
