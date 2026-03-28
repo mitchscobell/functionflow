@@ -105,9 +105,7 @@ export default function VersionPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[var(--muted)]">Connection</span>
                 <span className="flex items-center gap-2">
-                  <StatusDot
-                    healthy={apiHealth?.database === "connected"}
-                  />
+                  <StatusDot healthy={apiHealth?.database === "connected"} />
                   {apiHealth?.database}
                 </span>
               </div>
