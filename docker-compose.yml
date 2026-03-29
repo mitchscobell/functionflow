@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Jwt__Key=${JWT_KEY:-FunctionFlowDevKey_ChangeInProduction_MinLength32Chars!}
@@ -11,10 +11,19 @@ services:
       - Smtp__User=${SMTP_USER:-}
       - Smtp__Pass=${SMTP_PASS:-}
       - Smtp__From=${SMTP_FROM:-}
-      - Cors__Origins__0=http://localhost
+      - AdminNotify__Email=${ADMIN_EMAIL:-}
+      - DemoCleanup__MaxAgeHours=${DEMO_MAX_AGE_HOURS:-24}
+      - DemoCleanup__IntervalMinutes=${DEMO_INTERVAL_MINUTES:-30}
+      - Cors__Origins__0=${CORS_ORIGIN:-http://localhost}
       - Cors__Origins__1=http://localhost:3000
     volumes:
       - app-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5000/api/version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   frontend:
@@ -22,7 +31,14 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     restart: unless-stopped
 
 volumes:

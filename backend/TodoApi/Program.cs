@@ -129,11 +129,8 @@ var app = builder.Build();
 // --- Middleware Pipeline ---
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors();
 app.UseRateLimiter();

@@ -11,27 +11,6 @@ A clean, themeable task management app built with .NET 8 and React.
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Features
-
-- **Passwordless auth** — email-based login with 6-digit verification codes
-- **API key auth** — generate personal API keys for programmatic access
-- **Full task CRUD** — create, edit, delete, search, filter, sort, and paginate
-- **Multiple lists** — organize tasks into named lists with emoji and color coding
-- **Swimlane view** — kanban board with To Do / In Progress / Done columns
-- **Calendar view** — month grid, today, and week views with colored task dots
-- **Five themes** — Function (warm terracotta), Dark (indigo), Light (blue), Vaporwave (neon pink), Cyberpunk (cyan)
-- **Status workflow** — Todo → In Progress → Done with one-click cycling
-- **Priority + tags** — organize tasks with High/Medium/Low priority and custom tags
-- **Notes & URLs** — attach extended notes and links to any task
-- **Due date tracking** — overdue tasks are highlighted
-- **Printer-friendly** — print view with clean checklist layout
-- **Toggle completed** — show/hide done tasks with one click
-- **Remember me** — optional 30-day JWT token
-- **Demo mode** — try the app instantly with isolated ephemeral data
-- **Admin notifications** — configurable email alerts for sign-ups, logins, and demo sessions
-- **Health check** — `/version` endpoint with API and database status
-- **User profiles** — display name and theme preference per user
-
 ## Tech Stack
 
 | Layer    | Technology                                                  |
@@ -157,7 +136,6 @@ dotnet test --verbosity normal
 - **Soft delete** — tasks are never truly deleted, enabling future undo/audit features.
 - **CSS custom properties for theming** — theme switching is instant with no re-render, and new themes can be added with just CSS.
 - **Ephemeral demo sessions** — each demo login creates a unique user with sample lists and tasks; all data is destroyed on logout.
-- **No secrets in repo** — JWT key falls back to a dev-only default and throws in production if not configured via environment.
 - **Rate limiting** — auth endpoints are rate-limited (10 req/min per IP) to prevent abuse.
 
 ## License

@@ -13,6 +13,7 @@ import {
   Copy,
   Trash2,
   AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -212,7 +213,18 @@ export default function ProfilePage() {
             <code className="text-xs bg-[var(--hover)] px-1 py-0.5 rounded">
               X-Api-Key
             </code>{" "}
-            header in your requests.
+            header in your requests. See the{" "}
+            <a
+              href="/swagger"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[var(--accent)] hover:underline"
+            >
+              API documentation
+              <ExternalLink size={12} />
+            </a>{" "}
+            for available endpoints, request/response schemas, and usage
+            examples.
           </p>
 
           {/* New key form */}
