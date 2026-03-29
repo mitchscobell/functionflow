@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using TodoApi.Data;
 using TodoApi.DTOs;
 
 namespace TodoApi.Tests;
@@ -117,5 +120,43 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
 
         var response = await _client.PostAsJsonAsync("/api/keys", new { name = "" });
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ApiKeyAuth_WhitespaceKey_ReturnsUnauthorized()
+    {
+        _client.DefaultRequestHeaders.Authorization = null;
+        _client.DefaultRequestHeaders.Remove("X-Api-Key");
+        _client.DefaultRequestHeaders.Add("X-Api-Key", "  ");
+
+        var response = await _client.GetAsync("/api/tasks");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        _client.DefaultRequestHeaders.Remove("X-Api-Key");
+    }
+
+    [Fact]
+    public async Task ApiKeyAuth_ExpiredKey_ReturnsUnauthorized()
+    {
+        var token = await GetAuthTokenAsync("expiredkey@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/keys",
+            new { name = "Expired Key" });
+        Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+        var keyResult = await createRes.Content.ReadFromJsonAsync<ApiKeyCreatedDto>();
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var apiKey = await db.ApiKeys.FirstAsync(k => k.KeyPrefix == keyResult!.KeyPrefix);
+        apiKey.ExpiresAt = DateTime.UtcNow.AddHours(-1);
+        await db.SaveChangesAsync();
+
+        _client.DefaultRequestHeaders.Authorization = null;
+        _client.DefaultRequestHeaders.Add("X-API-Key", keyResult!.Key);
+        var response = await _client.GetAsync("/api/tasks");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        _client.DefaultRequestHeaders.Remove("X-API-Key");
     }
 }

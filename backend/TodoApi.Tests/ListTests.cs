@@ -140,4 +140,101 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(lists);
         Assert.DoesNotContain(lists, l => l.Name == "User A List");
     }
+
+    [Fact]
+    public async Task GetList_ValidId_ReturnsList()
+    {
+        var token = await GetAuthTokenAsync("getlistbyid@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Fetch Me" });
+        var created = await createRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var response = await _client.GetAsync($"/api/lists/{created!.Id}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var list = await response.Content.ReadFromJsonAsync<ListDto>();
+        Assert.NotNull(list);
+        Assert.Equal("Fetch Me", list.Name);
+    }
+
+    [Fact]
+    public async Task GetList_NotFound_Returns404()
+    {
+        var token = await GetAuthTokenAsync("listnotfound@example.com");
+        SetAuth(token);
+
+        var response = await _client.GetAsync("/api/lists/99999");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateList_NotFound_Returns404()
+    {
+        var token = await GetAuthTokenAsync("listupdate404@example.com");
+        SetAuth(token);
+
+        var response = await _client.PutAsJsonAsync("/api/lists/99999", new { name = "X" });
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteList_NotFound_Returns404()
+    {
+        var token = await GetAuthTokenAsync("listdelete404@example.com");
+        SetAuth(token);
+
+        var response = await _client.DeleteAsync("/api/lists/99999");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateList_PartialUpdate_OnlyChangesProvidedFields()
+    {
+        var token = await GetAuthTokenAsync("listpartial@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/lists",
+            new { name = "Original", emoji = "📋", color = "blue" });
+        var created = await createRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var response = await _client.PutAsJsonAsync($"/api/lists/{created!.Id}",
+            new { color = "red", sortOrder = 5 });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<ListDto>();
+        Assert.Equal("Original", updated!.Name);
+        Assert.Equal("📋", updated.Emoji);
+        Assert.Equal("red", updated.Color);
+        Assert.Equal(5, updated.SortOrder);
+    }
+
+    [Fact]
+    public async Task CreateList_NoColor_AssignsDefault()
+    {
+        var token = await GetAuthTokenAsync("listnocolor@example.com");
+        SetAuth(token);
+
+        var response = await _client.PostAsJsonAsync("/api/lists", new { name = "No Color" });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var list = await response.Content.ReadFromJsonAsync<ListDto>();
+        Assert.NotNull(list);
+        Assert.False(string.IsNullOrEmpty(list.Color));
+    }
+
+    [Fact]
+    public async Task UpdateList_InvalidInput_ReturnsBadRequest()
+    {
+        var token = await GetAuthTokenAsync("listbadinput@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Test" });
+        var created = await createRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var response = await _client.PutAsJsonAsync($"/api/lists/{created!.Id}",
+            new { name = new string('X', 200) });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

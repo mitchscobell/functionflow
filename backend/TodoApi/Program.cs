@@ -69,10 +69,11 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // --- Services ---
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddSingleton<ICodeGenerator, CryptoCodeGenerator>();
 builder.Services.AddHostedService<DemoSessionCleanupService>();
-builder.Services.AddScoped<IAdminNotifier, AdminNotifier>();
+builder.Services.AddScoped<IAdminNotifier, SmtpAdminNotifier>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // --- Repositories ---

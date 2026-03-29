@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using TodoApi.DTOs;
+using TodoApi.Models;
 
 namespace TodoApi.Tests;
 
@@ -183,5 +184,192 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
 
         Assert.NotNull(result);
         Assert.DoesNotContain(result.Items, t => t.Title == "User A Task");
+    }
+
+    [Fact]
+    public async Task UpdateTask_AllFields_ReturnsUpdated()
+    {
+        var token = await GetAuthTokenAsync("updateallfields@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/tasks",
+            new { title = "Base Task", priority = "Low" });
+        var created = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created!.Id}", new
+        {
+            title = "Updated",
+            description = "Updated desc",
+            notes = "My notes",
+            url = "https://example.com",
+            priority = "High",
+            status = "Done",
+            tags = new[] { "updated" },
+            dueDate = DateTime.UtcNow.AddDays(5).ToString("o")
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+        Assert.Equal("Updated", task!.Title);
+        Assert.Equal("Updated desc", task.Description);
+    }
+
+    [Fact]
+    public async Task CreateTask_WithAllOptionalFields_ReturnsCreated()
+    {
+        var token = await GetAuthTokenAsync("fulltask@example.com");
+        SetAuth(token);
+
+        var listRes = await _client.PostAsJsonAsync("/api/lists", new { name = "For Task" });
+        var list = await listRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var response = await _client.PostAsJsonAsync("/api/tasks", new
+        {
+            title = "Full Task",
+            description = "A description",
+            notes = "Some notes",
+            url = "https://example.com/task",
+            priority = "High",
+            tags = new[] { "a", "b" },
+            dueDate = DateTime.UtcNow.AddDays(3).ToString("o"),
+            listId = list!.Id
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTasks_SortByTitle_ReturnsSorted()
+    {
+        var token = await GetAuthTokenAsync("sorttasks@example.com");
+        SetAuth(token);
+
+        await _client.PostAsJsonAsync("/api/tasks", new { title = "Zebra", priority = "Low" });
+        await _client.PostAsJsonAsync("/api/tasks", new { title = "Apple", priority = "Low" });
+
+        var response = await _client.GetAsync("/api/tasks?sortBy=title&sortDir=asc");
+        var result = await response.Content.ReadFromJsonAsync<TaskListResponseDto>(TestHelpers.JsonOptions);
+        Assert.Equal("Apple", result!.Items.First().Title);
+    }
+
+    [Fact]
+    public async Task GetTasks_SortByPriority_ReturnsSorted()
+    {
+        var token = await GetAuthTokenAsync("sortpri@example.com");
+        SetAuth(token);
+
+        await _client.PostAsJsonAsync("/api/tasks", new { title = "Low Task", priority = "Low" });
+        await _client.PostAsJsonAsync("/api/tasks", new { title = "High Task", priority = "High" });
+
+        var response = await _client.GetAsync("/api/tasks?sortBy=priority&sortDir=desc");
+        var result = await response.Content.ReadFromJsonAsync<TaskListResponseDto>(TestHelpers.JsonOptions);
+        Assert.Equal("High Task", result!.Items.First().Title);
+    }
+
+    [Fact]
+    public async Task UpdateTask_InvalidUrl_ReturnsBadRequest()
+    {
+        var token = await GetAuthTokenAsync("taskbadurl@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/tasks",
+            new { title = "URL Task", priority = "Low" });
+        var created = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created!.Id}",
+            new { url = "not-a-url" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateTask_TooManyTags_ReturnsBadRequest()
+    {
+        var token = await GetAuthTokenAsync("tasktags@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/tasks",
+            new { title = "Tags Task", priority = "Low" });
+        var created = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created!.Id}",
+            new { tags = Enumerable.Range(0, 11).Select(i => $"tag{i}").ToArray() });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public void TodoTask_AllProperties_CanBeSet()
+    {
+        var now = DateTime.UtcNow;
+        var task = new TodoTask
+        {
+            Id = 1,
+            Title = "Test",
+            Description = "Desc",
+            Notes = "My notes",
+            Url = "https://example.com",
+            DueDate = now,
+            Priority = TaskPriority.High,
+            Status = Models.TaskStatus.InProgress,
+            Tags = new[] { "a", "b" },
+            UserId = 42,
+            ListId = 5,
+            IsDeleted = false,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        Assert.Equal("My notes", task.Notes);
+        Assert.Equal("https://example.com", task.Url);
+        Assert.Equal(5, task.ListId);
+        Assert.Equal(now, task.DueDate);
+    }
+
+    [Fact]
+    public void TodoTask_DefaultValues_AreCorrect()
+    {
+        var task = new TodoTask();
+
+        Assert.Equal(string.Empty, task.Title);
+        Assert.Null(task.Description);
+        Assert.Null(task.Notes);
+        Assert.Null(task.Url);
+        Assert.Null(task.DueDate);
+        Assert.Equal(TaskPriority.Medium, task.Priority);
+        Assert.Equal(Models.TaskStatus.Todo, task.Status);
+        Assert.Empty(task.Tags);
+        Assert.Null(task.ListId);
+        Assert.False(task.IsDeleted);
+    }
+
+    [Fact]
+    public void TodoTask_ListNavigation_CanBeSetAndRead()
+    {
+        var list = new TaskList { Id = 1, Name = "Work", UserId = 1 };
+        var task = new TodoTask
+        {
+            Title = "Test",
+            ListId = list.Id,
+            List = list
+        };
+
+        Assert.NotNull(task.List);
+        Assert.Equal("Work", task.List.Name);
+    }
+
+    [Fact]
+    public void TodoTask_UserNavigation_CanBeSetAndRead()
+    {
+        var user = new User { Id = 1, Email = "test@test.com", DisplayName = "Test" };
+        var task = new TodoTask
+        {
+            Title = "Test",
+            UserId = user.Id,
+            User = user
+        };
+
+        Assert.NotNull(task.User);
+        Assert.Equal("test@test.com", task.User.Email);
     }
 }

@@ -31,6 +31,7 @@ public class AuthController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<AuthController> _logger;
     private readonly IAdminNotifier _adminNotifier;
+    private readonly ICodeGenerator _codeGenerator;
 
     public AuthController(
         IUserRepository users,
@@ -46,7 +47,8 @@ public class AuthController : ControllerBase
         IValidator<VerifyConversionDto> verifyConversionValidator,
         IWebHostEnvironment env,
         ILogger<AuthController> logger,
-        IAdminNotifier adminNotifier)
+        IAdminNotifier adminNotifier,
+        ICodeGenerator codeGenerator)
     {
         _users = users;
         _authCodes = authCodes;
@@ -62,6 +64,7 @@ public class AuthController : ControllerBase
         _env = env;
         _logger = logger;
         _adminNotifier = adminNotifier;
+        _codeGenerator = codeGenerator;
     }
 
     /// <summary>
@@ -85,7 +88,7 @@ public class AuthController : ControllerBase
             await _authCodes.UpdateAsync(existing);
         }
 
-        var code = CodeGenerator.GenerateSixDigitCode();
+        var code = _codeGenerator.GenerateSixDigitCode();
         var authCode = new AuthCode
         {
             Email = normalizedEmail,
@@ -354,7 +357,7 @@ public class AuthController : ControllerBase
             await _authCodes.UpdateAsync(ec);
         }
 
-        var code = CodeGenerator.GenerateSixDigitCode();
+        var code = _codeGenerator.GenerateSixDigitCode();
         var authCode = new AuthCode
         {
             Email = normalizedEmail,

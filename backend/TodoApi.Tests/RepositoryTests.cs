@@ -306,4 +306,201 @@ public class RepositoryTests
         await apiKeys.DeleteByUserIdAsync(user.Id);
         Assert.Empty(await db.ApiKeys.Where(k => k.UserId == user.Id).ToListAsync());
     }
+
+    // ── Task Repository: Sorting Tests ──
+
+    private static async Task SeedSortTasks(AppDbContext db, EfTaskRepository tasks, int userId)
+    {
+        await tasks.CreateAsync(new TodoTask
+        {
+            Title = "Alpha",
+            Description = "First task description",
+            Notes = "Some notes",
+            Url = "https://example.com",
+            Priority = TaskPriority.Low,
+            Status = Models.TaskStatus.Todo,
+            DueDate = DateTime.UtcNow.AddDays(3),
+            UserId = userId,
+            Tags = new[] { "tag1" }
+        });
+        await tasks.CreateAsync(new TodoTask
+        {
+            Title = "Beta",
+            Priority = TaskPriority.High,
+            Status = Models.TaskStatus.InProgress,
+            DueDate = DateTime.UtcNow.AddDays(1),
+            UserId = userId,
+            Tags = new[] { "tag2" }
+        });
+        await tasks.CreateAsync(new TodoTask
+        {
+            Title = "Gamma",
+            Description = "Gamma description",
+            Priority = TaskPriority.Medium,
+            Status = Models.TaskStatus.Done,
+            DueDate = DateTime.UtcNow.AddDays(2),
+            UserId = userId,
+            Tags = Array.Empty<string>()
+        });
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByTitleAsc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "title", "asc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal("Alpha", list[0].Title);
+        Assert.Equal("Beta", list[1].Title);
+        Assert.Equal("Gamma", list[2].Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByTitleDesc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "title", "desc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal("Gamma", list[0].Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByDueDateAsc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "duedate", "asc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal("Beta", list[0].Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByDueDateDesc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "duedate", "desc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal("Alpha", list[0].Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByPriorityAsc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "priority", "asc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal(TaskPriority.Low, list[0].Priority);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByPriorityDesc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "priority", "desc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal(TaskPriority.High, list[0].Priority);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByStatusAsc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "status", "asc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal(Models.TaskStatus.Todo, list[0].Status);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByStatusDesc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "status", "desc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal(Models.TaskStatus.Done, list[0].Status);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SortByCreatedAtAsc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "createdat", "asc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal("Alpha", list[0].Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_DefaultSort_CreatedAtDesc()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, null, null, null, "unknown", "desc", 1, 10);
+        var list = items.ToList();
+        Assert.Equal("Gamma", list[0].Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_SearchByDescription()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, _) = await tasks.GetTasksAsync(user.Id, "Gamma description", null, null, "createdAt", "desc", 1, 10);
+        Assert.Single(items);
+        Assert.Equal("Gamma", items.First().Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_FilterByStatus()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        await SeedSortTasks(db, tasks, user.Id);
+
+        var (items, total) = await tasks.GetTasksAsync(user.Id, null, Models.TaskStatus.Done, null, "createdAt", "desc", 1, 10);
+        Assert.Equal(1, total);
+        Assert.Equal("Gamma", items.First().Title);
+    }
+
+    [Fact]
+    public async Task TaskRepo_UpdateAsync_Persists()
+    {
+        var (db, tasks, _, _, _, _) = CreateRepos();
+        var user = await SeedUser(db);
+        var task = await tasks.CreateAsync(new TodoTask { Title = "Original", UserId = user.Id, Tags = Array.Empty<string>() });
+
+        task.Title = "Modified";
+        await tasks.UpdateAsync(task);
+
+        var fetched = await tasks.GetByIdAsync(task.Id, user.Id);
+        Assert.Equal("Modified", fetched!.Title);
+    }
 }

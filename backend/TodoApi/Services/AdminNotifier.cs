@@ -1,24 +1,15 @@
 namespace TodoApi.Services;
 
 /// <summary>
-/// Sends notification emails to a configurable admin address
-/// for auditing auth events (sign-ups, logins, demo sessions).
-/// </summary>
-public interface IAdminNotifier
-{
-    Task SendAsync(string subject, string body);
-}
-
-/// <summary>
 /// SMTP-based implementation of <see cref="IAdminNotifier"/>.
 /// Silently no-ops when <c>AdminNotify:Email</c> or SMTP credentials are not configured.
 /// </summary>
-public class AdminNotifier : IAdminNotifier
+public class SmtpAdminNotifier : IAdminNotifier
 {
     private readonly IConfiguration _config;
-    private readonly ILogger<AdminNotifier> _logger;
+    private readonly ILogger<SmtpAdminNotifier> _logger;
 
-    public AdminNotifier(IConfiguration config, ILogger<AdminNotifier> logger)
+    public SmtpAdminNotifier(IConfiguration config, ILogger<SmtpAdminNotifier> logger)
     {
         _config = config;
         _logger = logger;

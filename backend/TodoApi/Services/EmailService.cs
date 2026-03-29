@@ -1,23 +1,15 @@
-using System.Security.Cryptography;
-
 namespace TodoApi.Services;
-
-/// <summary>Sends authentication codes to users via email.</summary>
-public interface IEmailService
-{
-    Task SendAuthCodeAsync(string email, string code);
-}
 
 /// <summary>
 /// SMTP-based implementation of <see cref="IEmailService"/>.
 /// Falls back to logging when SMTP is not configured.
 /// </summary>
-public class EmailService : IEmailService
+public class SmtpEmailService : IEmailService
 {
     private readonly IConfiguration _config;
-    private readonly ILogger<EmailService> _logger;
+    private readonly ILogger<SmtpEmailService> _logger;
 
-    public EmailService(IConfiguration config, ILogger<EmailService> logger)
+    public SmtpEmailService(IConfiguration config, ILogger<SmtpEmailService> logger)
     {
         _config = config;
         _logger = logger;
@@ -63,15 +55,5 @@ public class EmailService : IEmailService
         await client.DisconnectAsync(true);
 
         _logger.LogInformation("Auth code sent to {Email}", email);
-    }
-}
-
-/// <summary>Cryptographically secure random code generator.</summary>
-public static class CodeGenerator
-{
-    public static string GenerateSixDigitCode()
-    {
-        // Cryptographically secure random 6-digit code
-        return RandomNumberGenerator.GetInt32(100000, 999999).ToString();
     }
 }

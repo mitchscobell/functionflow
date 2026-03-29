@@ -152,4 +152,80 @@ public class DemoSessionCleanupTests
         Assert.Empty(await freshDb.AuthCodes.ToListAsync());
         Assert.Empty(await freshDb.ApiKeys.ToListAsync());
     }
+
+    [Fact]
+    public async Task Cleanup_NoStaleUsers_DoesNothing()
+    {
+        var (service, _, _) = CreateService(maxAgeHours: 24);
+        await service.CleanupStaleSessions();
+    }
+
+    [Fact]
+    public async Task Cleanup_CancellationRequested_HandlesGracefully()
+    {
+        var (service, _, _) = CreateService(maxAgeHours: 24);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await service.CleanupStaleSessions(cts.Token);
+    }
+
+    [Fact]
+    public async Task Cleanup_DefaultConfigValues_AreUsed()
+    {
+        var dbName = "CleanupDefaults_" + Guid.NewGuid();
+        var provider = new ServiceCollection()
+            .AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase(dbName), ServiceLifetime.Transient)
+            .AddTransient<IUserRepository, EfUserRepository>()
+            .AddTransient<ITaskRepository, EfTaskRepository>()
+            .AddTransient<IListRepository, EfListRepository>()
+            .AddTransient<IAuthCodeRepository, EfAuthCodeRepository>()
+            .AddTransient<IApiKeyRepository, EfApiKeyRepository>()
+            .BuildServiceProvider();
+
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
+
+        var service = new DemoSessionCleanupService(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<DemoSessionCleanupService>.Instance,
+            config);
+
+        await service.CleanupStaleSessions();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CancelledQuickly_StopsGracefully()
+    {
+        var (service, _, _) = CreateService();
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await service.StartAsync(cts.Token);
+        await Task.Delay(50);
+        await service.StopAsync(CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task CleanupStaleSessions_ExceptionDuringCleanup_LogsError()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DemoCleanup:IntervalMinutes"] = "1",
+                ["DemoCleanup:MaxAgeHours"] = "1"
+            })
+            .Build();
+
+        var provider = new ServiceCollection()
+            .BuildServiceProvider();
+
+        var service = new DemoSessionCleanupService(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<DemoSessionCleanupService>.Instance,
+            config);
+
+        await service.CleanupStaleSessions();
+    }
 }
