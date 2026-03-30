@@ -21,7 +21,9 @@ dist/
 
 # IDE
 .vs/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
 *.suo
 *.user
 *.userosscache

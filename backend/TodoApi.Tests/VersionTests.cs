@@ -75,5 +75,26 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("unreachable", dbProp);
     }
 
+    [Fact]
+    public async Task GetVersion_DbThrows_ReturnsDegradedStatus()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite("Data Source=:memory:")
+            .Options;
+        var db = new AppDbContext(options);
+        db.Dispose();
+
+        var controller = new VersionController(db, NullLogger<VersionController>.Instance);
+
+        var result = await controller.GetVersion(CancellationToken.None);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var value = okResult.Value!;
+        var statusProp = value.GetType().GetProperty("status")!.GetValue(value)!.ToString();
+        var dbProp = value.GetType().GetProperty("database")!.GetValue(value)!.ToString();
+
+        Assert.Equal("degraded", statusProp);
+        Assert.Equal("unreachable", dbProp);
+    }
+
     private record VersionResponse(string Name, string Version, string Status, string Database, string Timestamp);
 }

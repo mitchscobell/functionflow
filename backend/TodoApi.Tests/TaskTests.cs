@@ -299,6 +299,78 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
+    public async Task UpdateTask_SetListId_AssignsList()
+    {
+        var token = await GetAuthTokenAsync("updatelistid@example.com");
+        SetAuth(token);
+
+        var listRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Target List" });
+        var list = await listRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var createRes = await _client.PostAsJsonAsync("/api/tasks",
+            new { title = "No List Task", priority = "Low" });
+        var created = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+        Assert.Null(created!.ListId);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}",
+            new { listId = list!.Id });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+        Assert.Equal(list.Id, updated!.ListId);
+    }
+
+    [Fact]
+    public async Task UpdateTask_SetListIdToZero_ClearsList()
+    {
+        var token = await GetAuthTokenAsync("clearlistid@example.com");
+        SetAuth(token);
+
+        var listRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Temp List" });
+        var list = await listRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var createRes = await _client.PostAsJsonAsync("/api/tasks",
+            new { title = "Listed Task", priority = "Low", listId = list!.Id });
+        var created = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+        Assert.Equal(list.Id, created!.ListId);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}",
+            new { listId = 0 });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+        Assert.Null(updated!.ListId);
+    }
+
+    [Fact]
+    public async Task UpdateTask_InvalidListId_ReturnsBadRequest()
+    {
+        var token = await GetAuthTokenAsync("updatebadlist@example.com");
+        SetAuth(token);
+
+        var createRes = await _client.PostAsJsonAsync("/api/tasks",
+            new { title = "Bad List Task", priority = "Low" });
+        var created = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created!.Id}",
+            new { listId = 99999 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateTask_InvalidListId_ReturnsBadRequest()
+    {
+        var token = await GetAuthTokenAsync("createbadlist@example.com");
+        SetAuth(token);
+
+        var response = await _client.PostAsJsonAsync("/api/tasks",
+            new { title = "Task With Bad List", priority = "Low", listId = 99999 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public void TodoTask_AllProperties_CanBeSet()
     {
         var now = DateTime.UtcNow;

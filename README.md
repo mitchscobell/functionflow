@@ -3,6 +3,7 @@
 A clean, themeable task management app built with .NET 8 and React.
 
 [![CI](https://github.com/mitchscobell/functionflow/actions/workflows/ci.yml/badge.svg)](https://github.com/mitchscobell/functionflow/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/github/v/release/mitchscobell/functionflow?label=version&color=brightgreen)](https://github.com/mitchscobell/functionflow/releases/latest)
 [![.NET Version](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org/)
