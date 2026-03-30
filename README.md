@@ -7,7 +7,7 @@ A clean, themeable task management app built with .NET 8 and React.
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4.svg)](https://tailwindcss.com/)
-[![xUnit](https://img.shields.io/badge/xUnit-48_tests-orange.svg)](backend/TodoApi.Tests/)
+[![xUnit](https://img.shields.io/badge/xUnit-Tests-orange.svg)](backend/TodoApi.Tests/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -18,7 +18,7 @@ A clean, themeable task management app built with .NET 8 and React.
 | Backend  | .NET 8 Web API, Entity Framework Core, SQLite               |
 | Auth     | JWT + API Key (dual scheme), passwordless email via MailKit |
 | Frontend | React 19, Vite 8, TypeScript 5.9, Tailwind CSS 4            |
-| Testing  | xUnit, WebApplicationFactory (48 integration tests)         |
+| Testing  | xUnit, WebApplicationFactory, in-memory database            |
 | Infra    | Docker, docker-compose, nginx, GitHub Actions CI            |
 
 ## Quick Start
@@ -63,7 +63,7 @@ functionflow/
 │   │   ├── Services/         # Email, Token, AdminNotifier, ApiKey auth, Cleanup
 │   │   ├── Validators/       # FluentValidation
 │   │   └── Middleware/       # Global error handler
-│   ├── TodoApi.Tests/        # Integration tests (48 tests)
+│   ├── TodoApi.Tests/        # Integration tests
 │   └── Dockerfile
 ├── frontend/                 # React SPA → see frontend/README.md
 │   ├── src/
@@ -126,7 +126,7 @@ cd backend
 dotnet test --verbosity normal
 ```
 
-48 integration tests covering auth, task CRUD, lists, API keys, demo sessions, profile, admin notifications, health check, input validation, and user isolation.
+Integration tests covering auth, task CRUD, lists, API keys, demo sessions, profile, admin notifications, health check, input validation, and user isolation.
 
 ## Architecture Decisions
 
