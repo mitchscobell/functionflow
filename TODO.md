@@ -58,13 +58,15 @@
 
 ## Still To Do
 
-1. Theming for Swagger docs to match the website theme.
+1. Test coverage badge — generate coverage reports in CI and display as a badge.
 
-2. UI tests — Playwright or Cypress end-to-end tests and a test report viewer.
+2. I want the ability to make a new list from the new task screen if there are no lists or I want a new list.
 
-3. Test coverage badge — generate coverage reports in CI and display as a badge.
+3. I want to see the lists on mobile, I don't see that side panel on mobile at all
 
-4. I want the ability to make a new list from the new task screen if there are no lists or I want a new list.
+4. The CI should do the frontend tests too
+
+5. Database can't get attacked with user enterable fields, should have input sanitization or other mechanism.
 
 ## Out of Scope
 
@@ -92,4 +94,8 @@
 
 12. Admin panel to check users
 
-13. add some limits to the user enterable fields
+13. UI tests — Playwright or Cypress end-to-end tests and a test report viewer.
+
+14. add some limits to the user enterable fields
+
+15. Theming for Swagger docs to match the website theme.

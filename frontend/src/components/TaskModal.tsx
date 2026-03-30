@@ -101,10 +101,10 @@ export default function TaskModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl"
+        className="w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4 shrink-0">
           <h2 className="text-lg font-semibold">
             {task ? "Edit Task" : "New Task"}
           </h2>
@@ -116,7 +116,7 @@ export default function TaskModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
           <div>
             <label className="block text-sm font-medium mb-1">Title *</label>
             <input
