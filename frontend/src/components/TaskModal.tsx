@@ -150,7 +150,7 @@ export default function TaskModal({
               onChange={(e) => setNotes(e.target.value)}
               maxLength={10000}
               rows={3}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-y"
               placeholder="Checklists, extra details, reminders..."
             />
           </div>
@@ -217,8 +217,11 @@ export default function TaskModal({
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-              placeholder="work, personal, urgent (comma separated)"
+              placeholder="work, personal, urgent"
             />
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Separate multiple tags with commas.
+            </p>
           </div>
 
           {lists.length > 0 && (

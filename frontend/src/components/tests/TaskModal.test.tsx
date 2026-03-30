@@ -131,12 +131,9 @@ describe("TaskModal", () => {
     fireEvent.change(screen.getByPlaceholderText("What needs to be done?"), {
       target: { value: "My Task" },
     });
-    fireEvent.change(
-      screen.getByPlaceholderText("work, personal, urgent (comma separated)"),
-      {
-        target: { value: "tag1, tag2" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("work, personal, urgent"), {
+      target: { value: "tag1, tag2" },
+    });
 
     fireEvent.click(screen.getByText("Create"));
 
@@ -221,12 +218,9 @@ describe("TaskModal", () => {
     fireEvent.change(screen.getByPlaceholderText("What needs to be done?"), {
       target: { value: "Task" },
     });
-    fireEvent.change(
-      screen.getByPlaceholderText("work, personal, urgent (comma separated)"),
-      {
-        target: { value: "a, , b, " },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("work, personal, urgent"), {
+      target: { value: "a, , b, " },
+    });
 
     fireEvent.click(screen.getByText("Create"));
 

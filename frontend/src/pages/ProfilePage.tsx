@@ -228,24 +228,39 @@ export default function ProfilePage() {
             <Key size={20} />
             <h2 className="text-xl font-bold">API Keys</h2>
           </div>
-          <p className="text-sm text-[var(--muted)] mb-4">
-            Generate personal API keys to access the FunctionFlow REST API
-            programmatically. Use the{" "}
+          <p className="text-sm text-[var(--muted)] mb-3">
+            Generate personal API keys to access the FunctionFlow REST API from
+            scripts, automations, or tools like Postman. Include your key in the{" "}
             <code className="text-xs bg-[var(--hover)] px-1 py-0.5 rounded">
               X-Api-Key
             </code>{" "}
-            header in your requests. See the{" "}
+            header with each request.
+          </p>
+          <div className="flex flex-wrap gap-3 mb-4">
             <a
               href="/swagger"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[var(--accent)] hover:underline"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--hover)] transition-colors"
             >
-              API documentation
-              <ExternalLink size={12} />
-            </a>{" "}
-            for available endpoints, request/response schemas, and usage
-            examples.
+              <ExternalLink size={14} />
+              API Docs (Swagger)
+            </a>
+            <a
+              href="/swagger/v1/swagger.json"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--hover)] transition-colors"
+            >
+              <ExternalLink size={14} />
+              Download OpenAPI Spec
+            </a>
+          </div>
+          <p className="text-xs text-[var(--muted)] mb-4">
+            Tip: Import the OpenAPI spec into{" "}
+            <span className="font-medium">Postman</span>,{" "}
+            <span className="font-medium">Insomnia</span>, or any HTTP client to
+            get pre-built requests for every endpoint.
           </p>
 
           {/* New key form */}

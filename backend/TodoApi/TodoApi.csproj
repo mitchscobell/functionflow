@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,6 +7,7 @@
     <Version>1.0.9</Version>
     <AssemblyVersion>1.0.9</AssemblyVersion>
     <FileVersion>1.0.9</FileVersion>
+    <UserSecretsId>33d9cd00-c756-4db9-98b8-25aa601fd6e7</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
