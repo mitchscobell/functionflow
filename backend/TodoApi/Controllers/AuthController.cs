@@ -100,7 +100,14 @@ public class AuthController : ControllerBase
 
         await _authCodes.CreateAsync(authCode);
 
-        await _emailService.SendAuthCodeAsync(normalizedEmail, code);
+        try
+        {
+            await _emailService.SendAuthCodeAsync(normalizedEmail, code);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(503, new { message = ex.Message });
+        }
 
         if (_env.IsDevelopment())
             _logger.LogInformation("[DEV] Auth code for {Email}: {Code}", normalizedEmail, code);
@@ -240,7 +247,15 @@ public class AuthController : ControllerBase
         };
 
         await _authCodes.CreateAsync(authCode);
-        await _emailService.SendAuthCodeAsync(normalizedEmail, code);
+
+        try
+        {
+            await _emailService.SendAuthCodeAsync(normalizedEmail, code);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(503, new { message = ex.Message });
+        }
 
         if (_env.IsDevelopment())
             _logger.LogInformation("[DEV] Conversion code for {Email}: {Code}", normalizedEmail, code);

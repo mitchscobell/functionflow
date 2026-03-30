@@ -48,12 +48,20 @@ public class SmtpEmailService : IEmailService
                 """
         };
 
-        using var client = new MailKit.Net.Smtp.SmtpClient();
-        await client.ConnectAsync(smtpHost, smtpPort, MailKit.Security.SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(smtpUser, smtpPass);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        try
+        {
+            using var client = new MailKit.Net.Smtp.SmtpClient();
+            await client.ConnectAsync(smtpHost, smtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(smtpUser, smtpPass);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
 
-        _logger.LogInformation("Auth code sent to {Email}", email);
+            _logger.LogInformation("Auth code sent to {Email}", email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send auth code to {Email}", email);
+            throw new InvalidOperationException("Unable to send login code. Please try again later.");
+        }
     }
 }
