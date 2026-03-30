@@ -89,3 +89,5 @@
 10. Additional priorities
 
 11. Account with email already exists when converting a demo account, might be an attack vector to see what people have accounts?
+
+12. Admin panel to check users

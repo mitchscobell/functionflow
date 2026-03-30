@@ -63,13 +63,35 @@ dotnet test --verbosity normal
 
 Tests use `WebApplicationFactory` with an in-memory database and a fake email service — no external dependencies required.
 
+## Authentication
+
+The API supports two authentication methods. All endpoints except `/api/version` and the auth endpoints require one of these:
+
+### JWT Bearer Token
+
+Obtained from `POST /api/auth/verify-code` or `POST /api/auth/dev-login`. Pass it in the `Authorization` header:
+
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+### API Key
+
+Generated from the Profile page or `POST /api/keys`. Pass it in the `X-Api-Key` header:
+
+```
+X-Api-Key: ff_OqrI7iG8MsH9b67jNlTRonPNh9SR2aWA...
+```
+
+> **Note:** These are not interchangeable. JWT tokens use `Authorization: Bearer`, API keys use `X-Api-Key`.
+
 ## API Endpoints
 
 ### Auth
 
 - `POST /api/auth/request-code` — Request a login code via email
 - `POST /api/auth/verify-code` — Verify code and get JWT token
-- `POST /api/auth/dev-login` — Development-only login (bypasses email)
+- `POST /api/auth/dev-login` — Create a demo session (no email required)
 - `POST /api/auth/demo-logout` — Destroy demo session data
 
 ### Tasks
