@@ -71,7 +71,7 @@ export default function VersionPage() {
             <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
               Frontend
             </span>
-            <p className="text-lg font-semibold mt-0.5">v1.0.0</p>
+            <p className="text-lg font-semibold mt-0.5">v{__APP_VERSION__}</p>
           </div>
 
           <hr className="border-[var(--border)]" />

@@ -77,7 +77,7 @@ describe("VersionPage", () => {
 
     render(<VersionPage />);
 
-    expect(screen.getByText("v1.0.0")).toBeInTheDocument();
+    expect(screen.getByText(/^v\d+\.\d+\.\d+$/)).toBeInTheDocument();
     expect(screen.getByText("Frontend")).toBeInTheDocument();
   });
 
