@@ -7,6 +7,6 @@ public class CryptoCodeGenerator : ICodeGenerator
 {
     public string GenerateSixDigitCode()
     {
-        return RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+        return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
     }
 }

@@ -4,6 +4,7 @@ using TodoApi.DTOs;
 using TodoApi.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using TodoApi.Services;
 using TodoApi.Repositories;
 
@@ -72,6 +73,7 @@ public class AuthController : ControllerBase
     /// Creates a new user account if one doesn't exist.
     /// </summary>
     [HttpPost("request-code")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> RequestCode([FromBody] RequestCodeDto dto)
     {
         var validation = await _requestCodeValidator.ValidateAsync(dto);
@@ -115,6 +117,7 @@ public class AuthController : ControllerBase
     /// Auto-creates user on first successful verification.
     /// </summary>
     [HttpPost("verify-code")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> VerifyCode([FromBody] VerifyCodeDto dto)
     {
         var validation = await _verifyCodeValidator.ValidateAsync(dto);

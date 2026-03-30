@@ -37,7 +37,7 @@ public class ErrorHandlerMiddleware
         {
             KeyNotFoundException => (HttpStatusCode.NotFound, "Resource not found."),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized."),
-            ArgumentException ex => (HttpStatusCode.BadRequest, ex.Message),
+            ArgumentException => (HttpStatusCode.BadRequest, "Invalid request."),
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
         };
 

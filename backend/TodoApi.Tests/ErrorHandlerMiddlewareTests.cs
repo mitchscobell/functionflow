@@ -73,7 +73,7 @@ public class ErrorHandlerMiddlewareTests
 
         var (status, body) = await GetResponse(context);
         Assert.Equal((int)HttpStatusCode.BadRequest, status);
-        Assert.Equal("Bad input value", body.RootElement.GetProperty("message").GetString());
+        Assert.Equal("Invalid request.", body.RootElement.GetProperty("message").GetString());
     }
 
     [Fact]

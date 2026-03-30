@@ -57,12 +57,13 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    var permitLimit = builder.Configuration.GetValue("RateLimit:AuthPermitLimit", 10);
     options.AddPolicy("auth", context =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
+                PermitLimit = permitLimit,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
@@ -130,8 +131,22 @@ var app = builder.Build();
 // --- Middleware Pipeline ---
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+// Security headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["X-XSS-Protection"] = "0";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+    await next();
+});
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseCors();
 app.UseRateLimiter();

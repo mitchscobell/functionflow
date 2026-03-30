@@ -5,7 +5,7 @@ services:
       - "5001:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - Jwt__Key=${JWT_KEY:-FunctionFlowDevKey_ChangeInProduction_MinLength32Chars!}
+      - Jwt__Key=${JWT_KEY:?JWT_KEY must be set for production}
       - Smtp__Host=${SMTP_HOST:-smtp.gmail.com}
       - Smtp__Port=${SMTP_PORT:-587}
       - Smtp__User=${SMTP_USER:-}

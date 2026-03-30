@@ -30,7 +30,7 @@ public class JwtTokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var expiry = rememberMe ? TimeSpan.FromDays(30) : TimeSpan.FromDays(7);
+        var expiry = rememberMe ? TimeSpan.FromDays(7) : TimeSpan.FromHours(4);
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"] ?? "FunctionFlow",

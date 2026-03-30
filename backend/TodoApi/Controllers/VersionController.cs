@@ -1,6 +1,6 @@
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TodoApi.Data;
 
 namespace TodoApi.Controllers;
@@ -11,38 +11,41 @@ namespace TodoApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/version")]
+[AllowAnonymous]
 public class VersionController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private static readonly string _version =
+        Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 
-    public VersionController(AppDbContext db)
+    private readonly AppDbContext _db;
+    private readonly ILogger<VersionController> _logger;
+
+    public VersionController(AppDbContext db, ILogger<VersionController> logger)
     {
         _db = db;
+        _logger = logger;
     }
 
     /// <summary>
     /// Returns API version, build info, and health status including database connectivity.
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetVersion()
+    public async Task<IActionResult> GetVersion(CancellationToken ct)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        var version = assembly.GetName().Version?.ToString(3) ?? "0.0.0";
-
         var dbHealthy = false;
         try
         {
-            dbHealthy = await _db.Database.CanConnectAsync();
+            dbHealthy = await _db.Database.CanConnectAsync(ct);
         }
-        catch
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // database unreachable
+            _logger.LogWarning(ex, "Database health check failed");
         }
 
         return Ok(new
         {
             name = "FunctionFlow API",
-            version,
+            version = _version,
             status = dbHealthy ? "healthy" : "degraded",
             database = dbHealthy ? "connected" : "unreachable",
             timestamp = DateTime.UtcNow

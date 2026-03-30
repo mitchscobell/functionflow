@@ -14,10 +14,14 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-RUN mkdir -p /app/data
+RUN adduser --disabled-password --gecos '' appuser \
+    && mkdir -p /app/data \
+    && chown -R appuser:appuser /app/data
 
 ENV ASPNETCORE_URLS=http://+:5000
 EXPOSE 5000
+
+USER appuser
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -sf http://localhost:5000/api/version || exit 1

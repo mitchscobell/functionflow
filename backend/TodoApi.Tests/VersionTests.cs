@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using TodoApi.Controllers;
 using TodoApi.Data;
 
@@ -62,9 +63,9 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
             .UseSqlite("Data Source=/nonexistent_impossible_path_12345/db.sqlite")
             .Options;
         var db = new AppDbContext(options);
-        var controller = new VersionController(db);
+        var controller = new VersionController(db, NullLogger<VersionController>.Instance);
 
-        var result = await controller.GetVersion();
+        var result = await controller.GetVersion(CancellationToken.None);
         var okResult = Assert.IsType<OkObjectResult>(result);
         var value = okResult.Value!;
         var statusProp = value.GetType().GetProperty("status")!.GetValue(value)!.ToString();

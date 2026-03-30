@@ -19,6 +19,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Development");
 
         builder.UseSetting("Jwt:Key", "TestOnlyKey_MinimumLength32Characters!");
+        builder.UseSetting("RateLimit:AuthPermitLimit", "10000");
 
         builder.ConfigureServices(services =>
         {
