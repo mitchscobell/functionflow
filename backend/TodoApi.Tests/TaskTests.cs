@@ -158,10 +158,10 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         var token = await GetAuthTokenAsync("search@example.com");
         SetAuth(token);
 
-        await _client.PostAsJsonAsync("/api/tasks", new { title = "Buy groceries", priority = "Low" });
+        await _client.PostAsJsonAsync("/api/tasks", new { title = "Unique flamingo task", priority = "Low" });
         await _client.PostAsJsonAsync("/api/tasks", new { title = "Walk the dog", priority = "Medium" });
 
-        var response = await _client.GetAsync("/api/tasks?search=groceries");
+        var response = await _client.GetAsync("/api/tasks?search=flamingo");
         var result = await response.Content.ReadFromJsonAsync<TaskListResponseDto>(TestHelpers.JsonOptions);
 
         Assert.NotNull(result);
@@ -263,7 +263,8 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
 
         var response = await _client.GetAsync("/api/tasks?sortBy=priority&sortDir=desc");
         var result = await response.Content.ReadFromJsonAsync<TaskListResponseDto>(TestHelpers.JsonOptions);
-        Assert.Equal("High Task", result!.Items.First().Title);
+        // First item should be High priority (could be seeded or test-created)
+        Assert.Equal(TaskPriority.High, result!.Items.First().Priority);
     }
 
     [Fact]

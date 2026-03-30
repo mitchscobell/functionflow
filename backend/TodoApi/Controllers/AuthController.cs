@@ -143,6 +143,7 @@ public class AuthController : ControllerBase
                 DisplayName = normalizedEmail.Split('@')[0]
             };
             await _users.CreateAsync(user);
+            await SeedStarterDataAsync(user);
         }
 
         authCode.UserId = user.Id;
@@ -161,18 +162,14 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Dev-only: instantly logs in with a session-scoped ephemeral demo account.
+    /// Instantly logs in with a session-scoped ephemeral demo account.
     /// Seeds example tasks on creation. Data is destroyed on logout.
-    /// Only available when ASPNETCORE_ENVIRONMENT=Development.
     /// </summary>
     [HttpPost("dev-login")]
     public async Task<IActionResult> DevLogin(
         [FromBody] RequestCodeDto dto,
         [FromServices] IWebHostEnvironment _)
     {
-        if (!_env.IsDevelopment())
-            return NotFound();
-
         // Each dev-login creates a unique ephemeral session
         var sessionId = Guid.NewGuid().ToString("N")[..8];
         var ephemeralEmail = $"demo-{sessionId}@functionflow.local";
@@ -184,134 +181,7 @@ public class AuthController : ControllerBase
         };
         await _users.CreateAsync(user);
 
-        // Seed lists
-        var workList = new TaskList { Name = "Work", Emoji = "💼", Color = "blue", SortOrder = 0, UserId = user.Id };
-        var personalList = new TaskList { Name = "Personal", Emoji = "🏠", Color = "green", SortOrder = 1, UserId = user.Id };
-        var projectList = new TaskList { Name = "Side Project", Emoji = "🚀", Color = "purple", SortOrder = 2, UserId = user.Id };
-        await _lists.CreateAsync(workList);
-        await _lists.CreateAsync(personalList);
-        await _lists.CreateAsync(projectList);
-
-        // Seed tasks with dates relative to today
-        var today = DateTime.UtcNow.Date;
-        var seedTasks = new[]
-        {
-            new TodoTask
-            {
-                Title = "Review project requirements",
-                Description = "Go through the spec document and note any open questions.",
-                Priority = TaskPriority.High,
-                Status = Models.TaskStatus.Done,
-                Tags = new[] { "planning" },
-                DueDate = today.AddDays(-3),
-                ListId = workList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Design database schema",
-                Description = "Map out entities, relationships, and indexes for the initial release.",
-                Priority = TaskPriority.Medium,
-                Status = Models.TaskStatus.Done,
-                Tags = new[] { "backend", "planning" },
-                DueDate = today.AddDays(-1),
-                ListId = projectList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Prepare sprint demo",
-                Description = "Put together a quick walkthrough of the new features for Friday's meeting.",
-                Priority = TaskPriority.High,
-                Status = Models.TaskStatus.InProgress,
-                Tags = new[] { "work", "presentation" },
-                DueDate = today.AddDays(-1),
-                ListId = workList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Buy groceries",
-                Description = "Milk, eggs, bread, coffee beans, avocados.",
-                Priority = TaskPriority.Low,
-                Status = Models.TaskStatus.Todo,
-                Tags = new[] { "errands" },
-                DueDate = today,
-                ListId = personalList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Set up CI/CD pipeline",
-                Description = "Configure GitHub Actions for automated builds and test runs.",
-                Priority = TaskPriority.High,
-                Status = Models.TaskStatus.InProgress,
-                Tags = new[] { "devops", "infrastructure" },
-                DueDate = today,
-                ListId = projectList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Write integration tests",
-                Description = "Cover auth, task CRUD, and profile endpoints with WebApplicationFactory tests.",
-                Notes = "Remember to test edge cases like expired codes and user isolation.",
-                Url = "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests",
-                Priority = TaskPriority.Medium,
-                Status = Models.TaskStatus.Todo,
-                Tags = new[] { "testing", "backend" },
-                DueDate = today.AddDays(1),
-                ListId = projectList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Build dashboard UI",
-                Description = "Task list with search, filters, sorting, and pagination.",
-                Priority = TaskPriority.High,
-                Status = Models.TaskStatus.Todo,
-                Tags = new[] { "frontend" },
-                DueDate = today.AddDays(2),
-                ListId = projectList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Schedule dentist appointment",
-                Description = "Call Dr. Miller's office for a checkup.",
-                Priority = TaskPriority.Medium,
-                Status = Models.TaskStatus.Todo,
-                Tags = new[] { "health" },
-                DueDate = today.AddDays(3),
-                ListId = personalList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Configure Docker deployment",
-                Description = "Create Dockerfiles for backend and frontend, write docker-compose.yml.",
-                Priority = TaskPriority.Medium,
-                Status = Models.TaskStatus.Todo,
-                Tags = new[] { "devops" },
-                DueDate = today.AddDays(5),
-                ListId = workList.Id,
-                UserId = user.Id
-            },
-            new TodoTask
-            {
-                Title = "Write README documentation",
-                Description = "Setup instructions, API reference, architecture decisions.",
-                Priority = TaskPriority.Low,
-                Status = Models.TaskStatus.Todo,
-                Tags = new[] { "docs" },
-                DueDate = today.AddDays(7),
-                ListId = projectList.Id,
-                UserId = user.Id
-            }
-        };
-
-        foreach (var task in seedTasks)
-            await _tasks.CreateAsync(task);
+        await SeedStarterDataAsync(user);
 
         var token = _tokenService.GenerateToken(user.Id, user.Email);
 
@@ -460,5 +330,135 @@ public class AuthController : ControllerBase
             $"Demo session {user.Email} destroyed at {DateTime.UtcNow:u}.");
 
         return Ok(new { message = "Demo session destroyed." });
+    }
+
+    private async Task SeedStarterDataAsync(User user)
+    {
+        var workList = new TaskList { Name = "Work", Emoji = "💼", Color = "blue", SortOrder = 0, UserId = user.Id };
+        var personalList = new TaskList { Name = "Personal", Emoji = "🏠", Color = "green", SortOrder = 1, UserId = user.Id };
+        var projectList = new TaskList { Name = "Side Project", Emoji = "🚀", Color = "purple", SortOrder = 2, UserId = user.Id };
+        await _lists.CreateAsync(workList);
+        await _lists.CreateAsync(personalList);
+        await _lists.CreateAsync(projectList);
+
+        var today = DateTime.UtcNow.Date;
+        var seedTasks = new[]
+        {
+            new TodoTask
+            {
+                Title = "Review project requirements",
+                Description = "Go through the spec document and note any open questions.",
+                Priority = TaskPriority.High,
+                Status = Models.TaskStatus.Done,
+                Tags = new[] { "planning" },
+                DueDate = today.AddDays(-3),
+                ListId = workList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Design database schema",
+                Description = "Map out entities, relationships, and indexes for the initial release.",
+                Priority = TaskPriority.Medium,
+                Status = Models.TaskStatus.Done,
+                Tags = new[] { "backend", "planning" },
+                DueDate = today.AddDays(-1),
+                ListId = projectList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Prepare sprint demo",
+                Description = "Put together a quick walkthrough of the new features for Friday's meeting.",
+                Priority = TaskPriority.High,
+                Status = Models.TaskStatus.InProgress,
+                Tags = new[] { "work", "presentation" },
+                DueDate = today.AddDays(-1),
+                ListId = workList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Buy groceries",
+                Description = "Milk, eggs, bread, coffee beans, avocados.",
+                Priority = TaskPriority.Low,
+                Status = Models.TaskStatus.Todo,
+                Tags = new[] { "errands" },
+                DueDate = today,
+                ListId = personalList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Set up CI/CD pipeline",
+                Description = "Configure GitHub Actions for automated builds and test runs.",
+                Priority = TaskPriority.High,
+                Status = Models.TaskStatus.InProgress,
+                Tags = new[] { "devops", "infrastructure" },
+                DueDate = today,
+                ListId = projectList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Write integration tests",
+                Description = "Cover auth, task CRUD, and profile endpoints with WebApplicationFactory tests.",
+                Notes = "Remember to test edge cases like expired codes and user isolation.",
+                Url = "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests",
+                Priority = TaskPriority.Medium,
+                Status = Models.TaskStatus.Todo,
+                Tags = new[] { "testing", "backend" },
+                DueDate = today.AddDays(1),
+                ListId = projectList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Build dashboard UI",
+                Description = "Task list with search, filters, sorting, and pagination.",
+                Priority = TaskPriority.High,
+                Status = Models.TaskStatus.Todo,
+                Tags = new[] { "frontend" },
+                DueDate = today.AddDays(2),
+                ListId = projectList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Schedule dentist appointment",
+                Description = "Call Dr. Miller's office for a checkup.",
+                Priority = TaskPriority.Medium,
+                Status = Models.TaskStatus.Todo,
+                Tags = new[] { "health" },
+                DueDate = today.AddDays(3),
+                ListId = personalList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Configure Docker deployment",
+                Description = "Create Dockerfiles for backend and frontend, write docker-compose.yml.",
+                Priority = TaskPriority.Medium,
+                Status = Models.TaskStatus.Todo,
+                Tags = new[] { "devops" },
+                DueDate = today.AddDays(5),
+                ListId = workList.Id,
+                UserId = user.Id
+            },
+            new TodoTask
+            {
+                Title = "Write README documentation",
+                Description = "Setup instructions, API reference, architecture decisions.",
+                Priority = TaskPriority.Low,
+                Status = Models.TaskStatus.Todo,
+                Tags = new[] { "docs" },
+                DueDate = today.AddDays(7),
+                ListId = projectList.Id,
+                UserId = user.Id
+            }
+        };
+
+        foreach (var task in seedTasks)
+            await _tasks.CreateAsync(task);
     }
 }

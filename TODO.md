@@ -48,6 +48,14 @@
 
 23. **Swimlane view** — Kanban board with three columns (To Do, In Progress, Done) accessible via toggle button in the dashboard.
 
+24. **Port consolidation** — Dev frontend listens on port 80 (`localhost`), API on 4001. Docker maps frontend to 4000, API to 4001. Updated launchSettings, vite.config, docker-compose, and all READMEs.
+
+25. **Demo login in production** — Removed `IsDevelopment()` gate so demo sessions work in Docker/production deployments.
+
+26. **First-time user seeding** — New email users get the same starter lists (Work, Personal, Side Project) and 10 sample tasks as demo accounts. Extracted into shared `SeedStarterDataAsync` method.
+
+27. **Swagger available in all environments** — Swagger UI works in production with a pinhole CSP policy for `/swagger` routes.
+
 ## Still To Do
 
 1. Theming for Swagger docs to match the website theme.
@@ -55,6 +63,8 @@
 2. UI tests — Playwright or Cypress end-to-end tests and a test report viewer.
 
 3. Test coverage badge — generate coverage reports in CI and display as a badge.
+
+4. I want the ability to make a new list from the new task screen if there are no lists or I want a new list.
 
 ## Out of Scope
 
@@ -77,3 +87,5 @@
 9. Additional statuses
 
 10. Additional priorities
+
+11. Account with email already exists when converting a demo account, might be an attack vector to see what people have accounts?

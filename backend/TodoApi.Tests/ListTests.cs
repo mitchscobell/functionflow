@@ -65,15 +65,16 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         var token = await GetAuthTokenAsync("getlists@example.com");
         SetAuth(token);
 
-        await _client.PostAsJsonAsync("/api/lists", new { name = "Work" });
-        await _client.PostAsJsonAsync("/api/lists", new { name = "Personal" });
+        await _client.PostAsJsonAsync("/api/lists", new { name = "Errands" });
+        await _client.PostAsJsonAsync("/api/lists", new { name = "Fitness" });
 
         var response = await _client.GetAsync("/api/lists");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var lists = await response.Content.ReadFromJsonAsync<ListDto[]>();
         Assert.NotNull(lists);
-        Assert.Equal(2, lists.Length);
+        // 3 seeded lists (Work, Personal, Side Project) + 2 created above
+        Assert.Equal(5, lists.Length);
     }
 
     [Fact]

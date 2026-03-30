@@ -9,7 +9,7 @@
 - **JWT + API Key** authentication (dual scheme)
 - **FluentValidation** for request validation
 - **MailKit** for SMTP email delivery
-- **Swagger/OpenAPI** documentation (development mode)
+- **Swagger/OpenAPI** documentation (all environments)
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ dotnet restore
 dotnet run
 ```
 
-The API starts on `http://localhost:5000` with Swagger at `/swagger`.
+The API starts on `http://localhost:4001` with Swagger at `/swagger`.
 
 ## Configuration
 

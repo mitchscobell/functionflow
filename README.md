@@ -39,17 +39,18 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:3000** — click **"Dev Login"** to bypass email verification.
+Open **http://localhost** — click **"Dev Login"** to bypass email verification.
 
-The backend API runs on port 5000 with Swagger at http://localhost:5000/swagger.
+The backend API runs on port 4001 with Swagger at http://localhost:4001/swagger.
 
 ### Docker
 
 ```bash
+cp .env.example .env   # edit .env with your secrets
 docker compose up --build
 ```
 
-Open **http://localhost** — the app runs on port 80.
+Open **http://localhost:4000** for the app and **http://localhost:4001** for the API directly.
 
 ## Project Structure
 

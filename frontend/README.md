@@ -24,11 +24,11 @@ React single-page application for the FunctionFlow task management platform.
 # Install dependencies
 npm install
 
-# Start dev server (port 3000, proxies /api to backend on port 5000)
+# Start dev server (port 80, proxies /api to backend on port 4001)
 npm run dev
 ```
 
-Make sure the backend is running on port 5000 before starting the frontend.
+Make sure the backend is running on port 4001 before starting the frontend.
 
 ## Building
 
