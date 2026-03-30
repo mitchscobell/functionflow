@@ -18,15 +18,18 @@ namespace TodoApi.Controllers;
 public class TasksController : ControllerBase
 {
     private readonly ITaskRepository _tasks;
+    private readonly IListRepository _lists;
     private readonly IValidator<CreateTaskDto> _createValidator;
     private readonly IValidator<UpdateTaskDto> _updateValidator;
 
     public TasksController(
         ITaskRepository tasks,
+        IListRepository lists,
         IValidator<CreateTaskDto> createValidator,
         IValidator<UpdateTaskDto> updateValidator)
     {
         _tasks = tasks;
+        _lists = lists;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -82,6 +85,14 @@ public class TasksController : ControllerBase
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
         var userId = GetUserId();
+
+        if (dto.ListId.HasValue)
+        {
+            var (list, _) = await _lists.GetByIdAsync(dto.ListId.Value, userId);
+            if (list == null)
+                return BadRequest(new { message = "List not found or does not belong to you." });
+        }
+
         var task = new TodoTask
         {
             Title = dto.Title,
@@ -119,7 +130,20 @@ public class TasksController : ControllerBase
         if (dto.Priority.HasValue) task.Priority = dto.Priority.Value;
         if (dto.Status.HasValue) task.Status = dto.Status.Value;
         if (dto.Tags != null) task.Tags = dto.Tags;
-        if (dto.ListId.HasValue) task.ListId = dto.ListId.Value == 0 ? null : dto.ListId.Value;
+        if (dto.ListId.HasValue)
+        {
+            if (dto.ListId.Value == 0)
+            {
+                task.ListId = null;
+            }
+            else
+            {
+                var (list, _) = await _lists.GetByIdAsync(dto.ListId.Value, userId);
+                if (list == null)
+                    return BadRequest(new { message = "List not found or does not belong to you." });
+                task.ListId = dto.ListId.Value;
+            }
+        }
 
         await _tasks.UpdateAsync(task);
         return Ok(ToDto(task));

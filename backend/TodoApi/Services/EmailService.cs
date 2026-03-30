@@ -26,7 +26,7 @@ public class SmtpEmailService : IEmailService
         // If SMTP is not configured, log the code for development
         if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpPass))
         {
-            _logger.LogWarning("SMTP not configured. Auth code for {Email}: {Code}", email, code);
+            _logger.LogWarning("SMTP not configured. Auth code was not sent to {Email}", email);
             return;
         }
 

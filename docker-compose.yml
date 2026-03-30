@@ -1,8 +1,8 @@
 services:
   backend:
     build: ./backend
-    ports:
-      - "5001:5000"
+    expose:
+      - "5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Jwt__Key=${JWT_KEY:?JWT_KEY must be set for production}
@@ -14,8 +14,7 @@ services:
       - AdminNotify__Email=${ADMIN_EMAIL:-}
       - DemoCleanup__MaxAgeHours=${DEMO_MAX_AGE_HOURS:-24}
       - DemoCleanup__IntervalMinutes=${DEMO_INTERVAL_MINUTES:-30}
-      - Cors__Origins__0=${CORS_ORIGIN:-http://localhost}
-      - Cors__Origins__1=http://localhost:3000
+      - Cors__Origins__0=${CORS_ORIGIN:?CORS_ORIGIN must be set for production}
     volumes:
       - app-data:/app/data
     healthcheck:
@@ -29,12 +28,12 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "80:80"
+      - "80:8080"
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:80/"]
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/"]
       interval: 30s
       timeout: 5s
       retries: 3
