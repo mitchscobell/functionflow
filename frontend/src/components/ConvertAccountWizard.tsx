@@ -12,8 +12,15 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+/** Wizard steps for the demo-to-permanent account conversion flow. */
 type Step = "intro" | "email" | "code" | "success";
 
+/**
+ * Multi-step wizard that guides demo users through converting their
+ * temporary account into a permanent one by verifying an email address.
+ *
+ * @param props.onClose - Callback to dismiss the wizard overlay.
+ */
 export default function ConvertAccountWizard({
   onClose,
 }: {
@@ -26,6 +33,11 @@ export default function ConvertAccountWizard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  /**
+   * Sends a verification code to the entered email address.
+   * Advances to the code-entry step on success.
+   * @param e - Form submission event.
+   */
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -41,6 +53,11 @@ export default function ConvertAccountWizard({
     }
   };
 
+  /**
+   * Verifies the email code and completes the account conversion.
+   * Logs the user in with a permanent session on success.
+   * @param e - Form submission event.
+   */
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

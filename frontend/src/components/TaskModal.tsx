@@ -2,15 +2,31 @@ import { useState, useEffect } from "react";
 import type { Task, TaskList } from "../types";
 import { X } from "lucide-react";
 
+/** Props for the {@link TaskModal} component. */
 interface Props {
+  /** Existing task to edit, or null/undefined when creating a new task. */
   task?: Task | null;
+
+  /** Whether the modal is currently visible. */
   open: boolean;
+
+  /** Callback to close the modal. */
   onClose: () => void;
+
+  /** Callback invoked with the form data when the user submits. */
   onSave: (data: Partial<Task>) => void;
+
+  /** Available task lists for the list assignment dropdown. */
   lists?: TaskList[];
+
+  /** Pre-selected list ID for new tasks created from a list view. */
   activeListId?: number | null;
 }
 
+/**
+ * Modal dialog for creating or editing a task.
+ * Pre-populates form fields when editing an existing task.
+ */
 export default function TaskModal({
   task,
   open,
@@ -55,6 +71,10 @@ export default function TaskModal({
 
   if (!open) return null;
 
+  /**
+   * Collects form state, normalizes tags, and passes the data to {@link Props.onSave}.
+   * @param e - Form submission event.
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const tags = tagsInput

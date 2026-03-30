@@ -7,8 +7,10 @@ import TaskModal from "../components/TaskModal";
 import { ChevronLeft, ChevronRight, Loader2, CalendarDays } from "lucide-react";
 import toast from "react-hot-toast";
 
+/** Calendar display granularity: single day, week, or full month. */
 type ViewRange = "today" | "week" | "month";
 
+/** Maps task-list color keys to their Tailwind background classes. */
 const LIST_COLORS: Record<string, string> = {
   blue: "bg-blue-500",
   violet: "bg-violet-500",
@@ -22,6 +24,10 @@ const LIST_COLORS: Record<string, string> = {
   sky: "bg-sky-500",
 };
 
+/**
+ * Returns the Sunday at the start of the week containing the given date.
+ * @param date - Reference date.
+ */
 function startOfWeek(date: Date): Date {
   const d = new Date(date);
   d.setDate(d.getDate() - d.getDay());
@@ -29,6 +35,10 @@ function startOfWeek(date: Date): Date {
   return d;
 }
 
+/**
+ * Returns the Saturday at the end of the week containing the given date.
+ * @param date - Reference date.
+ */
 function endOfWeek(date: Date): Date {
   const d = startOfWeek(date);
   d.setDate(d.getDate() + 6);
@@ -36,6 +46,11 @@ function endOfWeek(date: Date): Date {
   return d;
 }
 
+/**
+ * Checks whether two dates fall on the same calendar day.
+ * @param a - First date.
+ * @param b - Second date.
+ */
 function isSameDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&
@@ -44,10 +59,20 @@ function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
+/**
+ * Returns the number of days in the given month.
+ * @param year - Full year (e.g. 2025).
+ * @param month - Zero-based month index (0 = January).
+ */
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
 }
 
+/**
+ * Calendar view page that displays tasks with due dates in today, week,
+ * or month layouts. Supports navigating between time periods and
+ * clicking individual days to see their tasks.
+ */
 export default function CalendarPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [lists, setLists] = useState<TaskList[]>([]);
@@ -58,6 +83,7 @@ export default function CalendarPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  /** Fetches all tasks (with due dates) and all lists from the API. */
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -78,6 +104,7 @@ export default function CalendarPage() {
     fetchData();
   }, [fetchData]);
 
+  /** Maps list IDs to their Tailwind background color classes. */
   const listColorMap = useMemo(() => {
     const map: Record<number, string> = {};
     lists.forEach((l) => {
@@ -86,12 +113,21 @@ export default function CalendarPage() {
     return map;
   }, [lists]);
 
+  /**
+   * Returns the Tailwind background color class for a task based on its list.
+   * Falls back to the accent color for tasks without a list.
+   * @param task - The task to get the color for.
+   */
   const getListColor = (task: Task) => {
     if (task.listId && listColorMap[task.listId])
       return listColorMap[task.listId];
     return "bg-[var(--accent)]";
   };
 
+  /**
+   * Navigates forward or backward by one day, week, or month depending on the view.
+   * @param dir - Direction: 1 for forward, -1 for backward.
+   */
   const navigate = (dir: number) => {
     const d = new Date(refDate);
     if (viewRange === "today") d.setDate(d.getDate() + dir);
@@ -101,11 +137,13 @@ export default function CalendarPage() {
     setSelectedDate(null);
   };
 
+  /** Resets the calendar to today's date. */
   const goToday = () => {
     setRefDate(new Date());
     setSelectedDate(null);
   };
 
+  /** Tasks filtered to the currently visible time range. */
   // Filtered tasks for the current view range
   const viewTasks = useMemo(() => {
     const now = refDate;
@@ -125,6 +163,7 @@ export default function CalendarPage() {
     });
   }, [tasks, refDate, viewRange]);
 
+  /** Tasks for the selected calendar day, or all view tasks if no day is selected. */
   // Tasks for selected date (click on a calendar day)
   const selectedDateTasks = useMemo(() => {
     if (!selectedDate) return viewTasks;
@@ -133,6 +172,7 @@ export default function CalendarPage() {
     );
   }, [tasks, selectedDate, viewTasks]);
 
+  /** 2D array of dates representing the month grid (weeks × days, null for empty cells). */
   // Generate month grid
   const monthGrid = useMemo(() => {
     const year = refDate.getFullYear();
@@ -162,6 +202,10 @@ export default function CalendarPage() {
     [tasks],
   );
 
+  /**
+   * Creates or updates a task and refreshes the calendar data.
+   * @param data - Partial task fields from the modal form.
+   */
   const handleSave = async (data: Partial<Task>) => {
     try {
       if (editingTask) {
@@ -179,6 +223,10 @@ export default function CalendarPage() {
     }
   };
 
+  /**
+   * Deletes a task and refreshes the calendar data.
+   * @param id - The task's database ID.
+   */
   const handleDelete = async (id: number) => {
     try {
       await api.deleteTask(id);
@@ -189,6 +237,10 @@ export default function CalendarPage() {
     }
   };
 
+  /**
+   * Cycles a task's status: Todo → InProgress → Done → Todo.
+   * @param task - The task whose status should be toggled.
+   */
   const handleToggleStatus = async (task: Task) => {
     const next: Record<string, string> = {
       Todo: "InProgress",

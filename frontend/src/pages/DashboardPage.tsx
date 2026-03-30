@@ -22,23 +22,39 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+/** Filter value for task status — empty string means no filter. */
 type StatusFilter = "" | "Todo" | "InProgress" | "Done";
+
+/** Filter value for task priority — empty string means no filter. */
 type PriorityFilter = "" | "Low" | "Medium" | "High";
+
+/** Sortable field options for the task list. */
 type SortField = "createdAt" | "dueDate" | "priority";
+
+/** Display mode for the task list. */
 type ViewMode = "list" | "swimlane";
 
+/** Ordered status columns used in swimlane view. */
 const SWIMLANE_STATUSES: Task["status"][] = ["Todo", "InProgress", "Done"];
+
+/** Human-readable labels for each swimlane column. */
 const SWIMLANE_LABELS: Record<string, string> = {
   Todo: "To Do",
   InProgress: "In Progress",
   Done: "Done",
 };
+
+/** Border color classes for each swimlane column header. */
 const SWIMLANE_COLORS: Record<string, string> = {
   Todo: "border-gray-400",
   InProgress: "border-blue-500",
   Done: "border-[var(--success)]",
 };
 
+/**
+ * Main task management page. Features a list sidebar, search and filter controls,
+ * list and swimlane view modes, pagination, and a print-friendly layout.
+ */
 export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -64,6 +80,7 @@ export default function DashboardPage() {
 
   const pageSize = 100; // fetch more for swimlane view
 
+  /** Fetches all task lists for the sidebar. */
   const fetchLists = useCallback(async () => {
     try {
       const res = await api.getLists();
@@ -73,6 +90,7 @@ export default function DashboardPage() {
     }
   }, []);
 
+  /** Fetches tasks from the API with current filter, sort, and pagination state. */
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
@@ -111,6 +129,10 @@ export default function DashboardPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  /**
+   * Creates or updates a task and refreshes both the task list and sidebar counts.
+   * @param data - Partial task fields from the modal form.
+   */
   const handleSave = async (data: Partial<Task>) => {
     try {
       if (editingTask) {
@@ -133,6 +155,10 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Deletes a task and refreshes the list.
+   * @param id - The task's database ID.
+   */
   const handleDelete = async (id: number) => {
     try {
       await api.deleteTask(id);
@@ -144,6 +170,10 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Cycles a task's status: Todo → InProgress → Done → Todo.
+   * @param task - The task whose status should be toggled.
+   */
   const handleToggleStatus = async (task: Task) => {
     const next: Record<string, string> = {
       Todo: "InProgress",
@@ -160,16 +190,22 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Opens the task modal in edit mode for the given task.
+   * @param task - The task to edit.
+   */
   const openEdit = (task: Task) => {
     setEditingTask(task);
     setModalOpen(true);
   };
 
+  /** Opens the task modal in create mode. */
   const openNew = () => {
     setEditingTask(null);
     setModalOpen(true);
   };
 
+  /** Creates a new task list from the sidebar input. */
   const handleCreateList = async () => {
     const name = newListName.trim();
     if (!name) return;
@@ -183,6 +219,10 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Deletes a task list. Tasks in the list are moved to the inbox.
+   * @param id - The list's database ID.
+   */
   const handleDeleteList = async (id: number) => {
     try {
       await api.deleteList(id);
@@ -195,6 +235,10 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Renames a task list currently being edited inline.
+   * @param id - The list's database ID.
+   */
   const handleRenameList = async (id: number) => {
     const name = editListName.trim();
     if (!name) return;
@@ -208,19 +252,20 @@ export default function DashboardPage() {
     }
   };
 
-  // Filter tasks by active list
+  /** Tasks filtered to the currently selected list (or all tasks if no list is active). */
   const filteredByList =
     activeListId === null
       ? tasks
       : tasks.filter((t) => t.listId === activeListId);
 
-  // Filter out completed if toggled off
+  /** Tasks visible after applying the completed-tasks toggle. */
   const visibleTasks = showCompleted
     ? filteredByList
     : filteredByList.filter((t) => t.status !== "Done");
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
+  /** Opens the browser's native print dialog for the current task view. */
   const handlePrint = () => {
     window.print();
   };

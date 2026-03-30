@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
+/** Categorized emoji groups displayed in the picker grid. */
 const EMOJI_GROUPS: { label: string; emojis: string[] }[] = [
   {
     label: "Folders",
@@ -86,11 +87,19 @@ const EMOJI_GROUPS: { label: string; emojis: string[] }[] = [
   },
 ];
 
+/** Props for the {@link EmojiPicker} component. */
 interface EmojiPickerProps {
+  /** Callback invoked with the selected emoji character. */
   onSelect: (emoji: string) => void;
+
+  /** Callback to close the picker dropdown. */
   onClose: () => void;
 }
 
+/**
+ * Dropdown emoji picker with categorized groups and a search filter.
+ * Closes automatically when the user clicks outside the component.
+ */
 export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");

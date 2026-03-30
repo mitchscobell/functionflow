@@ -19,6 +19,12 @@ import {
 import toast from "react-hot-toast";
 import ConvertAccountWizard from "./ConvertAccountWizard";
 
+/**
+ * Application shell that wraps page content with a top navigation bar,
+ * theme picker, demo-account banner, and the convert-account wizard overlay.
+ *
+ * @param props.children - Page content rendered inside the main area.
+ */
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, isDemo, logout } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -37,6 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  /** Available theme options with their display labels and icons. */
   const themes = [
     {
       key: "function" as const,
@@ -55,6 +62,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const currentTheme = themes.find((t) => t.key === theme) ?? themes[0];
 
+  /**
+   * Handles user logout. For demo accounts, calls the server-side demo
+   * cleanup endpoint first before clearing local state.
+   */
   const handleLogout = async () => {
     if (isDemo) {
       try {

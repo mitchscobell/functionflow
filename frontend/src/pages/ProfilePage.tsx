@@ -17,6 +17,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+/**
+ * User profile settings page. Allows editing display name and theme preference,
+ * and manages personal API keys (create, revoke, copy).
+ */
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -40,6 +44,10 @@ export default function ProfilePage() {
       .catch(() => {});
   }, []);
 
+  /**
+   * Persists the display name and theme preference to the server.
+   * @param e - Form submission event.
+   */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -57,6 +65,10 @@ export default function ProfilePage() {
     }
   };
 
+  /**
+   * Creates a new API key with the entered name.
+   * Displays the raw key value once for the user to copy.
+   */
   const handleCreateKey = async () => {
     const name = newKeyName.trim();
     if (!name) return;
@@ -75,6 +87,10 @@ export default function ProfilePage() {
     }
   };
 
+  /**
+   * Revokes an API key so it can no longer be used.
+   * @param id - Database ID of the key to revoke.
+   */
   const handleRevokeKey = async (id: number) => {
     try {
       await api.revokeApiKey(id);
@@ -87,11 +103,16 @@ export default function ProfilePage() {
     }
   };
 
+  /**
+   * Copies the given text to the system clipboard and shows a toast.
+   * @param text - The string to copy.
+   */
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
 
+  /** Available theme options with color swatches for visual preview. */
   const themes = [
     {
       value: "function" as const,

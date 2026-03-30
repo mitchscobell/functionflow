@@ -1,60 +1,10 @@
-export interface User {
-  id: number;
-  email: string;
-  displayName: string;
-  themePreference: string;
-}
-
-export interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  notes?: string;
-  url?: string;
-  dueDate?: string;
-  priority: "Low" | "Medium" | "High";
-  status: "Todo" | "InProgress" | "Done";
-  tags: string[];
-  listId?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TaskListResponse {
-  items: Task[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
-
-export interface TaskList {
-  id: number;
-  name: string;
-  emoji?: string;
-  color: string;
-  sortOrder: number;
-  taskCount: number;
-  createdAt: string;
-}
-
-export interface ApiKey {
-  id: number;
-  name: string;
-  keyPrefix: string;
-  createdAt: string;
-  expiresAt?: string;
-  isRevoked: boolean;
-}
-
-export interface ApiKeyCreated {
-  id: number;
-  name: string;
-  key: string;
-  keyPrefix: string;
-  createdAt: string;
-}
+/**
+ * Barrel re-export for all shared TypeScript interfaces.
+ * Import from `@/types` or `../types` to access any type.
+ */
+export type { User } from "./User";
+export type { Task } from "./Task";
+export type { TaskListResponse } from "./TaskListResponse";
+export type { AuthResponse } from "./AuthResponse";
+export type { TaskList } from "./TaskList";
+export type { ApiKey, ApiKeyCreated } from "./ApiKey";

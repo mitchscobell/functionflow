@@ -7,6 +7,11 @@ import { ThemeProvider } from "./hooks/useTheme";
 import App from "./App";
 import "./index.css";
 
+/**
+ * Application entry point.
+ * Mounts the React root with StrictMode, BrowserRouter, AuthProvider,
+ * ThemeProvider, the App component, and a global toast notification container.
+ */
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>

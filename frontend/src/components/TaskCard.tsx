@@ -12,6 +12,7 @@ import {
   StickyNote,
 } from "lucide-react";
 
+/** Maps priority levels to their Tailwind color classes for the badge. */
 const priorityColors: Record<string, string> = {
   High: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
   Medium:
@@ -19,19 +20,32 @@ const priorityColors: Record<string, string> = {
   Low: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
 };
 
+/** Maps task statuses to their corresponding icon elements. */
 const statusIcons: Record<string, React.ReactNode> = {
   Todo: <Circle size={16} className="text-gray-400" />,
   InProgress: <Clock size={16} className="text-blue-500" />,
   Done: <CheckCircle2 size={16} className="text-[var(--success)]" />,
 };
 
+/** Props for the {@link TaskCard} component. */
 interface Props {
+  /** The task to display. */
   task: Task;
+
+  /** Callback invoked when the user clicks the edit button. */
   onEdit: (task: Task) => void;
+
+  /** Callback invoked when the user clicks the delete button. */
   onDelete: (id: number) => void;
+
+  /** Callback invoked when the user toggles the task's completion status. */
   onToggleStatus: (task: Task) => void;
 }
 
+/**
+ * Renders an individual task as a card with status toggle, priority badge,
+ * due date, tags, and action buttons for editing and deleting.
+ */
 export default function TaskCard({
   task,
   onEdit,

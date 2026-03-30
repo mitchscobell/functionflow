@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+/**
+ * Login page with email/code passwordless authentication and a demo mode option.
+ * Renders a two-step form: email entry, then six-digit code verification.
+ */
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -22,6 +26,10 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  /**
+   * Starts a temporary demo session using the dev-login endpoint.
+   * Bypasses email verification for quick exploration.
+   */
   const handleDevLogin = async () => {
     setShowDemoModal(false);
     setLoading(true);
@@ -37,6 +45,11 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * Sends a verification code to the entered email address.
+   * Advances the form to the code-entry step on success.
+   * @param e - Form submission event.
+   */
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -51,6 +64,11 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * Verifies the six-digit code and logs the user in on success.
+   * Navigates to the dashboard after a successful login.
+   * @param e - Form submission event.
+   */
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
