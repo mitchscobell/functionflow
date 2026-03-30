@@ -33,8 +33,14 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test --configuration Release --no-restore --verbosity normal
+      - name: Test with coverage
+        run: dotnet test --configuration Release --no-restore --verbosity normal --collect:"XPlat Code Coverage"
+
+      - name: Coverage summary
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage -reporttypes:TextSummary
+          cat coverage/Summary.txt
 
   frontend:
     name: Frontend — Build & Typecheck
@@ -57,6 +63,9 @@ jobs:
 
       - name: Type check
         run: npx tsc --noEmit
+
+      - name: Test with coverage
+        run: npx vitest run --coverage.enabled --coverage.reporter=text
 
       - name: Build
         run: npm run build

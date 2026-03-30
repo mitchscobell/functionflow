@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { Task, TaskList } from "../types";
-import { X } from "lucide-react";
+import { X, FolderPlus } from "lucide-react";
 
 /** Props for the {@link TaskModal} component. */
 interface Props {
@@ -21,6 +21,9 @@ interface Props {
 
   /** Pre-selected list ID for new tasks created from a list view. */
   activeListId?: number | null;
+
+  /** Callback to create a new list inline. Returns the new list. */
+  onCreateList?: (name: string) => Promise<TaskList | undefined>;
 }
 
 /**
@@ -34,6 +37,7 @@ export default function TaskModal({
   onSave,
   lists = [],
   activeListId,
+  onCreateList,
 }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -44,6 +48,8 @@ export default function TaskModal({
   const [dueDate, setDueDate] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [listId, setListId] = useState<number | undefined>(undefined);
+  const [creatingList, setCreatingList] = useState(false);
+  const [newListName, setNewListName] = useState("");
 
   useEffect(() => {
     if (task) {
@@ -224,24 +230,88 @@ export default function TaskModal({
             </p>
           </div>
 
-          {lists.length > 0 && (
+          {(lists.length > 0 || onCreateList) && (
             <div>
               <label className="block text-sm font-medium mb-1">List</label>
-              <select
-                value={listId ?? ""}
-                onChange={(e) =>
-                  setListId(e.target.value ? Number(e.target.value) : undefined)
-                }
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-              >
-                <option value="">Inbox (no list)</option>
-                {lists.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.emoji ? `${l.emoji} ` : ""}
-                    {l.name}
-                  </option>
-                ))}
-              </select>
+              {!creatingList ? (
+                <div className="flex gap-2">
+                  <select
+                    value={listId ?? ""}
+                    onChange={(e) => {
+                      if (e.target.value === "__new__") {
+                        setCreatingList(true);
+                      } else {
+                        setListId(
+                          e.target.value ? Number(e.target.value) : undefined,
+                        );
+                      }
+                    }}
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                  >
+                    <option value="">Inbox (no list)</option>
+                    {lists.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.emoji ? `${l.emoji} ` : ""}
+                        {l.name}
+                      </option>
+                    ))}
+                    {onCreateList && (
+                      <option value="__new__">+ Create new list...</option>
+                    )}
+                  </select>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    placeholder="List name..."
+                    maxLength={100}
+                    className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                    autoFocus
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const name = newListName.trim();
+                        if (!name || !onCreateList) return;
+                        const created = await onCreateList(name);
+                        if (created) setListId(created.id);
+                        setNewListName("");
+                        setCreatingList(false);
+                      } else if (e.key === "Escape") {
+                        setNewListName("");
+                        setCreatingList(false);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const name = newListName.trim();
+                      if (!name || !onCreateList) return;
+                      const created = await onCreateList(name);
+                      if (created) setListId(created.id);
+                      setNewListName("");
+                      setCreatingList(false);
+                    }}
+                    className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors text-[var(--accent)]"
+                    title="Create list"
+                  >
+                    <FolderPlus size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewListName("");
+                      setCreatingList(false);
+                    }}
+                    className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors"
+                    title="Cancel"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

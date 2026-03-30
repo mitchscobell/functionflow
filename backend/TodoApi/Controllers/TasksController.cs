@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.DTOs;
+using TodoApi.Extensions;
 using TodoApi.Models;
 using TodoApi.Repositories;
 
@@ -95,14 +96,14 @@ public class TasksController : ControllerBase
 
         var task = new TodoTask
         {
-            Title = dto.Title,
-            Description = dto.Description,
-            Notes = dto.Notes,
-            Url = dto.Url,
+            Title = dto.Title.Sanitize()!,
+            Description = dto.Description.Sanitize(),
+            Notes = dto.Notes.Sanitize(),
+            Url = dto.Url?.Trim(),
             DueDate = dto.DueDate,
             Priority = dto.Priority,
             Status = Models.TaskStatus.Todo,
-            Tags = dto.Tags ?? Array.Empty<string>(),
+            Tags = dto.Tags?.Select(t => t.Sanitize()!).Where(t => !string.IsNullOrEmpty(t)).ToArray() ?? Array.Empty<string>(),
             ListId = dto.ListId,
             UserId = userId
         };
@@ -122,14 +123,14 @@ public class TasksController : ControllerBase
         var task = await _tasks.GetByIdAsync(id, userId);
         if (task == null) return NotFound(new { message = "Task not found." });
 
-        if (dto.Title != null) task.Title = dto.Title;
-        if (dto.Description != null) task.Description = dto.Description;
-        if (dto.Notes != null) task.Notes = dto.Notes;
-        if (dto.Url != null) task.Url = dto.Url;
+        if (dto.Title != null) task.Title = dto.Title.Sanitize()!;
+        if (dto.Description != null) task.Description = dto.Description.Sanitize();
+        if (dto.Notes != null) task.Notes = dto.Notes.Sanitize();
+        if (dto.Url != null) task.Url = dto.Url.Trim();
         if (dto.DueDate.HasValue) task.DueDate = dto.DueDate;
         if (dto.Priority.HasValue) task.Priority = dto.Priority.Value;
         if (dto.Status.HasValue) task.Status = dto.Status.Value;
-        if (dto.Tags != null) task.Tags = dto.Tags;
+        if (dto.Tags != null) task.Tags = dto.Tags.Select(t => t.Sanitize()!).Where(t => !string.IsNullOrEmpty(t)).ToArray();
         if (dto.ListId.HasValue)
         {
             if (dto.ListId.Value == 0)

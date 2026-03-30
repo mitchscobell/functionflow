@@ -14,6 +14,7 @@ import {
   Trash2,
   AlertTriangle,
   ExternalLink,
+  Info,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -360,6 +361,17 @@ export default function ProfilePage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Version & Health */}
+        <div className="mt-8 border-t border-[var(--border)] pt-6 text-center">
+          <a
+            href="/version"
+            className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+          >
+            <Info size={14} />
+            Version & Health
+          </a>
         </div>
       </div>
     </Layout>

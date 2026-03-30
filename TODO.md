@@ -56,17 +56,21 @@
 
 27. **Swagger available in all environments** — Swagger UI works in production with a pinhole CSP policy for `/swagger` routes.
 
+28. **Test coverage in CI** — Backend uses `XPlat Code Coverage` with `reportgenerator` summary; frontend uses `@vitest/coverage-v8`. Coverage reports print in CI logs.
+
+29. **Create list from task modal** — "Create new list..." option in the list dropdown opens an inline name input. Works even when no lists exist yet.
+
+30. **Mobile list selector** — Dropdown selector for lists shown on small screens (`md:hidden`), since the desktop sidebar is hidden on mobile.
+
+31. **Frontend tests in CI** — Added `npx vitest run` step to the GitHub Actions frontend job, gating version bumps on test pass.
+
+32. **Input sanitization** — HTML tags stripped from all user-entered text fields (title, description, notes, tags, list name) via `StringSanitizer.Sanitize()` in backend controllers. EF Core parameterized queries prevent SQL injection; React JSX auto-escaping prevents XSS.
+
+33. **Version link on profile** — "Version & Health" link on the Profile page navigates to `/version`.
+
 ## Still To Do
 
-1. Test coverage badge — generate coverage reports in CI and display as a badge.
-
-2. I want the ability to make a new list from the new task screen if there are no lists or I want a new list.
-
-3. I want to see the lists on mobile, I don't see that side panel on mobile at all
-
-4. The CI should do the frontend tests too
-
-5. Database can't get attacked with user enterable fields, should have input sanitization or other mechanism.
+1. Example pre-seeded tasks are prefixed with EXAMPLE or something so people know they're examples.
 
 ## Out of Scope
 

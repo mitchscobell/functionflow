@@ -219,6 +219,19 @@ export default function DashboardPage() {
     }
   };
 
+  /** Creates a new list inline (e.g. from the task modal) and returns it. */
+  const handleCreateListInline = async (name: string) => {
+    try {
+      const created = await api.createList({ name });
+      fetchLists();
+      toast.success("List created");
+      return created;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create list");
+      return undefined;
+    }
+  };
+
   /**
    * Deletes a task list. Tasks in the list are moved to the inbox.
    * @param id - The list's database ID.
@@ -272,6 +285,24 @@ export default function DashboardPage() {
 
   return (
     <Layout>
+      {/* Mobile list selector */}
+      <div className="md:hidden mb-4 print:hidden">
+        <select
+          value={activeListId ?? ""}
+          onChange={(e) =>
+            setActiveListId(e.target.value ? Number(e.target.value) : null)
+          }
+          className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        >
+          <option value="">All Tasks</option>
+          {lists.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.emoji ? `${l.emoji} ` : "📋"} {l.name} ({l.taskCount})
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex gap-6">
         {/* List sidebar */}
         <aside className="hidden md:block w-52 shrink-0 print:hidden">
@@ -291,7 +322,10 @@ export default function DashboardPage() {
               All Tasks
             </button>
             {lists.map((list) => (
-              <div key={list.id} className={`group flex items-center ${emojiPickerListId === list.id ? "relative z-50" : ""}`}>
+              <div
+                key={list.id}
+                className={`group flex items-center ${emojiPickerListId === list.id ? "relative z-50" : ""}`}
+              >
                 {editingList === list.id ? (
                   <form
                     onSubmit={(e) => {
@@ -655,6 +689,7 @@ export default function DashboardPage() {
         onSave={handleSave}
         lists={lists}
         activeListId={activeListId}
+        onCreateList={handleCreateListInline}
       />
     </Layout>
   );

@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.DTOs;
+using TodoApi.Extensions;
 using TodoApi.Models;
 using TodoApi.Repositories;
 
@@ -73,7 +74,7 @@ public class ListsController : ControllerBase
 
         var list = new TaskList
         {
-            Name = dto.Name,
+            Name = dto.Name.Sanitize()!,
             Emoji = dto.Emoji,
             Color = dto.Color ?? DefaultColors[existingCount % DefaultColors.Length],
             SortOrder = existingCount,
@@ -96,7 +97,7 @@ public class ListsController : ControllerBase
         var (list, _) = await _lists.GetByIdAsync(id, userId);
         if (list == null) return NotFound(new { message = "List not found." });
 
-        if (dto.Name != null) list.Name = dto.Name;
+        if (dto.Name != null) list.Name = dto.Name.Sanitize()!;
         if (dto.Emoji != null) list.Emoji = dto.Emoji;
         if (dto.Color != null) list.Color = dto.Color;
         if (dto.SortOrder.HasValue) list.SortOrder = dto.SortOrder.Value;
