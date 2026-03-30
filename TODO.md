@@ -91,3 +91,5 @@
 11. Account with email already exists when converting a demo account, might be an attack vector to see what people have accounts?
 
 12. Admin panel to check users
+
+13. add some limits to the user enterable fields

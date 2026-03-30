@@ -291,7 +291,7 @@ export default function DashboardPage() {
               All Tasks
             </button>
             {lists.map((list) => (
-              <div key={list.id} className="group flex items-center">
+              <div key={list.id} className={`group flex items-center ${emojiPickerListId === list.id ? "relative z-50" : ""}`}>
                 {editingList === list.id ? (
                   <form
                     onSubmit={(e) => {
