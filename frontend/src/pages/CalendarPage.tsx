@@ -120,8 +120,7 @@ export default function CalendarPage() {
    * @param task - The task to get the color for.
    */
   const getListColor = (task: Task) => {
-    if (task.listId && listColorMap[task.listId])
-      return listColorMap[task.listId];
+    if (task.listId && listColorMap[task.listId]) return listColorMap[task.listId];
     return "bg-[var(--accent)]";
   };
 
@@ -158,9 +157,7 @@ export default function CalendarPage() {
         return d >= ws && d <= we;
       }
       // month
-      return (
-        d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-      );
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
   }, [tasks, refDate, viewRange]);
 
@@ -168,9 +165,7 @@ export default function CalendarPage() {
   // Tasks for selected date (click on a calendar day)
   const selectedDateTasks = useMemo(() => {
     if (!selectedDate) return viewTasks;
-    return tasks.filter(
-      (t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate),
-    );
+    return tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate));
   }, [tasks, selectedDate, viewTasks]);
 
   /** 2D array of dates representing the month grid (weeks × days, null for empty cells). */
@@ -198,8 +193,7 @@ export default function CalendarPage() {
   }, [refDate]);
 
   const tasksOnDay = useCallback(
-    (date: Date) =>
-      tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), date)),
+    (date: Date) => tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), date)),
     [tasks],
   );
 
@@ -295,16 +289,10 @@ export default function CalendarPage() {
                 setSelectedDate(null);
               }}
               className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                viewRange === range
-                  ? "bg-[var(--accent)] text-white"
-                  : "hover:bg-[var(--hover)]"
+                viewRange === range ? "bg-[var(--accent)] text-white" : "hover:bg-[var(--hover)]"
               }`}
             >
-              {range === "today"
-                ? "Today"
-                : range === "week"
-                  ? "Week"
-                  : "Month"}
+              {range === "today" ? "Today" : range === "week" ? "Week" : "Month"}
             </button>
           ))}
         </div>
@@ -321,10 +309,7 @@ export default function CalendarPage() {
         <div className="text-center">
           <h2 className="text-lg font-semibold">{headerLabel}</h2>
           {!isSameDay(refDate, today) && (
-            <button
-              onClick={goToday}
-              className="text-xs text-[var(--accent)] hover:underline"
-            >
+            <button onClick={goToday} className="text-xs text-[var(--accent)] hover:underline">
               Go to today
             </button>
           )}
@@ -354,26 +339,18 @@ export default function CalendarPage() {
               <div className="grid grid-cols-7 gap-px bg-[var(--border)] rounded-lg overflow-hidden">
                 {monthGrid.flat().map((date, i) => {
                   if (!date) {
-                    return (
-                      <div
-                        key={`empty-${i}`}
-                        className="bg-[var(--bg)] p-2 min-h-[60px]"
-                      />
-                    );
+                    return <div key={`empty-${i}`} className="bg-[var(--bg)] p-2 min-h-[60px]" />;
                   }
                   const dayTasks = tasksOnDay(date);
                   const isToday = isSameDay(date, today);
-                  const isSelected =
-                    selectedDate && isSameDay(date, selectedDate);
+                  const isSelected = selectedDate && isSameDay(date, selectedDate);
 
                   return (
                     <button
                       key={date.toISOString()}
                       onClick={() => setSelectedDate(date)}
                       className={`bg-[var(--bg)] p-2 min-h-[60px] text-left transition-colors hover:bg-[var(--hover)] ${
-                        isSelected
-                          ? "ring-2 ring-[var(--accent)] ring-inset"
-                          : ""
+                        isSelected ? "ring-2 ring-[var(--accent)] ring-inset" : ""
                       }`}
                     >
                       <span
@@ -415,9 +392,7 @@ export default function CalendarPage() {
                 : `${viewTasks.length} task${viewTasks.length !== 1 ? "s" : ""} with due dates`}
             </h3>
             {selectedDateTasks.length === 0 ? (
-              <p className="text-sm text-[var(--muted)] py-6 text-center">
-                No tasks scheduled.
-              </p>
+              <p className="text-sm text-[var(--muted)] py-6 text-center">No tasks scheduled.</p>
             ) : (
               <div className="space-y-2">
                 {selectedDateTasks.map((task) => (

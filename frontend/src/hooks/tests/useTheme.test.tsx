@@ -30,9 +30,7 @@ describe("ThemeProvider", () => {
     );
 
     expect(screen.getByTestId("theme").textContent).toBe("function");
-    expect(document.documentElement.classList.contains("theme-function")).toBe(
-      true,
-    );
+    expect(document.documentElement.classList.contains("theme-function")).toBe(true);
   });
 
   it("restores theme from localStorage", () => {
@@ -45,9 +43,7 @@ describe("ThemeProvider", () => {
     );
 
     expect(screen.getByTestId("theme").textContent).toBe("cyberpunk");
-    expect(document.documentElement.classList.contains("theme-cyberpunk")).toBe(
-      true,
-    );
+    expect(document.documentElement.classList.contains("theme-cyberpunk")).toBe(true);
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
@@ -62,9 +58,7 @@ describe("ThemeProvider", () => {
 
     expect(screen.getByTestId("theme").textContent).toBe("dark");
     expect(localStorage.getItem("theme")).toBe("dark");
-    expect(document.documentElement.classList.contains("theme-dark")).toBe(
-      true,
-    );
+    expect(document.documentElement.classList.contains("theme-dark")).toBe(true);
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
@@ -76,17 +70,11 @@ describe("ThemeProvider", () => {
     );
 
     act(() => screen.getByText("setDark").click());
-    expect(document.documentElement.classList.contains("theme-dark")).toBe(
-      true,
-    );
+    expect(document.documentElement.classList.contains("theme-dark")).toBe(true);
 
     act(() => screen.getByText("setLight").click());
-    expect(document.documentElement.classList.contains("theme-dark")).toBe(
-      false,
-    );
-    expect(document.documentElement.classList.contains("theme-light")).toBe(
-      true,
-    );
+    expect(document.documentElement.classList.contains("theme-dark")).toBe(false);
+    expect(document.documentElement.classList.contains("theme-light")).toBe(true);
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
@@ -118,9 +106,7 @@ describe("ThemeProvider", () => {
 describe("useTheme outside provider", () => {
   it("throws when used outside ThemeProvider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => render(<TestConsumer />)).toThrow(
-      "useTheme must be used within ThemeProvider",
-    );
+    expect(() => render(<TestConsumer />)).toThrow("useTheme must be used within ThemeProvider");
     spy.mockRestore();
   });
 });

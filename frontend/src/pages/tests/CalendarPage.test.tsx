@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import CalendarPage from "../CalendarPage";
+import type { Task } from "../../types";
 import { AuthProvider } from "../../hooks/useAuth";
 import { ThemeProvider } from "../../hooks/useTheme";
 
@@ -24,14 +25,22 @@ vi.mock("react-hot-toast", () => ({
 
 // Mock Layout
 vi.mock("../../components/Layout", () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 // Mock TaskCard
 vi.mock("../../components/TaskCard", () => ({
-  default: ({ task, onEdit, onDelete, onToggleStatus }: any) => (
+  default: ({
+    task,
+    onEdit,
+    onDelete,
+    onToggleStatus,
+  }: {
+    task: { id: number; title: string };
+    onEdit: (task: { id: number; title: string }) => void;
+    onDelete: (id: number) => void;
+    onToggleStatus: (task: { id: number; title: string }) => void;
+  }) => (
     <div data-testid="task-card">
       <span>{task.title}</span>
       <button onClick={() => onEdit(task)}>edit</button>
@@ -43,13 +52,21 @@ vi.mock("../../components/TaskCard", () => ({
 
 // Mock TaskModal
 vi.mock("../../components/TaskModal", () => ({
-  default: ({ open, onClose, onSave, task }: any) =>
+  default: ({
+    open,
+    onClose,
+    onSave,
+    task,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    onSave: (data: { title: string }) => void;
+    task: { title: string } | null;
+  }) =>
     open ? (
       <div data-testid="task-modal">
         <span>{task ? "Edit" : "Create"}</span>
-        <button onClick={() => onSave({ title: "New Task" })}>
-          save-modal
-        </button>
+        <button onClick={() => onSave({ title: "New Task" })}>save-modal</button>
         <button onClick={onClose}>close-modal</button>
       </div>
     ) : null,
@@ -163,9 +180,7 @@ describe("CalendarPage", () => {
     // Navigate forward
     const buttons = screen.getAllByRole("button");
     // The right chevron is the last navigation button before the content
-    const nextBtn = buttons.find((b) =>
-      b.querySelector('[class*="lucide-chevron-right"]'),
-    );
+    const nextBtn = buttons.find((b) => b.querySelector('[class*="lucide-chevron-right"]'));
     if (nextBtn) fireEvent.click(nextBtn);
   });
 
@@ -315,7 +330,7 @@ describe("CalendarPage", () => {
       page: 1,
       pageSize: 500,
     });
-    vi.mocked(api.updateTask).mockResolvedValueOnce({} as any);
+    vi.mocked(api.updateTask).mockResolvedValueOnce({} as Task);
 
     renderCalendarPage();
     await waitFor(() => {
@@ -436,7 +451,7 @@ describe("CalendarPage", () => {
       page: 1,
       pageSize: 500,
     });
-    vi.mocked(api.updateTask).mockResolvedValueOnce({} as any);
+    vi.mocked(api.updateTask).mockResolvedValueOnce({} as Task);
 
     renderCalendarPage();
     await waitFor(() => {

@@ -22,6 +22,18 @@ interface ApiHealth {
 }
 
 /**
+ * Small colored dot indicating healthy (green) or unhealthy (red) status.
+ * @param props.healthy - Whether the service is healthy.
+ */
+function StatusDot({ healthy }: { healthy: boolean }) {
+  return (
+    <span
+      className={`inline-block h-3 w-3 rounded-full ${healthy ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" : "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]"}`}
+    />
+  );
+}
+
+/**
  * Public page that displays the frontend and backend version numbers,
  * API health status, and database connectivity.
  */
@@ -43,16 +55,6 @@ export default function VersionPage() {
       .catch(() => setApiError(true))
       .finally(() => setLoading(false));
   }, []);
-
-  /**
-   * Small colored dot indicating healthy (green) or unhealthy (red) status.
-   * @param props.healthy - Whether the service is healthy.
-   */
-  const StatusDot = ({ healthy }: { healthy: boolean }) => (
-    <span
-      className={`inline-block h-3 w-3 rounded-full ${healthy ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" : "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]"}`}
-    />
-  );
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">

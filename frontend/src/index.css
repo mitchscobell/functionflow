@@ -2,111 +2,111 @@
 
 /* ── Theme: Function (default) ── */
 .theme-function {
-    --bg: #FEF9EF;
-    --bg-secondary: #FBF2E3;
-    --text: #2D2418;
-    --text-secondary: #5C4A32;
-    --accent: #B67B5E;
-    --accent-hover: #A06A4E;
-    --card: #FFFFFF;
-    --border: #E8DCC8;
-    --hover: #F5EBD8;
-    --muted: #8B7355;
-    --success: #6B8F71;
-    --input-bg: #FFFFFF;
+  --bg: #fef9ef;
+  --bg-secondary: #fbf2e3;
+  --text: #2d2418;
+  --text-secondary: #5c4a32;
+  --accent: #b67b5e;
+  --accent-hover: #a06a4e;
+  --card: #ffffff;
+  --border: #e8dcc8;
+  --hover: #f5ebd8;
+  --muted: #8b7355;
+  --success: #6b8f71;
+  --input-bg: #ffffff;
 }
 
 /* ── Theme: Dark ── */
 .theme-dark {
-    --bg: #0F1117;
-    --bg-secondary: #1A1D27;
-    --text: #E4E4E7;
-    --text-secondary: #A1A1AA;
-    --accent: #818CF8;
-    --accent-hover: #6366F1;
-    --card: #1E2030;
-    --border: #2E3044;
-    --hover: #282A3A;
-    --muted: #71717A;
-    --success: #4ADE80;
-    --input-bg: #1A1D27;
+  --bg: #0f1117;
+  --bg-secondary: #1a1d27;
+  --text: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+  --card: #1e2030;
+  --border: #2e3044;
+  --hover: #282a3a;
+  --muted: #71717a;
+  --success: #4ade80;
+  --input-bg: #1a1d27;
 }
 
 /* ── Theme: Light ── */
 .theme-light {
-    --bg: #FAFAFA;
-    --bg-secondary: #F4F4F5;
-    --text: #18181B;
-    --text-secondary: #52525B;
-    --accent: #2563EB;
-    --accent-hover: #1D4ED8;
-    --card: #FFFFFF;
-    --border: #E4E4E7;
-    --hover: #F4F4F5;
-    --muted: #71717A;
-    --success: #16A34A;
-    --input-bg: #FFFFFF;
+  --bg: #fafafa;
+  --bg-secondary: #f4f4f5;
+  --text: #18181b;
+  --text-secondary: #52525b;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --card: #ffffff;
+  --border: #e4e4e7;
+  --hover: #f4f4f5;
+  --muted: #71717a;
+  --success: #16a34a;
+  --input-bg: #ffffff;
 }
 
 /* ── Theme: Vaporwave ── */
 .theme-vaporwave {
-    --bg: #1A1025;
-    --bg-secondary: #241536;
-    --text: #E8D5F5;
-    --text-secondary: #B794D6;
-    --accent: #FF6AD5;
-    --accent-hover: #E84FC0;
-    --card: #2A1840;
-    --border: #3D2560;
-    --hover: #331E50;
-    --muted: #9E7BB5;
-    --success: #01CDFE;
-    --input-bg: #241536;
+  --bg: #1a1025;
+  --bg-secondary: #241536;
+  --text: #e8d5f5;
+  --text-secondary: #b794d6;
+  --accent: #ff6ad5;
+  --accent-hover: #e84fc0;
+  --card: #2a1840;
+  --border: #3d2560;
+  --hover: #331e50;
+  --muted: #9e7bb5;
+  --success: #01cdfe;
+  --input-bg: #241536;
 }
 
 /* ── Theme: Cyberpunk ── */
 .theme-cyberpunk {
-    --bg: #0A0A12;
-    --bg-secondary: #12121E;
-    --text: #E0F0FF;
-    --text-secondary: #8899AA;
-    --accent: #00F0FF;
-    --accent-hover: #00C8D8;
-    --card: #141424;
-    --border: #1E2040;
-    --hover: #1A1A30;
-    --muted: #556677;
-    --success: #39FF14;
-    --input-bg: #12121E;
+  --bg: #0a0a12;
+  --bg-secondary: #12121e;
+  --text: #e0f0ff;
+  --text-secondary: #8899aa;
+  --accent: #00f0ff;
+  --accent-hover: #00c8d8;
+  --card: #141424;
+  --border: #1e2040;
+  --hover: #1a1a30;
+  --muted: #556677;
+  --success: #39ff14;
+  --input-bg: #12121e;
 }
 
 /* ── Base reset ── */
 *,
 *::before,
 *::after {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: var(--bg);
-    color: var(--text);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 input,
 select,
 textarea,
 button {
-    font-family: inherit;
-    color: inherit;
+  font-family: inherit;
+  color: inherit;
 }
 
 /* Override date input color for dark themes */
 .theme-dark input[type="date"]::-webkit-calendar-picker-indicator,
 .theme-vaporwave input[type="date"]::-webkit-calendar-picker-indicator,
 .theme-cyberpunk input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
+  filter: invert(1);
 }

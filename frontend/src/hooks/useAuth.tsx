@@ -37,12 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
   });
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("token"),
-  );
-  const [isDemo, setIsDemo] = useState(
-    () => localStorage.getItem("isDemo") === "true",
-  );
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
+  const [isDemo, setIsDemo] = useState(() => localStorage.getItem("isDemo") === "true");
 
   /**
    * Stores the JWT and user profile in localStorage and React state.
@@ -80,9 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, isDemo, login, logout, updateUser }}
-    >
+    <AuthContext.Provider value={{ user, token, isDemo, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,7 +5,7 @@ import type { Task, TaskList } from "../../types";
 
 // Mock EmojiPicker
 vi.mock("../EmojiPicker", () => ({
-  default: ({ onSelect, onClose }: any) => (
+  default: ({ onSelect, onClose }: { onSelect: (emoji: string) => void; onClose: () => void }) => (
     <div data-testid="emoji-picker">
       <button onClick={() => onSelect("🚀")}>pick-emoji</button>
       <button onClick={onClose}>close-picker</button>
@@ -54,9 +54,7 @@ beforeEach(() => {
 
 describe("TaskModal", () => {
   it("renders nothing when open is false", () => {
-    const { container } = render(
-      <TaskModal open={false} onClose={vi.fn()} onSave={vi.fn()} />,
-    );
+    const { container } = render(<TaskModal open={false} onClose={vi.fn()} onSave={vi.fn()} />);
     expect(container.innerHTML).toBe("");
   });
 
@@ -66,26 +64,12 @@ describe("TaskModal", () => {
   });
 
   it("renders 'Edit Task' title when task provided", () => {
-    render(
-      <TaskModal
-        open={true}
-        task={existingTask}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    render(<TaskModal open={true} task={existingTask} onClose={vi.fn()} onSave={vi.fn()} />);
     expect(screen.getByText("Edit Task")).toBeInTheDocument();
   });
 
   it("populates fields from existing task", () => {
-    render(
-      <TaskModal
-        open={true}
-        task={existingTask}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    render(<TaskModal open={true} task={existingTask} onClose={vi.fn()} onSave={vi.fn()} />);
 
     expect(screen.getByDisplayValue("Existing Task")).toBeInTheDocument();
     expect(screen.getByDisplayValue("A description")).toBeInTheDocument();
@@ -96,33 +80,17 @@ describe("TaskModal", () => {
   });
 
   it("shows Status field only when editing existing task", () => {
-    const { rerender } = render(
-      <TaskModal open={true} onClose={vi.fn()} onSave={vi.fn()} />,
-    );
+    const { rerender } = render(<TaskModal open={true} onClose={vi.fn()} onSave={vi.fn()} />);
     // No status dropdown for new task
     expect(screen.queryByDisplayValue("To Do")).not.toBeInTheDocument();
 
-    rerender(
-      <TaskModal
-        open={true}
-        task={existingTask}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    rerender(<TaskModal open={true} task={existingTask} onClose={vi.fn()} onSave={vi.fn()} />);
     // Status dropdown present for editing
     expect(screen.getByDisplayValue("In Progress")).toBeInTheDocument();
   });
 
   it("renders list dropdown when lists are provided", () => {
-    render(
-      <TaskModal
-        open={true}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-        lists={baseLists}
-      />,
-    );
+    render(<TaskModal open={true} onClose={vi.fn()} onSave={vi.fn()} lists={baseLists} />);
 
     expect(screen.getByText("Inbox (no list)")).toBeInTheDocument();
     expect(screen.getByText("💼 Work")).toBeInTheDocument();
@@ -157,14 +125,7 @@ describe("TaskModal", () => {
 
   it("calls onSave with status for existing tasks", () => {
     const onSave = vi.fn();
-    render(
-      <TaskModal
-        open={true}
-        task={existingTask}
-        onClose={vi.fn()}
-        onSave={onSave}
-      />,
-    );
+    render(<TaskModal open={true} task={existingTask} onClose={vi.fn()} onSave={onSave} />);
 
     fireEvent.click(screen.getByText("Update"));
 
@@ -255,17 +216,15 @@ describe("TaskModal", () => {
   });
 
   it("shows inline list creation with emoji picker", async () => {
-    const onCreateList = vi
-      .fn()
-      .mockResolvedValue({
-        id: 10,
-        name: "New",
-        emoji: "🚀",
-        color: "",
-        sortOrder: 0,
-        taskCount: 0,
-        createdAt: "",
-      });
+    const onCreateList = vi.fn().mockResolvedValue({
+      id: 10,
+      name: "New",
+      emoji: "🚀",
+      color: "",
+      sortOrder: 0,
+      taskCount: 0,
+      createdAt: "",
+    });
 
     render(
       <TaskModal

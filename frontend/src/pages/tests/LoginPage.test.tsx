@@ -119,11 +119,7 @@ describe("LoginPage", () => {
     fireEvent.click(screen.getByText("Verify"));
 
     await waitFor(() => {
-      expect(api.verifyCode).toHaveBeenCalledWith(
-        "test@example.com",
-        "123456",
-        false,
-      );
+      expect(api.verifyCode).toHaveBeenCalledWith("test@example.com", "123456", false);
     });
     expect(toast.success).toHaveBeenCalledWith("Welcome!");
   });
@@ -260,11 +256,7 @@ describe("LoginPage", () => {
     });
 
     await waitFor(() => {
-      expect(api.verifyCode).toHaveBeenCalledWith(
-        "auto@test.com",
-        "654321",
-        false,
-      );
+      expect(api.verifyCode).toHaveBeenCalledWith("auto@test.com", "654321", false);
     });
     expect(toast.success).toHaveBeenCalledWith("Welcome!");
   });

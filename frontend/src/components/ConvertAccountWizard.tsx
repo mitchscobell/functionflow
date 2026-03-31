@@ -2,15 +2,7 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../lib/errorUtils";
 import { useAuth } from "../hooks/useAuth";
-import {
-  ArrowRight,
-  ArrowLeft,
-  Loader2,
-  Mail,
-  Sparkles,
-  ShieldCheck,
-  X,
-} from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, Mail, Sparkles, ShieldCheck, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 /** Wizard steps for the demo-to-permanent account conversion flow. */
@@ -22,11 +14,7 @@ type Step = "intro" | "email" | "code" | "success";
  *
  * @param props.onClose - Callback to dismiss the wizard overlay.
  */
-export default function ConvertAccountWizard({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
+export default function ConvertAccountWizard({ onClose }: { onClose: () => void }) {
   const { login } = useAuth();
   const [step, setStep] = useState<Step>("intro");
   const [email, setEmail] = useState("");
@@ -118,17 +106,14 @@ export default function ConvertAccountWizard({
             <div className="space-y-4">
               <div className="rounded-xl bg-[var(--hover)] p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <ShieldCheck
-                    size={20}
-                    className="text-[var(--accent)] shrink-0 mt-0.5"
-                  />
+                  <ShieldCheck size={20} className="text-[var(--accent)] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">
                       Convert your demo into a permanent account
                     </p>
                     <p className="text-xs text-[var(--muted)] mt-1">
-                      All your tasks, lists, and settings will be preserved.
-                      You'll sign in with your email going forward.
+                      All your tasks, lists, and settings will be preserved. You'll sign in with
+                      your email going forward.
                     </p>
                   </div>
                 </div>
@@ -172,9 +157,7 @@ export default function ConvertAccountWizard({
                 </p>
               </div>
               {error && (
-                <p className="text-sm text-red-500 bg-red-500/10 rounded-lg px-3 py-2">
-                  {error}
-                </p>
+                <p className="text-sm text-red-500 bg-red-500/10 rounded-lg px-3 py-2">{error}</p>
               )}
               <div className="flex gap-2">
                 <button
@@ -207,15 +190,11 @@ export default function ConvertAccountWizard({
           {step === "code" && (
             <form onSubmit={handleVerify} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1.5">
-                  Enter verification code
-                </label>
+                <label className="block text-sm font-medium mb-1.5">Enter verification code</label>
                 <input
                   type="text"
                   value={code}
-                  onChange={(e) =>
-                    setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   required
                   autoFocus
                   maxLength={6}
@@ -227,9 +206,7 @@ export default function ConvertAccountWizard({
                 </p>
               </div>
               {error && (
-                <p className="text-sm text-red-500 bg-red-500/10 rounded-lg px-3 py-2">
-                  {error}
-                </p>
+                <p className="text-sm text-red-500 bg-red-500/10 rounded-lg px-3 py-2">{error}</p>
               )}
               <div className="flex gap-2">
                 <button
@@ -268,8 +245,7 @@ export default function ConvertAccountWizard({
               <div>
                 <h3 className="text-lg font-semibold">You're all set!</h3>
                 <p className="text-sm text-[var(--muted)] mt-1">
-                  Your account is now permanent. Sign in anytime with{" "}
-                  <strong>{email}</strong>.
+                  Your account is now permanent. Sign in anytime with <strong>{email}</strong>.
                 </p>
               </div>
               <button

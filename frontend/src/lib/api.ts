@@ -32,9 +32,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(
-      body.message || body.errors?.[0] || `Request failed (${res.status})`,
-    );
+    throw new Error(body.message || body.errors?.[0] || `Request failed (${res.status})`);
   }
 
   if (res.status === 204) return undefined as T;
@@ -63,30 +61,23 @@ export const api = {
    * @param rememberMe - If true, the token lasts 30 days; otherwise 7 days.
    */
   verifyCode: (email: string, code: string, rememberMe: boolean = false) =>
-    request<{ token: string; user: import("../types").User }>(
-      "/auth/verify-code",
-      {
-        method: "POST",
-        body: JSON.stringify({ email, code, rememberMe }),
-      },
-    ),
+    request<{ token: string; user: import("../types").User }>("/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ email, code, rememberMe }),
+    }),
 
   /**
    * Development-only login that bypasses email verification.
    * @param email - Email address to log in as.
    */
   devLogin: (email: string) =>
-    request<{ token: string; user: import("../types").User }>(
-      "/auth/dev-login",
-      {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      },
-    ),
+    request<{ token: string; user: import("../types").User }>("/auth/dev-login", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 
   /** Logs out a demo account and clears server-side session data. */
-  demoLogout: () =>
-    request<{ message: string }>("/auth/demo-logout", { method: "POST" }),
+  demoLogout: () => request<{ message: string }>("/auth/demo-logout", { method: "POST" }),
 
   /**
    * Initiates conversion of a demo account to a permanent account by sending a verification code.
@@ -105,13 +96,10 @@ export const api = {
    * @param code - Six-digit verification code.
    */
   verifyConversion: (email: string, code: string) =>
-    request<{ token: string; user: import("../types").User }>(
-      "/auth/verify-conversion",
-      {
-        method: "POST",
-        body: JSON.stringify({ email, code }),
-      },
-    ),
+    request<{ token: string; user: import("../types").User }>("/auth/verify-conversion", {
+      method: "POST",
+      body: JSON.stringify({ email, code }),
+    }),
 
   /**
    * Fetches the authenticated user's profile.
@@ -169,8 +157,7 @@ export const api = {
    * Soft-deletes a task.
    * @param id - The task's database ID.
    */
-  deleteTask: (id: number) =>
-    request<void>(`/tasks/${id}`, { method: "DELETE" }),
+  deleteTask: (id: number) => request<void>(`/tasks/${id}`, { method: "DELETE" }),
 
   /**
    * Fetches all task lists for the authenticated user.
@@ -206,8 +193,7 @@ export const api = {
    * Deletes a task list. Tasks in the list are moved to the inbox.
    * @param id - The list's database ID.
    */
-  deleteList: (id: number) =>
-    request<void>(`/lists/${id}`, { method: "DELETE" }),
+  deleteList: (id: number) => request<void>(`/lists/${id}`, { method: "DELETE" }),
 
   /**
    * Fetches all API keys for the authenticated user.
@@ -229,8 +215,7 @@ export const api = {
    * Revokes an API key so it can no longer be used for authentication.
    * @param id - The API key's database ID.
    */
-  revokeApiKey: (id: number) =>
-    request<void>(`/keys/${id}`, { method: "DELETE" }),
+  revokeApiKey: (id: number) => request<void>(`/keys/${id}`, { method: "DELETE" }),
 
   /**
    * Fetches the server health/version information.

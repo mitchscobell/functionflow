@@ -3,9 +3,7 @@ import { getErrorMessage } from "../errorUtils";
 
 describe("getErrorMessage", () => {
   it("returns message from an Error instance", () => {
-    expect(getErrorMessage(new Error("something broke"))).toBe(
-      "something broke",
-    );
+    expect(getErrorMessage(new Error("something broke"))).toBe("something broke");
   });
 
   it("returns a string error directly", () => {
@@ -25,8 +23,6 @@ describe("getErrorMessage", () => {
   });
 
   it("returns a generic message for a plain object", () => {
-    expect(getErrorMessage({ code: 500 })).toBe(
-      "An unexpected error occurred",
-    );
+    expect(getErrorMessage({ code: 500 })).toBe("An unexpected error occurred");
   });
 });

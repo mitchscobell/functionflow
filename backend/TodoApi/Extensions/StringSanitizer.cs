@@ -16,7 +16,8 @@ public static partial class StringSanitizer
     /// </summary>
     public static string? Sanitize(this string? input)
     {
-        if (input is null) return null;
+        if (input is null)
+            return null;
         return HtmlTagRegex().Replace(input, string.Empty).Trim();
     }
 }

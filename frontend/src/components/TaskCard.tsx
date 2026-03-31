@@ -15,8 +15,7 @@ import {
 /** Maps priority levels to their Tailwind color classes for the badge. */
 const priorityColors: Record<string, string> = {
   High: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  Medium:
-    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  Medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   Low: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
 };
 
@@ -46,16 +45,8 @@ interface Props {
  * Renders an individual task as a card with status toggle, priority badge,
  * due date, tags, and action buttons for editing and deleting.
  */
-export default function TaskCard({
-  task,
-  onEdit,
-  onDelete,
-  onToggleStatus,
-}: Props) {
-  const isOverdue =
-    task.dueDate &&
-    new Date(task.dueDate) < new Date() &&
-    task.status !== "Done";
+export default function TaskCard({ task, onEdit, onDelete, onToggleStatus }: Props) {
+  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "Done";
 
   return (
     <div
@@ -85,9 +76,7 @@ export default function TaskCard({
             </h3>
 
             {task.description && (
-              <p className="mt-1 text-sm text-[var(--muted)] line-clamp-2">
-                {task.description}
-              </p>
+              <p className="mt-1 text-sm text-[var(--muted)] line-clamp-2">{task.description}</p>
             )}
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -104,9 +93,7 @@ export default function TaskCard({
                 <span
                   className={clsx(
                     "flex items-center gap-1 text-xs",
-                    isOverdue
-                      ? "text-red-500 font-medium"
-                      : "text-[var(--muted)]",
+                    isOverdue ? "text-red-500 font-medium" : "text-[var(--muted)]",
                   )}
                 >
                   <Calendar size={12} />

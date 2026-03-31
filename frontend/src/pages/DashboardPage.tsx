@@ -75,12 +75,8 @@ export default function DashboardPage() {
   const [newListName, setNewListName] = useState("");
   const [editingList, setEditingList] = useState<number | null>(null);
   const [editListName, setEditListName] = useState("");
-  const [emojiPickerListId, setEmojiPickerListId] = useState<number | null>(
-    null,
-  );
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(
-    new Set(),
-  );
+  const [emojiPickerListId, setEmojiPickerListId] = useState<number | null>(null);
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
 
   const pageSize = 100; // fetch more for swimlane view
 
@@ -187,9 +183,7 @@ export default function DashboardPage() {
     };
     const newStatus = next[task.status] as Task["status"];
     // Optimistic update — avoids scroll jump from full refetch
-    setTasks((prev) =>
-      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
-    );
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)));
     try {
       await api.updateTask(task.id, { status: newStatus });
       fetchLists(); // update task counts
@@ -276,9 +270,7 @@ export default function DashboardPage() {
 
   /** Tasks filtered to the currently selected list (or all tasks if no list is active). */
   const filteredByList =
-    activeListId === null
-      ? tasks
-      : tasks.filter((t) => t.listId === activeListId);
+    activeListId === null ? tasks : tasks.filter((t) => t.listId === activeListId);
 
   /** Tasks visible after applying the completed-tasks toggle. */
   const visibleTasks = showCompleted
@@ -301,9 +293,7 @@ export default function DashboardPage() {
         </label>
         <select
           value={activeListId ?? ""}
-          onChange={(e) =>
-            setActiveListId(e.target.value ? Number(e.target.value) : null)
-          }
+          onChange={(e) => setActiveListId(e.target.value ? Number(e.target.value) : null)}
           className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         >
           <option value="">📋 All Tasks</option>
@@ -326,9 +316,7 @@ export default function DashboardPage() {
             <button
               onClick={() => setActiveListId(null)}
               className={`flex items-center gap-2 w-full rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                activeListId === null
-                  ? "bg-[var(--accent)] text-white"
-                  : "hover:bg-[var(--hover)]"
+                activeListId === null ? "bg-[var(--accent)] text-white" : "hover:bg-[var(--hover)]"
               }`}
             >
               <Inbox size={14} />
@@ -368,9 +356,7 @@ export default function DashboardPage() {
                       className="relative cursor-pointer hover:scale-125 transition-transform"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setEmojiPickerListId(
-                          emojiPickerListId === list.id ? null : list.id,
-                        );
+                        setEmojiPickerListId(emojiPickerListId === list.id ? null : list.id);
                       }}
                       title="Change emoji"
                     >
@@ -392,9 +378,7 @@ export default function DashboardPage() {
                         </div>
                       )}
                     </span>
-                    <span className="truncate flex-1 text-left">
-                      {list.name}
-                    </span>
+                    <span className="truncate flex-1 text-left">{list.name}</span>
                     <span className="text-xs opacity-60">{list.taskCount}</span>
                   </button>
                 )}
@@ -462,17 +446,11 @@ export default function DashboardPage() {
                 {showCompleted ? <Eye size={16} /> : <EyeOff size={16} />}
               </button>
               <button
-                onClick={() =>
-                  setViewMode(viewMode === "list" ? "swimlane" : "list")
-                }
+                onClick={() => setViewMode(viewMode === "list" ? "swimlane" : "list")}
                 className={`rounded-lg border border-[var(--border)] p-2 hover:bg-[var(--hover)] transition-colors print:hidden`}
                 title={viewMode === "list" ? "Swimlane view" : "List view"}
               >
-                {viewMode === "list" ? (
-                  <Columns3 size={16} />
-                ) : (
-                  <LayoutList size={16} />
-                )}
+                {viewMode === "list" ? <Columns3 size={16} /> : <LayoutList size={16} />}
               </button>
               <button
                 onClick={handlePrint}
@@ -565,10 +543,7 @@ export default function DashboardPage() {
           {/* Task views */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2
-                size={24}
-                className="animate-spin text-[var(--accent)]"
-              />
+              <Loader2 size={24} className="animate-spin text-[var(--accent)]" />
             </div>
           ) : visibleTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-[var(--muted)]">
@@ -583,9 +558,7 @@ export default function DashboardPage() {
             /* Swimlane / Kanban view */
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {SWIMLANE_STATUSES.map((status) => {
-                const columnTasks = visibleTasks.filter(
-                  (t) => t.status === status,
-                );
+                const columnTasks = visibleTasks.filter((t) => t.status === status);
                 const isCollapsed = collapsedColumns.has(status);
                 return (
                   <div key={status} className="min-w-0">
@@ -602,9 +575,7 @@ export default function DashboardPage() {
                       className={`w-full text-left border-t-2 ${SWIMLANE_COLORS[status]} rounded-t-lg px-3 py-2 bg-[var(--bg-secondary)] md:cursor-default`}
                     >
                       <h3 className="text-sm font-semibold flex items-center gap-1">
-                        <span className="md:hidden text-xs">
-                          {isCollapsed ? "▶" : "▼"}
-                        </span>
+                        <span className="md:hidden text-xs">{isCollapsed ? "▶" : "▼"}</span>
                         {SWIMLANE_LABELS[status]}{" "}
                         <span className="text-xs font-normal text-[var(--muted)]">
                           ({columnTasks.length})
@@ -623,9 +594,7 @@ export default function DashboardPage() {
                           />
                         ))}
                         {columnTasks.length === 0 && (
-                          <p className="text-xs text-[var(--muted)] text-center py-6">
-                            No tasks
-                          </p>
+                          <p className="text-xs text-[var(--muted)] text-center py-6">No tasks</p>
                         )}
                       </div>
                     )}
@@ -657,16 +626,11 @@ export default function DashboardPage() {
                 </h2>
                 <ul className="space-y-1">
                   {visibleTasks.map((task) => (
-                    <li
-                      key={task.id}
-                      className="flex items-start gap-2 text-sm"
-                    >
+                    <li key={task.id} className="flex items-start gap-2 text-sm">
                       <span className="mt-0.5 inline-block h-4 w-4 shrink-0 rounded border border-gray-400">
                         {task.status === "Done" && "✓"}
                       </span>
-                      <span
-                        className={task.status === "Done" ? "line-through" : ""}
-                      >
+                      <span className={task.status === "Done" ? "line-through" : ""}>
                         {task.title}
                         {task.dueDate && (
                           <span className="ml-2 text-xs text-gray-500">

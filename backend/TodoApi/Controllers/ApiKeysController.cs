@@ -69,7 +69,8 @@ public class ApiKeysController : ControllerBase
     {
         var userId = User.GetUserId();
         var key = await _apiKeys.GetByIdAsync(id, userId);
-        if (key == null) return NotFound(new { message = "API key not found." });
+        if (key == null)
+            return NotFound(new { message = "API key not found." });
 
         key.IsRevoked = true;
         await _apiKeys.UpdateAsync(key);

@@ -50,7 +50,8 @@ public class EfListRepository : IListRepository
             .Include(l => l.Tasks)
             .FirstOrDefaultAsync(l => l.Id == list.Id && l.UserId == userId);
 
-        if (fullList == null) return;
+        if (fullList == null)
+            return;
 
         foreach (var task in fullList.Tasks)
             task.ListId = null;

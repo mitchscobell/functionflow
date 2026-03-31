@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import DashboardPage from "../DashboardPage";
+import type { Task } from "../../types";
 import { AuthProvider } from "../../hooks/useAuth";
 import { ThemeProvider } from "../../hooks/useTheme";
 
@@ -27,14 +28,22 @@ vi.mock("react-hot-toast", () => ({
 
 // Mock Layout
 vi.mock("../../components/Layout", () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 // Mock heavy child components to keep tests focused
 vi.mock("../../components/TaskCard", () => ({
-  default: ({ task, onEdit, onDelete, onToggleStatus }: any) => (
+  default: ({
+    task,
+    onEdit,
+    onDelete,
+    onToggleStatus,
+  }: {
+    task: { id: number; title: string };
+    onEdit: (task: { id: number; title: string }) => void;
+    onDelete: (id: number) => void;
+    onToggleStatus: (task: { id: number; title: string }) => void;
+  }) => (
     <div data-testid="task-card">
       <span>{task.title}</span>
       <button onClick={() => onEdit(task)}>edit</button>
@@ -45,13 +54,21 @@ vi.mock("../../components/TaskCard", () => ({
 }));
 
 vi.mock("../../components/TaskModal", () => ({
-  default: ({ open, onClose, onSave, task }: any) =>
+  default: ({
+    open,
+    onClose,
+    onSave,
+    task,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    onSave: (data: { title: string }) => void;
+    task: { title: string } | null;
+  }) =>
     open ? (
       <div data-testid="task-modal">
         <span>{task ? "Edit" : "Create"}</span>
-        <button onClick={() => onSave({ title: "New Task" })}>
-          save-modal
-        </button>
+        <button onClick={() => onSave({ title: "New Task" })}>save-modal</button>
         <button onClick={onClose}>close-modal</button>
       </div>
     ) : null,
@@ -108,9 +125,7 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(
-        screen.getByRole("heading", { name: "All Tasks" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "All Tasks" })).toBeInTheDocument();
     });
   });
 
@@ -118,9 +133,7 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(
-        screen.getByPlaceholderText("Search tasks..."),
-      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Search tasks...")).toBeInTheDocument();
     });
   });
 
@@ -128,9 +141,7 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/No tasks yet|No tasks found/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/No tasks yet|No tasks found/)).toBeInTheDocument();
     });
   });
 
@@ -308,7 +319,7 @@ describe("DashboardPage", () => {
       page: 1,
       pageSize: 100,
     });
-    vi.mocked(api.updateTask).mockResolvedValueOnce({} as any);
+    vi.mocked(api.updateTask).mockResolvedValueOnce({} as Task);
 
     renderDashboard();
 
@@ -500,12 +511,8 @@ describe("DashboardPage", () => {
 
     renderDashboard();
     await waitFor(() => {
-      expect(screen.getAllByText("Active Task").length).toBeGreaterThanOrEqual(
-        1,
-      );
-      expect(
-        screen.getAllByText("Completed Task").length,
-      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Active Task").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Completed Task").length).toBeGreaterThanOrEqual(1);
     });
 
     fireEvent.click(screen.getByTitle("Hide completed"));
@@ -562,7 +569,7 @@ describe("DashboardPage", () => {
       page: 1,
       pageSize: 100,
     });
-    vi.mocked(api.updateTask).mockResolvedValueOnce({} as any);
+    vi.mocked(api.updateTask).mockResolvedValueOnce({} as Task);
 
     renderDashboard();
     await waitFor(() => {
@@ -629,9 +636,7 @@ describe("DashboardPage", () => {
     await waitFor(() => {
       expect(api.deleteList).toHaveBeenCalledWith(1);
     });
-    expect(toast.success).toHaveBeenCalledWith(
-      "List deleted — tasks moved to Inbox",
-    );
+    expect(toast.success).toHaveBeenCalledWith("List deleted — tasks moved to Inbox");
   });
 
   it("enters rename mode for a list", async () => {
@@ -801,9 +806,7 @@ describe("DashboardPage", () => {
     renderDashboard();
     await waitFor(() => {
       expect(screen.getAllByText("Work Task").length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText("Inbox Task").length).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(screen.getAllByText("Inbox Task").length).toBeGreaterThanOrEqual(1);
     });
 
     // Click on Work list in sidebar

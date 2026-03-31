@@ -24,10 +24,7 @@ interface Props {
   activeListId?: number | null;
 
   /** Callback to create a new list inline. Returns the new list. */
-  onCreateList?: (
-    name: string,
-    emoji?: string,
-  ) => Promise<TaskList | undefined>;
+  onCreateList?: (name: string, emoji?: string) => Promise<TaskList | undefined>;
 }
 
 /**
@@ -57,6 +54,7 @@ export default function TaskModal({
   const [newListEmoji, setNewListEmoji] = useState("");
   const [showNewListEmojiPicker, setShowNewListEmojiPicker] = useState(false);
 
+  // Sync form fields when the modal opens with an existing task or resets for a new one.
   useEffect(() => {
     if (task) {
       setTitle(task.title);
@@ -117,9 +115,7 @@ export default function TaskModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4 shrink-0">
-          <h2 className="text-lg font-semibold">
-            {task ? "Edit Task" : "New Task"}
-          </h2>
+          <h2 className="text-lg font-semibold">{task ? "Edit Task" : "New Task"}</h2>
           <button
             onClick={onClose}
             className="rounded-lg p-1 hover:bg-[var(--hover)] transition-colors"
@@ -142,9 +138,7 @@ export default function TaskModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Description
-            </label>
+            <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -184,9 +178,7 @@ export default function TaskModal({
               <label className="block text-sm font-medium mb-1">Priority</label>
               <select
                 value={priority}
-                onChange={(e) =>
-                  setPriority(e.target.value as "Low" | "Medium" | "High")
-                }
+                onChange={(e) => setPriority(e.target.value as "Low" | "Medium" | "High")}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               >
                 <option value="Low">Low</option>
@@ -200,9 +192,7 @@ export default function TaskModal({
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <select
                   value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as "Todo" | "InProgress" | "Done")
-                  }
+                  onChange={(e) => setStatus(e.target.value as "Todo" | "InProgress" | "Done")}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 >
                   <option value="Todo">To Do</option>
@@ -231,9 +221,7 @@ export default function TaskModal({
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="work, personal, urgent"
             />
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Separate multiple tags with commas.
-            </p>
+            <p className="mt-1 text-xs text-[var(--muted)]">Separate multiple tags with commas.</p>
           </div>
 
           {(lists.length > 0 || onCreateList) && (
@@ -247,9 +235,7 @@ export default function TaskModal({
                       if (e.target.value === "__new__") {
                         setCreatingList(true);
                       } else {
-                        setListId(
-                          e.target.value ? Number(e.target.value) : undefined,
-                        );
+                        setListId(e.target.value ? Number(e.target.value) : undefined);
                       }
                     }}
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
@@ -261,9 +247,7 @@ export default function TaskModal({
                         {l.name}
                       </option>
                     ))}
-                    {onCreateList && (
-                      <option value="__new__">+ Create new list...</option>
-                    )}
+                    {onCreateList && <option value="__new__">+ Create new list...</option>}
                   </select>
                 </div>
               ) : (
@@ -299,10 +283,7 @@ export default function TaskModal({
                         e.preventDefault();
                         const name = newListName.trim();
                         if (!name || !onCreateList) return;
-                        const created = await onCreateList(
-                          name,
-                          newListEmoji || undefined,
-                        );
+                        const created = await onCreateList(name, newListEmoji || undefined);
                         if (created) setListId(created.id);
                         setNewListName("");
                         setNewListEmoji("");
@@ -319,10 +300,7 @@ export default function TaskModal({
                     onClick={async () => {
                       const name = newListName.trim();
                       if (!name || !onCreateList) return;
-                      const created = await onCreateList(
-                        name,
-                        newListEmoji || undefined,
-                      );
+                      const created = await onCreateList(name, newListEmoji || undefined);
                       if (created) setListId(created.id);
                       setNewListName("");
                       setNewListEmoji("");

@@ -29,7 +29,8 @@ public class ProfileController : ControllerBase
     public async Task<ActionResult<UserDto>> GetProfile()
     {
         var user = await _users.GetByIdAsync(User.GetUserId());
-        if (user == null) return NotFound();
+        if (user == null)
+            return NotFound();
 
         return Ok(new UserDto(user.Id, user.Email, user.DisplayName, user.ThemePreference));
     }
@@ -42,10 +43,13 @@ public class ProfileController : ControllerBase
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
         var user = await _users.GetByIdAsync(User.GetUserId());
-        if (user == null) return NotFound();
+        if (user == null)
+            return NotFound();
 
-        if (dto.DisplayName != null) user.DisplayName = dto.DisplayName;
-        if (dto.ThemePreference != null) user.ThemePreference = dto.ThemePreference;
+        if (dto.DisplayName != null)
+            user.DisplayName = dto.DisplayName;
+        if (dto.ThemePreference != null)
+            user.ThemePreference = dto.ThemePreference;
 
         await _users.UpdateAsync(user);
         return Ok(new UserDto(user.Id, user.Email, user.DisplayName, user.ThemePreference));

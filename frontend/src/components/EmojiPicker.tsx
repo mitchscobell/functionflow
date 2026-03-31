@@ -117,9 +117,7 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
   const filtered = search
     ? EMOJI_GROUPS.map((g) => ({
         ...g,
-        emojis: g.emojis.filter(() =>
-          g.label.toLowerCase().includes(search.toLowerCase()),
-        ),
+        emojis: g.emojis.filter(() => g.label.toLowerCase().includes(search.toLowerCase())),
       })).filter((g) => g.emojis.length > 0)
     : EMOJI_GROUPS;
 
@@ -161,9 +159,7 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
           </div>
         ))}
         {filtered.length === 0 && (
-          <p className="text-xs text-[var(--muted)] text-center py-2">
-            No matching emojis
-          </p>
+          <p className="text-xs text-[var(--muted)] text-center py-2">No matching emojis</p>
         )}
       </div>
     </div>

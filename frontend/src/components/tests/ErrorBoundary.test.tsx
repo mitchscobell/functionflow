@@ -28,9 +28,7 @@ describe("ErrorBoundary", () => {
     );
 
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(
-      screen.getByText(/An unexpected error occurred/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/An unexpected error occurred/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();
 
     spy.mockRestore();
@@ -57,9 +55,7 @@ describe("ErrorBoundary", () => {
   });
 
   it("logs the error via componentDidCatch", () => {
-    const errorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     render(
       <ErrorBoundary>
@@ -68,9 +64,7 @@ describe("ErrorBoundary", () => {
     );
 
     // React calls console.error itself, plus our componentDidCatch logs
-    const uncaughtCall = errorSpy.mock.calls.find(
-      (args) => args[0] === "Uncaught error:",
-    );
+    const uncaughtCall = errorSpy.mock.calls.find((args) => args[0] === "Uncaught error:");
     expect(uncaughtCall).toBeDefined();
     expect(uncaughtCall![1]).toBeInstanceOf(Error);
     expect(uncaughtCall![1].message).toBe("boom");

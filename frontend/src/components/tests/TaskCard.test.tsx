@@ -16,77 +16,41 @@ const baseTask: Task = {
 describe("TaskCard", () => {
   it("renders task title", () => {
     render(
-      <TaskCard
-        task={baseTask}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={baseTask} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
     expect(screen.getByText("Test Task")).toBeInTheDocument();
   });
 
   it("renders priority badge", () => {
     render(
-      <TaskCard
-        task={baseTask}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={baseTask} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
     expect(screen.getByText("Medium")).toBeInTheDocument();
   });
 
   it("renders description when present", () => {
     const task = { ...baseTask, description: "Some description" };
-    render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
-    );
+    render(<TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />);
     expect(screen.getByText("Some description")).toBeInTheDocument();
   });
 
   it("does not render description when absent", () => {
     render(
-      <TaskCard
-        task={baseTask}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={baseTask} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
     expect(screen.queryByText("Some description")).not.toBeInTheDocument();
   });
 
   it("renders tags", () => {
     const task = { ...baseTask, tags: ["work", "urgent"] };
-    render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
-    );
+    render(<TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />);
     expect(screen.getByText("work")).toBeInTheDocument();
     expect(screen.getByText("urgent")).toBeInTheDocument();
   });
 
   it("renders due date when present", () => {
     const task = { ...baseTask, dueDate: "2024-12-25T00:00:00Z" };
-    render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
-    );
+    render(<TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />);
     // Date format depends on locale/timezone — just check that the Calendar icon's parent span exists
     const expected = new Date("2024-12-25T00:00:00Z").toLocaleDateString();
     expect(screen.getByText(expected)).toBeInTheDocument();
@@ -99,12 +63,7 @@ describe("TaskCard", () => {
       status: "Todo" as const,
     };
     const { container } = render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
     // The overdue span should have text-red-500
     const overdueDateSpan = container.querySelector(".text-red-500");
@@ -118,12 +77,7 @@ describe("TaskCard", () => {
       status: "Done" as const,
     };
     const { container } = render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
     // The date span should not have text-red-500 font-medium for overdue
     const spans = container.querySelectorAll(".text-red-500.font-medium");
@@ -132,40 +86,21 @@ describe("TaskCard", () => {
 
   it("renders URL link when present", () => {
     const task = { ...baseTask, url: "https://example.com" };
-    render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
-    );
+    render(<TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />);
     const link = screen.getByText("Link");
     expect(link.closest("a")).toHaveAttribute("href", "https://example.com");
   });
 
   it("renders Notes indicator when notes present", () => {
     const task = { ...baseTask, notes: "some notes" };
-    render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
-    );
+    render(<TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />);
     expect(screen.getByText("Notes")).toBeInTheDocument();
   });
 
   it("calls onEdit when edit button clicked", () => {
     const onEdit = vi.fn();
     render(
-      <TaskCard
-        task={baseTask}
-        onEdit={onEdit}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={baseTask} onEdit={onEdit} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
     // Edit and delete buttons exist within the component
     const buttons = screen.getAllByRole("button");
@@ -177,12 +112,7 @@ describe("TaskCard", () => {
   it("calls onDelete when delete button clicked", () => {
     const onDelete = vi.fn();
     render(
-      <TaskCard
-        task={baseTask}
-        onEdit={vi.fn()}
-        onDelete={onDelete}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={baseTask} onEdit={vi.fn()} onDelete={onDelete} onToggleStatus={vi.fn()} />,
     );
     const buttons = screen.getAllByRole("button");
     fireEvent.click(buttons[2]);
@@ -206,26 +136,14 @@ describe("TaskCard", () => {
   it("applies opacity-60 class for Done tasks", () => {
     const task = { ...baseTask, status: "Done" as const };
     const { container } = render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
+      <TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
     expect(container.firstChild).toHaveClass("opacity-60");
   });
 
   it("applies line-through for Done task title", () => {
     const task = { ...baseTask, status: "Done" as const };
-    render(
-      <TaskCard
-        task={task}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        onToggleStatus={vi.fn()}
-      />,
-    );
+    render(<TaskCard task={task} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />);
     const title = screen.getByText("Test Task");
     expect(title).toHaveClass("line-through");
   });

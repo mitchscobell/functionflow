@@ -35,8 +35,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (themeRef.current && !themeRef.current.contains(e.target as Node))
-        setThemeOpen(false);
+      if (themeRef.current && !themeRef.current.contains(e.target as Node)) setThemeOpen(false);
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -91,15 +90,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       )}
-      {showConvert && (
-        <ConvertAccountWizard onClose={() => setShowConvert(false)} />
-      )}
+      {showConvert && <ConvertAccountWizard onClose={() => setShowConvert(false)} />}
       <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--bg)]/80">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <Link
-            to="/"
-            className="flex items-center gap-2 font-bold text-lg text-[var(--accent)]"
-          >
+          <Link to="/" className="flex items-center gap-2 font-bold text-lg text-[var(--accent)]">
             <ListTodo size={22} />
             FunctionFlow
           </Link>
@@ -127,9 +121,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       >
                         {t.icon}
                         <span className="flex-1 text-left">{t.label}</span>
-                        {theme === t.key && (
-                          <Check size={14} className="text-[var(--accent)]" />
-                        )}
+                        {theme === t.key && <Check size={14} className="text-[var(--accent)]" />}
                       </button>
                     ))}
                   </div>

@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 /** Available UI color themes. */
 type Theme = "function" | "dark" | "light" | "vaporwave" | "cyberpunk";
@@ -32,11 +26,7 @@ const themeClasses: Record<Theme, string> = {
 };
 
 /** Set of themes that use a dark background and require Tailwind's dark mode class. */
-const darkThemes: ReadonlySet<Theme> = new Set([
-  "dark",
-  "vaporwave",
-  "cyberpunk",
-]);
+const darkThemes: ReadonlySet<Theme> = new Set(["dark", "vaporwave", "cyberpunk"]);
 
 /**
  * Context provider that manages the active UI theme.
@@ -74,11 +64,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
 }
 
 /**

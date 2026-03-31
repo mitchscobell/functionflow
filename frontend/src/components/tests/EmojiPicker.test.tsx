@@ -6,9 +6,7 @@ describe("EmojiPicker", () => {
   it("renders search input and emoji groups", () => {
     render(<EmojiPicker onSelect={vi.fn()} onClose={vi.fn()} />);
 
-    expect(
-      screen.getByPlaceholderText("Search category..."),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search category...")).toBeInTheDocument();
     expect(screen.getByText("Folders")).toBeInTheDocument();
     expect(screen.getByText("Work")).toBeInTheDocument();
     expect(screen.getByText("Symbols")).toBeInTheDocument();

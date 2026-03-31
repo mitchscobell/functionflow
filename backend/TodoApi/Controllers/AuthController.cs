@@ -1,12 +1,12 @@
+using System.Security.Claims;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TodoApi.DTOs;
 using TodoApi.Models;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.RateLimiting;
-using TodoApi.Services;
 using TodoApi.Repositories;
+using TodoApi.Services;
 
 namespace TodoApi.Controllers;
 

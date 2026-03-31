@@ -24,9 +24,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div style={{ padding: "2rem", textAlign: "center" }}>
-          <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-            Something went wrong
-          </h1>
+          <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Something went wrong</h1>
           <p style={{ color: "#888", marginBottom: "1.5rem" }}>
             An unexpected error occurred. Please refresh the page.
           </p>

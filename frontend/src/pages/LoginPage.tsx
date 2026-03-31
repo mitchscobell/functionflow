@@ -2,13 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
-import {
-  ListTodo,
-  ArrowRight,
-  Loader2,
-  Zap,
-  AlertTriangle,
-} from "lucide-react";
+import { ListTodo, ArrowRight, Loader2, Zap, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../lib/errorUtils";
 
@@ -101,18 +95,14 @@ export default function LoginPage() {
             <ListTodo size={32} />
             <span className="text-2xl font-bold">FunctionFlow</span>
           </div>
-          <p className="text-[var(--muted)] text-sm">
-            Get things done, beautifully.
-          </p>
+          <p className="text-[var(--muted)] text-sm">Get things done, beautifully.</p>
         </div>
 
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
           {step === "email" ? (
             <form onSubmit={handleRequestCode} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1.5">
-                  Email address
-                </label>
+                <label className="block text-sm font-medium mb-1.5">Email address</label>
                 <input
                   type="email"
                   value={email}
@@ -140,21 +130,13 @@ export default function LoginPage() {
               </p>
             </form>
           ) : (
-            <form
-              ref={formRef}
-              onSubmit={handleVerifyCode}
-              className="space-y-4"
-            >
+            <form ref={formRef} onSubmit={handleVerifyCode} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1.5">
-                  Enter verification code
-                </label>
+                <label className="block text-sm font-medium mb-1.5">Enter verification code</label>
                 <input
                   type="text"
                   value={code}
-                  onChange={(e) =>
-                    setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   required
                   autoFocus
                   maxLength={6}
@@ -172,9 +154,7 @@ export default function LoginPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="rounded border-[var(--border)] accent-[var(--accent)]"
                 />
-                <span className="text-[var(--muted)]">
-                  Remember me for 30 days
-                </span>
+                <span className="text-[var(--muted)]">Remember me for 30 days</span>
               </label>
               <button
                 type="submit"
@@ -226,20 +206,15 @@ export default function LoginPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3 mb-4">
-              <AlertTriangle
-                size={24}
-                className="text-amber-500 shrink-0 mt-0.5"
-              />
+              <AlertTriangle size={24} className="text-amber-500 shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-lg">Demo Mode</h3>
                 <p className="text-sm text-[var(--muted)] mt-1">
-                  This creates a temporary session with sample data. All your
-                  changes will be <strong>permanently deleted</strong> when you
-                  log out.
+                  This creates a temporary session with sample data. All your changes will be{" "}
+                  <strong>permanently deleted</strong> when you log out.
                 </p>
                 <p className="text-sm text-[var(--muted)] mt-2">
-                  Want to keep your data? Use a real email address to create a
-                  free account.
+                  Want to keep your data? Use a real email address to create a free account.
                 </p>
               </div>
             </div>
@@ -255,11 +230,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {loading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  "Start Demo"
-                )}
+                {loading ? <Loader2 size={16} className="animate-spin" /> : "Start Demo"}
               </button>
             </div>
           </div>

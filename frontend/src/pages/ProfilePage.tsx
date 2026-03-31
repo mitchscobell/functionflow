@@ -96,9 +96,7 @@ export default function ProfilePage() {
   const handleRevokeKey = async (id: number) => {
     try {
       await api.revokeApiKey(id);
-      setApiKeys((prev) =>
-        prev.map((k) => (k.id === id ? { ...k, isRevoked: true } : k)),
-      );
+      setApiKeys((prev) => prev.map((k) => (k.id === id ? { ...k, isRevoked: true } : k)));
       toast.success("API key revoked");
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -165,9 +163,7 @@ export default function ProfilePage() {
 
           {/* Display Name */}
           <div>
-            <label className="block text-sm font-medium mb-1.5">
-              Display Name
-            </label>
+            <label className="block text-sm font-medium mb-1.5">Display Name</label>
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -193,9 +189,7 @@ export default function ProfilePage() {
                   }`}
                 >
                   <div className="text-sm font-medium">{t.label}</div>
-                  <div className="text-xs text-[var(--muted)] mt-0.5">
-                    {t.desc}
-                  </div>
+                  <div className="text-xs text-[var(--muted)] mt-0.5">{t.desc}</div>
                   <div className="mt-2 flex gap-1">
                     {t.swatches.map((color, i) => (
                       <span
@@ -215,11 +209,7 @@ export default function ProfilePage() {
             disabled={saving}
             className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
           >
-            {saving ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Save size={16} />
-            )}
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             Save Changes
           </button>
         </form>
@@ -231,12 +221,10 @@ export default function ProfilePage() {
             <h2 className="text-xl font-bold">API Keys</h2>
           </div>
           <p className="text-sm text-[var(--muted)] mb-3">
-            Generate personal API keys to access the FunctionFlow REST API from
-            scripts, automations, or tools like Postman. Include your key in the{" "}
-            <code className="text-xs bg-[var(--hover)] px-1 py-0.5 rounded">
-              X-Api-Key
-            </code>{" "}
-            header with each request.
+            Generate personal API keys to access the FunctionFlow REST API from scripts,
+            automations, or tools like Postman. Include your key in the{" "}
+            <code className="text-xs bg-[var(--hover)] px-1 py-0.5 rounded">X-Api-Key</code> header
+            with each request.
           </p>
           <div className="flex flex-wrap gap-3 mb-4">
             <a
@@ -259,10 +247,9 @@ export default function ProfilePage() {
             </a>
           </div>
           <p className="text-xs text-[var(--muted)] mb-4">
-            Tip: Import the OpenAPI spec into{" "}
-            <span className="font-medium">Postman</span>,{" "}
-            <span className="font-medium">Insomnia</span>, or any HTTP client to
-            get pre-built requests for every endpoint.
+            Tip: Import the OpenAPI spec into <span className="font-medium">Postman</span>,{" "}
+            <span className="font-medium">Insomnia</span>, or any HTTP client to get pre-built
+            requests for every endpoint.
           </p>
 
           {/* New key form */}
@@ -280,11 +267,7 @@ export default function ProfilePage() {
               disabled={creatingKey || !newKeyName.trim()}
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
             >
-              {creatingKey ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <Plus size={14} />
-              )}
+              {creatingKey ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
               Create
             </button>
           </div>
@@ -321,9 +304,7 @@ export default function ProfilePage() {
 
           {/* Existing keys */}
           {apiKeys.length === 0 ? (
-            <p className="text-sm text-[var(--muted)] py-4">
-              No API keys yet. Create one above.
-            </p>
+            <p className="text-sm text-[var(--muted)] py-4">No API keys yet. Create one above.</p>
           ) : (
             <div className="space-y-2">
               {apiKeys.map((key) => (
@@ -344,9 +325,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-[var(--muted)]">
                       <code>{key.keyPrefix}...</code>
-                      <span>
-                        Created {new Date(key.createdAt).toLocaleDateString()}
-                      </span>
+                      <span>Created {new Date(key.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                   {!key.isRevoked && (

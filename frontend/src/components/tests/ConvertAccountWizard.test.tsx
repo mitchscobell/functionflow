@@ -38,9 +38,7 @@ describe("ConvertAccountWizard", () => {
   it("starts on intro step", () => {
     renderWizard();
     expect(screen.getByText("Keep Your Account")).toBeInTheDocument();
-    expect(
-      screen.getByText("Convert your demo into a permanent account"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Convert your demo into a permanent account")).toBeInTheDocument();
     expect(screen.getByText("Get Started")).toBeInTheDocument();
   });
 
@@ -131,9 +129,7 @@ describe("ConvertAccountWizard", () => {
 
   it("shows error on verify failure and clears code", async () => {
     vi.mocked(api.convertDemo).mockResolvedValueOnce({ message: "ok" });
-    vi.mocked(api.verifyConversion).mockRejectedValueOnce(
-      new Error("Invalid code"),
-    );
+    vi.mocked(api.verifyConversion).mockRejectedValueOnce(new Error("Invalid code"));
 
     renderWizard();
     fireEvent.click(screen.getByText("Get Started"));

@@ -53,7 +53,8 @@ public class ListsController : ControllerBase
     {
         var userId = User.GetUserId();
         var (list, taskCount) = await _lists.GetByIdAsync(id, userId);
-        if (list == null) return NotFound(new { message = "List not found." });
+        if (list == null)
+            return NotFound(new { message = "List not found." });
         return Ok(new ListDto(list.Id, list.Name, list.Emoji, list.Color, list.SortOrder, taskCount, list.CreatedAt));
     }
 
@@ -90,12 +91,17 @@ public class ListsController : ControllerBase
 
         var userId = User.GetUserId();
         var (list, _) = await _lists.GetByIdAsync(id, userId);
-        if (list == null) return NotFound(new { message = "List not found." });
+        if (list == null)
+            return NotFound(new { message = "List not found." });
 
-        if (dto.Name != null) list.Name = dto.Name.Sanitize()!;
-        if (dto.Emoji != null) list.Emoji = dto.Emoji;
-        if (dto.Color != null) list.Color = dto.Color;
-        if (dto.SortOrder.HasValue) list.SortOrder = dto.SortOrder.Value;
+        if (dto.Name != null)
+            list.Name = dto.Name.Sanitize()!;
+        if (dto.Emoji != null)
+            list.Emoji = dto.Emoji;
+        if (dto.Color != null)
+            list.Color = dto.Color;
+        if (dto.SortOrder.HasValue)
+            list.SortOrder = dto.SortOrder.Value;
 
         await _lists.UpdateAsync(list);
         var taskCount = await _lists.GetTaskCountAsync(id, userId);
@@ -107,7 +113,8 @@ public class ListsController : ControllerBase
     {
         var userId = User.GetUserId();
         var (list, _) = await _lists.GetByIdAsync(id, userId);
-        if (list == null) return NotFound(new { message = "List not found." });
+        if (list == null)
+            return NotFound(new { message = "List not found." });
 
         await _lists.DeleteAsync(list, userId);
         return NoContent();

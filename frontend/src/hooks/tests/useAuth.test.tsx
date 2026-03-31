@@ -156,9 +156,7 @@ describe("AuthProvider", () => {
     act(() => screen.getByText("update").click());
 
     expect(screen.getByTestId("user").textContent).toBe("Updated");
-    expect(JSON.parse(localStorage.getItem("user")!).displayName).toBe(
-      "Updated",
-    );
+    expect(JSON.parse(localStorage.getItem("user")!).displayName).toBe("Updated");
   });
 });
 
@@ -166,9 +164,7 @@ describe("useAuth outside provider", () => {
   it("throws when used outside AuthProvider", () => {
     // Suppress React error boundary output
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => render(<TestConsumer />)).toThrow(
-      "useAuth must be used within AuthProvider",
-    );
+    expect(() => render(<TestConsumer />)).toThrow("useAuth must be used within AuthProvider");
     spy.mockRestore();
   });
 });

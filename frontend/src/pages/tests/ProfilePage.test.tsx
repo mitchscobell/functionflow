@@ -23,9 +23,7 @@ vi.mock("react-hot-toast", () => ({
 
 // Mock Layout to simplify
 vi.mock("../../components/Layout", () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 import { api } from "../../lib/api";
@@ -111,9 +109,7 @@ describe("ProfilePage", () => {
   });
 
   it("shows error toast when save fails", async () => {
-    vi.mocked(api.updateProfile).mockRejectedValueOnce(
-      new Error("Save failed"),
-    );
+    vi.mocked(api.updateProfile).mockRejectedValueOnce(new Error("Save failed"));
 
     renderProfilePage();
 
@@ -127,9 +123,7 @@ describe("ProfilePage", () => {
   it("renders API Keys section", () => {
     renderProfilePage();
     expect(screen.getByText("API Keys")).toBeInTheDocument();
-    expect(
-      screen.getByText("No API keys yet. Create one above."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No API keys yet. Create one above.")).toBeInTheDocument();
   });
 
   it("creates a new API key", async () => {

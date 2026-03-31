@@ -65,9 +65,7 @@ describe("request() internals", () => {
       }) as Location,
     );
 
-    fetchMock.mockReturnValueOnce(
-      jsonResponse({ message: "Unauthorized" }, 401),
-    );
+    fetchMock.mockReturnValueOnce(jsonResponse({ message: "Unauthorized" }, 401));
 
     await expect(api.getTasks()).rejects.toThrow("Unauthorized");
     expect(localStorage.getItem("token")).toBeNull();
@@ -256,9 +254,7 @@ describe("api methods", () => {
   });
 
   it("getVersion sends GET to /api/version", async () => {
-    fetchMock.mockReturnValueOnce(
-      jsonResponse({ status: "healthy", version: "1.0.0" }),
-    );
+    fetchMock.mockReturnValueOnce(jsonResponse({ status: "healthy", version: "1.0.0" }));
 
     const result = await api.getVersion();
 
@@ -291,9 +287,7 @@ describe("api methods", () => {
   });
 
   it("verifyConversion sends POST to /api/auth/verify-conversion", async () => {
-    fetchMock.mockReturnValueOnce(
-      jsonResponse({ token: "jwt", user: { id: 1 } }),
-    );
+    fetchMock.mockReturnValueOnce(jsonResponse({ token: "jwt", user: { id: 1 } }));
 
     await api.verifyConversion("a@b.com", "123456");
 

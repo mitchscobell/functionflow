@@ -42,10 +42,7 @@ describe("VersionPage", () => {
   });
 
   it("shows error state when fetch fails", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockRejectedValue(new Error("Network error")),
-    );
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
 
     render(<VersionPage />);
 
@@ -135,10 +132,7 @@ describe("VersionPage", () => {
     render(<VersionPage />);
 
     const link = screen.getByText("View on GitHub").closest("a");
-    expect(link).toHaveAttribute(
-      "href",
-      "https://github.com/mitchscobell/functionflow",
-    );
+    expect(link).toHaveAttribute("href", "https://github.com/mitchscobell/functionflow");
     expect(link).toHaveAttribute("target", "_blank");
   });
 });
