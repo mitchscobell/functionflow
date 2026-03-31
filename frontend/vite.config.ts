@@ -29,5 +29,16 @@ export default defineConfig({
     setupFiles: "./src/test-setup.ts",
     css: false,
     restoreMocks: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/test-setup.ts",
+        "src/**/*.test.*",
+        "src/vite-env.d.ts",
+        "src/types/**",
+      ],
+    },
   },
 });

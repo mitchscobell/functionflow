@@ -349,4 +349,511 @@ describe("DashboardPage", () => {
       expect(matches.length).toBeGreaterThanOrEqual(2);
     });
   });
+
+  // ── Filter & Sort ──
+
+  /** Helper: find the filter toggle button next to the search input. */
+  function getFilterButton() {
+    const searchInput = screen.getByPlaceholderText("Search tasks...");
+    // Walk up to the flex row containing both search and filter button
+    const row = searchInput.parentElement!.parentElement!;
+    return row.querySelector(":scope > button") as HTMLButtonElement;
+  }
+
+  it("toggles filter panel open and closed", async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    // Filter panel should not be open initially
+    expect(screen.queryByText("All Status")).not.toBeInTheDocument();
+
+    fireEvent.click(getFilterButton());
+
+    expect(screen.getByText("All Status")).toBeInTheDocument();
+    expect(screen.getByText("All Priority")).toBeInTheDocument();
+    expect(screen.getByText("Newest First")).toBeInTheDocument();
+  });
+
+  it("applies status filter", async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    fireEvent.click(getFilterButton());
+
+    const statusSelect = screen.getByDisplayValue("All Status");
+    fireEvent.change(statusSelect, { target: { value: "Todo" } });
+
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalledWith(
+        expect.objectContaining({ status: "Todo" }),
+      );
+    });
+  });
+
+  it("applies priority filter", async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    fireEvent.click(getFilterButton());
+
+    const prioritySelect = screen.getByDisplayValue("All Priority");
+    fireEvent.change(prioritySelect, { target: { value: "High" } });
+
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalledWith(
+        expect.objectContaining({ priority: "High" }),
+      );
+    });
+  });
+
+  it("changes sort order", async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    fireEvent.click(getFilterButton());
+
+    const sortSelect = screen.getByDisplayValue("Newest First");
+    fireEvent.change(sortSelect, { target: { value: "dueDate" } });
+
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalledWith(
+        expect.objectContaining({ sortBy: "dueDate" }),
+      );
+    });
+  });
+
+  // ── View modes ──
+
+  it("switches to swimlane view and shows columns", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Todo Task",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+        {
+          id: 2,
+          title: "Done Task",
+          priority: "Low" as const,
+          status: "Done" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 2,
+      page: 1,
+      pageSize: 100,
+    });
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getAllByText("Todo Task").length).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.click(screen.getByTitle("Swimlane view"));
+
+    expect(screen.getByText("To Do")).toBeInTheDocument();
+    expect(screen.getByText("In Progress")).toBeInTheDocument();
+    expect(screen.getByText("Done")).toBeInTheDocument();
+  });
+
+  it("hides completed tasks when eye toggle is clicked", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Active Task",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+        {
+          id: 2,
+          title: "Completed Task",
+          priority: "Low" as const,
+          status: "Done" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 2,
+      page: 1,
+      pageSize: 100,
+    });
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getAllByText("Active Task").length).toBeGreaterThanOrEqual(
+        1,
+      );
+      expect(
+        screen.getAllByText("Completed Task").length,
+      ).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.click(screen.getByTitle("Hide completed"));
+
+    expect(screen.getAllByText("Active Task").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("Completed Task")).not.toBeInTheDocument();
+  });
+
+  // ── Edit task ──
+
+  it("opens modal in edit mode when edit is clicked", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Edit Me",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 1,
+      page: 1,
+      pageSize: 100,
+    });
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getAllByText("Edit Me").length).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.click(screen.getByText("edit"));
+
+    expect(screen.getByTestId("task-modal")).toBeInTheDocument();
+    expect(screen.getByText("Edit")).toBeInTheDocument();
+  });
+
+  it("updates task via modal save", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Update Me",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 1,
+      page: 1,
+      pageSize: 100,
+    });
+    vi.mocked(api.updateTask).mockResolvedValueOnce({} as any);
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getAllByText("Update Me").length).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.click(screen.getByText("edit"));
+    fireEvent.click(screen.getByText("save-modal"));
+
+    await waitFor(() => {
+      expect(api.updateTask).toHaveBeenCalled();
+    });
+    expect(toast.success).toHaveBeenCalledWith("Task updated");
+  });
+
+  // ── List management ──
+
+  it("creates a new list from sidebar input", async () => {
+    vi.mocked(api.createList).mockResolvedValueOnce({
+      id: 1,
+      name: "My List",
+      color: "blue",
+      sortOrder: 0,
+      taskCount: 0,
+      createdAt: "2024-01-01T00:00:00Z",
+    });
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    const input = screen.getByPlaceholderText("New list...");
+    fireEvent.change(input, { target: { value: "My List" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(api.createList).toHaveBeenCalledWith({ name: "My List" });
+    });
+    expect(toast.success).toHaveBeenCalledWith("List created");
+  });
+
+  it("deletes a list", async () => {
+    vi.mocked(api.getLists).mockResolvedValue([
+      {
+        id: 1,
+        name: "Delete List",
+        color: "blue",
+        sortOrder: 0,
+        taskCount: 0,
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+    ]);
+    vi.mocked(api.deleteList).mockResolvedValueOnce(undefined);
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText("Delete List")).toBeInTheDocument();
+    });
+
+    const deleteBtn = screen.getByTitle("Delete list");
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(api.deleteList).toHaveBeenCalledWith(1);
+    });
+    expect(toast.success).toHaveBeenCalledWith(
+      "List deleted — tasks moved to Inbox",
+    );
+  });
+
+  it("enters rename mode for a list", async () => {
+    vi.mocked(api.getLists).mockResolvedValue([
+      {
+        id: 1,
+        name: "Rename Me",
+        color: "blue",
+        sortOrder: 0,
+        taskCount: 0,
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+    ]);
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText("Rename Me")).toBeInTheDocument();
+    });
+
+    const renameBtn = screen.getByTitle("Rename");
+    fireEvent.click(renameBtn);
+
+    expect(screen.getByDisplayValue("Rename Me")).toBeInTheDocument();
+  });
+
+  // ── Error handling ──
+
+  it("shows error toast when task creation fails", async () => {
+    vi.mocked(api.createTask).mockRejectedValueOnce(new Error("Server error"));
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByText("New Task"));
+    fireEvent.click(screen.getByText("save-modal"));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Server error");
+    });
+  });
+
+  it("shows error toast when task load fails", async () => {
+    vi.mocked(api.getTasks).mockRejectedValue(new Error("Network failure"));
+
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Network failure");
+    });
+  });
+
+  it("reverts optimistic update on toggle failure", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Revert Me",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 1,
+      page: 1,
+      pageSize: 100,
+    });
+    vi.mocked(api.updateTask).mockRejectedValueOnce(new Error("Update failed"));
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getAllByText("Revert Me").length).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.click(screen.getByText("toggle"));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Update failed");
+    });
+    // fetchTasks should be called again to revert
+    expect(vi.mocked(api.getTasks).mock.calls.length).toBeGreaterThan(1);
+  });
+
+  // ── Search ──
+
+  it("debounces search input before calling API", async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    const callsBefore = vi.mocked(api.getTasks).mock.calls.length;
+
+    const searchInput = screen.getByPlaceholderText("Search tasks...");
+    fireEvent.change(searchInput, { target: { value: "hello" } });
+
+    // Immediately after typing, no new API call yet
+    expect(vi.mocked(api.getTasks).mock.calls.length).toBe(callsBefore);
+
+    // After debounce delay, the search param should be sent
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalledWith(
+        expect.objectContaining({ search: "hello" }),
+      );
+    });
+  });
+
+  // ── Print ──
+
+  it("calls window.print when print button is clicked", async () => {
+    vi.spyOn(window, "print").mockImplementation(() => {});
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByTitle("Print"));
+
+    expect(window.print).toHaveBeenCalled();
+  });
+
+  // ── List filtering ──
+
+  it("filters tasks by selected list", async () => {
+    vi.mocked(api.getLists).mockResolvedValue([
+      {
+        id: 10,
+        name: "Work",
+        emoji: "💼",
+        color: "blue",
+        sortOrder: 0,
+        taskCount: 1,
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+    ]);
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Work Task",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          listId: 10,
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+        {
+          id: 2,
+          title: "Inbox Task",
+          priority: "Low" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 2,
+      page: 1,
+      pageSize: 100,
+    });
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getAllByText("Work Task").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Inbox Task").length).toBeGreaterThanOrEqual(
+        1,
+      );
+    });
+
+    // Click on Work list in sidebar
+    fireEvent.click(screen.getByText("Work"));
+
+    // After selecting a list, only matching tasks should be visible
+    expect(screen.getAllByText("Work Task").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText("Inbox Task")).not.toBeInTheDocument();
+  });
+
+  // ── Empty state messaging ──
+
+  it("shows filter-specific empty message when filters active", async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    fireEvent.click(getFilterButton());
+
+    const statusSelect = screen.getByDisplayValue("All Status");
+    fireEvent.change(statusSelect, { target: { value: "InProgress" } });
+
+    await waitFor(() => {
+      expect(screen.getByText("No tasks found")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Try adjusting your filters.")).toBeInTheDocument();
+  });
+
+  it("shows task count in summary", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Only Task",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 1,
+      page: 1,
+      pageSize: 100,
+    });
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText("1 task")).toBeInTheDocument();
+    });
+  });
 });
