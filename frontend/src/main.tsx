@@ -20,15 +20,15 @@ createRoot(document.getElementById("root")!).render(
         <AuthProvider>
           <ThemeProvider>
             <App />
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: "var(--card)",
-                color: "var(--text)",
-                border: "1px solid var(--border)",
-              },
-            }}
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: "var(--card)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                },
+              }}
             />
           </ThemeProvider>
         </AuthProvider>
