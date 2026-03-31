@@ -1,7 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import TaskModal from "../TaskModal";
 import type { Task, TaskList } from "../../types";
+
+// Mock EmojiPicker
+vi.mock("../EmojiPicker", () => ({
+  default: ({ onSelect, onClose }: any) => (
+    <div data-testid="emoji-picker">
+      <button onClick={() => onSelect("🚀")}>pick-emoji</button>
+      <button onClick={onClose}>close-picker</button>
+    </div>
+  ),
+}));
 
 const baseLists: TaskList[] = [
   {
@@ -225,5 +235,70 @@ describe("TaskModal", () => {
     fireEvent.click(screen.getByText("Create"));
 
     expect(onSave.mock.calls[0][0].tags).toEqual(["a", "b"]);
+  });
+
+  it("shows Create new list option when onCreateList provided", () => {
+    render(
+      <TaskModal
+        open={true}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+        lists={baseLists}
+        onCreateList={vi.fn()}
+      />,
+    );
+
+    const select = screen.getByDisplayValue("Inbox (no list)");
+    const options = select.querySelectorAll("option");
+    const optionTexts = Array.from(options).map((o) => o.textContent);
+    expect(optionTexts).toContain("+ Create new list...");
+  });
+
+  it("shows inline list creation with emoji picker", async () => {
+    const onCreateList = vi
+      .fn()
+      .mockResolvedValue({
+        id: 10,
+        name: "New",
+        emoji: "🚀",
+        color: "",
+        sortOrder: 0,
+        taskCount: 0,
+        createdAt: "",
+      });
+
+    render(
+      <TaskModal
+        open={true}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+        lists={baseLists}
+        onCreateList={onCreateList}
+      />,
+    );
+
+    // Select "+ Create new list..." option
+    const select = screen.getByDisplayValue("Inbox (no list)");
+    fireEvent.change(select, { target: { value: "__new__" } });
+
+    // Should show inline input
+    expect(screen.getByPlaceholderText("List name...")).toBeInTheDocument();
+
+    // Click emoji button to open picker
+    fireEvent.click(screen.getByTitle("Pick emoji"));
+    expect(screen.getByTestId("emoji-picker")).toBeInTheDocument();
+
+    // Pick an emoji
+    fireEvent.click(screen.getByText("pick-emoji"));
+
+    // Type a name and submit
+    fireEvent.change(screen.getByPlaceholderText("List name..."), {
+      target: { value: "New List" },
+    });
+    fireEvent.click(screen.getByTitle("Create list"));
+
+    await waitFor(() => {
+      expect(onCreateList).toHaveBeenCalledWith("New List", "🚀");
+    });
   });
 });

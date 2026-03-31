@@ -108,7 +108,9 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "All Tasks" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "All Tasks" }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -255,6 +257,96 @@ describe("DashboardPage", () => {
     await waitFor(() => {
       const buttons = screen.getAllByText("All Tasks");
       expect(buttons.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("does not delete task when confirm is cancelled", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Keep Me",
+          priority: "Low" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 1,
+      page: 1,
+      pageSize: 100,
+    });
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Keep Me").length).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.click(screen.getByText("delete"));
+
+    expect(window.confirm).toHaveBeenCalledWith("Delete this task?");
+    expect(api.deleteTask).not.toHaveBeenCalled();
+  });
+
+  it("optimistically updates task status without full refetch", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Toggle Me",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: [],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 1,
+      page: 1,
+      pageSize: 100,
+    });
+    vi.mocked(api.updateTask).mockResolvedValueOnce({} as any);
+
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Toggle Me").length).toBeGreaterThanOrEqual(1);
+    });
+
+    const callCountBefore = vi.mocked(api.getTasks).mock.calls.length;
+
+    fireEvent.click(screen.getByText("toggle"));
+
+    await waitFor(() => {
+      expect(api.updateTask).toHaveBeenCalledWith(1, { status: "InProgress" });
+    });
+
+    // Should NOT have re-fetched tasks (optimistic update)
+    expect(vi.mocked(api.getTasks).mock.calls.length).toBe(callCountBefore);
+  });
+
+  it("shows Lists label on mobile list dropdown", async () => {
+    vi.mocked(api.getLists).mockResolvedValue([
+      {
+        id: 1,
+        name: "Work",
+        emoji: "\ud83d\udcbc",
+        color: "blue",
+        sortOrder: 0,
+        taskCount: 3,
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+    ]);
+
+    renderDashboard();
+
+    await waitFor(() => {
+      // Both mobile label and sidebar heading say "Lists"
+      const matches = screen.getAllByText("Lists");
+      expect(matches.length).toBeGreaterThanOrEqual(2);
     });
   });
 });

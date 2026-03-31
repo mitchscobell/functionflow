@@ -24,7 +24,10 @@ interface Props {
   activeListId?: number | null;
 
   /** Callback to create a new list inline. Returns the new list. */
-  onCreateList?: (name: string, emoji?: string) => Promise<TaskList | undefined>;
+  onCreateList?: (
+    name: string,
+    emoji?: string,
+  ) => Promise<TaskList | undefined>;
 }
 
 /**
@@ -296,7 +299,10 @@ export default function TaskModal({
                         e.preventDefault();
                         const name = newListName.trim();
                         if (!name || !onCreateList) return;
-                        const created = await onCreateList(name, newListEmoji || undefined);
+                        const created = await onCreateList(
+                          name,
+                          newListEmoji || undefined,
+                        );
                         if (created) setListId(created.id);
                         setNewListName("");
                         setNewListEmoji("");
@@ -313,7 +319,10 @@ export default function TaskModal({
                     onClick={async () => {
                       const name = newListName.trim();
                       if (!name || !onCreateList) return;
-                      const created = await onCreateList(name, newListEmoji || undefined);
+                      const created = await onCreateList(
+                        name,
+                        newListEmoji || undefined,
+                      );
                       if (created) setListId(created.id);
                       setNewListName("");
                       setNewListEmoji("");

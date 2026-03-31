@@ -140,7 +140,11 @@ export default function LoginPage() {
               </p>
             </form>
           ) : (
-            <form ref={formRef} onSubmit={handleVerifyCode} className="space-y-4">
+            <form
+              ref={formRef}
+              onSubmit={handleVerifyCode}
+              className="space-y-4"
+            >
               <div>
                 <label className="block text-sm font-medium mb-1.5">
                   Enter verification code

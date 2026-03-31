@@ -77,7 +77,9 @@ export default function DashboardPage() {
   const [emojiPickerListId, setEmojiPickerListId] = useState<number | null>(
     null,
   );
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(
+    new Set(),
+  );
 
   const pageSize = 100; // fetch more for swimlane view
 
@@ -306,7 +308,8 @@ export default function DashboardPage() {
           <option value="">📋 All Tasks</option>
           {lists.map((l) => (
             <option key={l.id} value={l.id}>
-              {l.emoji ? `${l.emoji} ` : "📋 "}{l.name} ({l.taskCount})
+              {l.emoji ? `${l.emoji} ` : "📋 "}
+              {l.name} ({l.taskCount})
             </option>
           ))}
         </select>
@@ -598,7 +601,9 @@ export default function DashboardPage() {
                       className={`w-full text-left border-t-2 ${SWIMLANE_COLORS[status]} rounded-t-lg px-3 py-2 bg-[var(--bg-secondary)] md:cursor-default`}
                     >
                       <h3 className="text-sm font-semibold flex items-center gap-1">
-                        <span className="md:hidden text-xs">{isCollapsed ? "▶" : "▼"}</span>
+                        <span className="md:hidden text-xs">
+                          {isCollapsed ? "▶" : "▼"}
+                        </span>
                         {SWIMLANE_LABELS[status]}{" "}
                         <span className="text-xs font-normal text-[var(--muted)]">
                           ({columnTasks.length})

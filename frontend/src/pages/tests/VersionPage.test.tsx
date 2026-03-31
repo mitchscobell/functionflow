@@ -128,4 +128,17 @@ describe("VersionPage", () => {
 
     expect(screen.getByText("Mitch Scobell")).toBeInTheDocument();
   });
+
+  it("renders GitHub link", () => {
+    vi.stubGlobal("fetch", () => new Promise(() => {}));
+
+    render(<VersionPage />);
+
+    const link = screen.getByText("View on GitHub").closest("a");
+    expect(link).toHaveAttribute(
+      "href",
+      "https://github.com/mitchscobell/functionflow",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+  });
 });

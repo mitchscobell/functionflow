@@ -229,4 +229,43 @@ describe("LoginPage", () => {
     const checkbox = screen.getByRole("checkbox") as HTMLInputElement;
     expect(checkbox.checked).toBe(false);
   });
+
+  it("auto-submits when 6-digit code is entered", async () => {
+    vi.mocked(api.requestCode).mockResolvedValueOnce({ message: "ok" });
+    vi.mocked(api.verifyCode).mockResolvedValueOnce({
+      token: "jwt-token",
+      user: {
+        id: 1,
+        email: "auto@test.com",
+        displayName: "Auto",
+        themePreference: "",
+      },
+    });
+
+    renderLoginPage();
+
+    // Step 1: email
+    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
+      target: { value: "auto@test.com" },
+    });
+    fireEvent.click(screen.getByText("Continue"));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("000000")).toBeInTheDocument();
+    });
+
+    // Step 2: type full code — should auto-submit without clicking Verify
+    fireEvent.change(screen.getByPlaceholderText("000000"), {
+      target: { value: "654321" },
+    });
+
+    await waitFor(() => {
+      expect(api.verifyCode).toHaveBeenCalledWith(
+        "auto@test.com",
+        "654321",
+        false,
+      );
+    });
+    expect(toast.success).toHaveBeenCalledWith("Welcome!");
+  });
 });
