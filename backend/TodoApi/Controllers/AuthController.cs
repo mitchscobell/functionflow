@@ -361,7 +361,7 @@ public class AuthController : ControllerBase
         {
             new TodoTask
             {
-                Title = "Review project requirements",
+                Title = "[EXAMPLE] Review project requirements",
                 Description = "Go through the spec document and note any open questions.",
                 Priority = TaskPriority.High,
                 Status = Models.TaskStatus.Done,
@@ -372,7 +372,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Design database schema",
+                Title = "[EXAMPLE] Design database schema",
                 Description = "Map out entities, relationships, and indexes for the initial release.",
                 Priority = TaskPriority.Medium,
                 Status = Models.TaskStatus.Done,
@@ -383,7 +383,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Prepare sprint demo",
+                Title = "[EXAMPLE] Prepare sprint demo",
                 Description = "Put together a quick walkthrough of the new features for Friday's meeting.",
                 Priority = TaskPriority.High,
                 Status = Models.TaskStatus.InProgress,
@@ -394,7 +394,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Buy groceries",
+                Title = "[EXAMPLE] Buy groceries",
                 Description = "Milk, eggs, bread, coffee beans, avocados.",
                 Priority = TaskPriority.Low,
                 Status = Models.TaskStatus.Todo,
@@ -405,7 +405,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Set up CI/CD pipeline",
+                Title = "[EXAMPLE] Set up CI/CD pipeline",
                 Description = "Configure GitHub Actions for automated builds and test runs.",
                 Priority = TaskPriority.High,
                 Status = Models.TaskStatus.InProgress,
@@ -416,7 +416,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Write integration tests",
+                Title = "[EXAMPLE] Write integration tests",
                 Description = "Cover auth, task CRUD, and profile endpoints with WebApplicationFactory tests.",
                 Notes = "Remember to test edge cases like expired codes and user isolation.",
                 Url = "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests",
@@ -429,7 +429,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Build dashboard UI",
+                Title = "[EXAMPLE] Build dashboard UI",
                 Description = "Task list with search, filters, sorting, and pagination.",
                 Priority = TaskPriority.High,
                 Status = Models.TaskStatus.Todo,
@@ -440,7 +440,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Schedule dentist appointment",
+                Title = "[EXAMPLE] Schedule dentist appointment",
                 Description = "Call Dr. Miller's office for a checkup.",
                 Priority = TaskPriority.Medium,
                 Status = Models.TaskStatus.Todo,
@@ -451,7 +451,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Configure Docker deployment",
+                Title = "[EXAMPLE] Configure Docker deployment",
                 Description = "Create Dockerfiles for backend and frontend, write docker-compose.yml.",
                 Priority = TaskPriority.Medium,
                 Status = Models.TaskStatus.Todo,
@@ -462,7 +462,7 @@ public class AuthController : ControllerBase
             },
             new TodoTask
             {
-                Title = "Write README documentation",
+                Title = "[EXAMPLE] Write README documentation",
                 Description = "Setup instructions, API reference, architecture decisions.",
                 Priority = TaskPriority.Low,
                 Status = Models.TaskStatus.Todo,

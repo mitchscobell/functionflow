@@ -249,7 +249,8 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
 
         var response = await _client.GetAsync("/api/tasks?sortBy=title&sortDir=asc");
         var result = await response.Content.ReadFromJsonAsync<TaskListResponseDto>(TestHelpers.JsonOptions);
-        Assert.Equal("Apple", result!.Items.First().Title);
+        var titles = result!.Items.Select(t => t.Title).ToList();
+        Assert.True(titles.IndexOf("Apple") < titles.IndexOf("Zebra"));
     }
 
     [Fact]
