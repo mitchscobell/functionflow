@@ -31,7 +31,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
-    [Fact]
+    // ── Authentication ──
+
+    [Fact(DisplayName = "GET /tasks without auth returns 401")]
     public async Task GetTasks_Unauthenticated_ReturnsUnauthorized()
     {
         _client.DefaultRequestHeaders.Authorization = null;
@@ -39,7 +41,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
+    // ── Create Task ──
+
+    [Fact(DisplayName = "Create task with valid input returns 201 with correct data")]
     public async Task CreateTask_ValidInput_ReturnsCreated()
     {
         var token = await GetAuthTokenAsync("create@example.com");
@@ -61,7 +65,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("Medium", task.Priority.ToString());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Create task with empty title returns 400")]
     public async Task CreateTask_EmptyTitle_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("validate@example.com");
@@ -76,7 +80,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    // ── Get Task ──
+
+    [Fact(DisplayName = "Get existing task by ID returns task details")]
     public async Task GetTask_ExistingTask_ReturnsOk()
     {
         var token = await GetAuthTokenAsync("get@example.com");
@@ -96,7 +102,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("Fetch Me", task!.Title);
     }
 
-    [Fact]
+    // ── Update Task ──
+
+    [Fact(DisplayName = "Update task title and status returns updated data")]
     public async Task UpdateTask_ValidInput_ReturnsUpdated()
     {
         var token = await GetAuthTokenAsync("update@example.com");
@@ -121,7 +129,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("InProgress", task.Status.ToString());
     }
 
-    [Fact]
+    // ── Delete Task ──
+
+    [Fact(DisplayName = "Delete task soft-deletes and returns 204")]
     public async Task DeleteTask_ExistingTask_ReturnsNoContent()
     {
         var token = await GetAuthTokenAsync("delete@example.com");
@@ -142,7 +152,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get non-existent task returns 404")]
     public async Task GetTask_NonExistent_ReturnsNotFound()
     {
         var token = await GetAuthTokenAsync("notfound@example.com");
@@ -152,7 +162,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [Fact]
+    // ── Search & Sort ──
+
+    [Fact(DisplayName = "Search tasks filters by keyword in title")]
     public async Task GetTasks_WithSearch_FiltersResults()
     {
         var token = await GetAuthTokenAsync("search@example.com");
@@ -168,7 +180,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Single(result.Items);
     }
 
-    [Fact]
+    // ── User Isolation ──
+
+    [Fact(DisplayName = "Users cannot see other users' tasks")]
     public async Task Tasks_UserIsolation_CantSeeOtherUsersTasks()
     {
         // User A creates a task
@@ -186,7 +200,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.DoesNotContain(result.Items, t => t.Title == "User A Task");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update all task fields at once succeeds")]
     public async Task UpdateTask_AllFields_ReturnsUpdated()
     {
         var token = await GetAuthTokenAsync("updateallfields@example.com");
@@ -214,7 +228,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("Updated desc", task.Description);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Create task with all optional fields returns 201")]
     public async Task CreateTask_WithAllOptionalFields_ReturnsCreated()
     {
         var token = await GetAuthTokenAsync("fulltask@example.com");
@@ -238,7 +252,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort tasks by title ascending")]
     public async Task GetTasks_SortByTitle_ReturnsSorted()
     {
         var token = await GetAuthTokenAsync("sorttasks@example.com");
@@ -253,7 +267,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(titles.IndexOf("Apple") < titles.IndexOf("Zebra"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort tasks by priority descending")]
     public async Task GetTasks_SortByPriority_ReturnsSorted()
     {
         var token = await GetAuthTokenAsync("sortpri@example.com");
@@ -268,7 +282,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(TaskPriority.High, result!.Items.First().Priority);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update task with invalid URL returns 400")]
     public async Task UpdateTask_InvalidUrl_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("taskbadurl@example.com");
@@ -284,7 +298,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update task with more than 10 tags returns 400")]
     public async Task UpdateTask_TooManyTags_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("tasktags@example.com");
@@ -300,7 +314,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    // ── Update Task List Assignment ──
+
+    [Fact(DisplayName = "Update task to assign a list ID")]
     public async Task UpdateTask_SetListId_AssignsList()
     {
         var token = await GetAuthTokenAsync("updatelistid@example.com");
@@ -322,7 +338,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(list.Id, updated!.ListId);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update task with listId=0 clears the list assignment")]
     public async Task UpdateTask_SetListIdToZero_ClearsList()
     {
         var token = await GetAuthTokenAsync("clearlistid@example.com");
@@ -344,7 +360,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Null(updated!.ListId);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update task with non-existent list ID returns 400")]
     public async Task UpdateTask_InvalidListId_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("updatebadlist@example.com");
@@ -360,7 +376,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Create task with invalid list ID returns 400")]
     public async Task CreateTask_InvalidListId_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("createbadlist@example.com");
@@ -372,7 +388,9 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    // ── Model Properties ──
+
+    [Fact(DisplayName = "TodoTask model properties can all be set and read")]
     public void TodoTask_AllProperties_CanBeSet()
     {
         var now = DateTime.UtcNow;
@@ -400,7 +418,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(now, task.DueDate);
     }
 
-    [Fact]
+    [Fact(DisplayName = "TodoTask default values are correct")]
     public void TodoTask_DefaultValues_AreCorrect()
     {
         var task = new TodoTask();
@@ -417,7 +435,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.False(task.IsDeleted);
     }
 
-    [Fact]
+    [Fact(DisplayName = "TodoTask List navigation property works")]
     public void TodoTask_ListNavigation_CanBeSetAndRead()
     {
         var list = new TaskList { Id = 1, Name = "Work", UserId = 1 };
@@ -432,7 +450,7 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("Work", task.List.Name);
     }
 
-    [Fact]
+    [Fact(DisplayName = "TodoTask User navigation property works")]
     public void TodoTask_UserNavigation_CanBeSetAndRead()
     {
         var user = new User { Id = 1, Email = "test@test.com", DisplayName = "Test" };

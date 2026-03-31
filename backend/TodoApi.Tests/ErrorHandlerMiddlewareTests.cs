@@ -25,7 +25,9 @@ public class ErrorHandlerMiddlewareTests
         return (context.Response.StatusCode, body);
     }
 
-    [Fact]
+    // ── Exception Mapping ──
+
+    [Fact(DisplayName = "No exception passes through with 200")]
     public async Task NoException_PassesThrough()
     {
         var middleware = CreateMiddleware(_ => Task.CompletedTask);
@@ -36,7 +38,7 @@ public class ErrorHandlerMiddlewareTests
         Assert.Equal(200, context.Response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "KeyNotFoundException maps to 404 with 'Resource not found'")]
     public async Task KeyNotFoundException_Returns404()
     {
         var middleware = CreateMiddleware(_ => throw new KeyNotFoundException("Not found"));
@@ -50,7 +52,7 @@ public class ErrorHandlerMiddlewareTests
         Assert.Equal(404, body.RootElement.GetProperty("status").GetInt32());
     }
 
-    [Fact]
+    [Fact(DisplayName = "UnauthorizedAccessException maps to 401")]
     public async Task UnauthorizedAccessException_Returns401()
     {
         var middleware = CreateMiddleware(_ => throw new UnauthorizedAccessException());
@@ -63,7 +65,7 @@ public class ErrorHandlerMiddlewareTests
         Assert.Equal("Unauthorized.", body.RootElement.GetProperty("message").GetString());
     }
 
-    [Fact]
+    [Fact(DisplayName = "ArgumentException maps to 400 with 'Invalid request'")]
     public async Task ArgumentException_Returns400WithMessage()
     {
         var middleware = CreateMiddleware(_ => throw new ArgumentException("Bad input value"));
@@ -76,7 +78,7 @@ public class ErrorHandlerMiddlewareTests
         Assert.Equal("Invalid request.", body.RootElement.GetProperty("message").GetString());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Unhandled exception maps to 500")]
     public async Task GenericException_Returns500()
     {
         var middleware = CreateMiddleware(_ => throw new InvalidOperationException("Something broke"));
@@ -89,7 +91,9 @@ public class ErrorHandlerMiddlewareTests
         Assert.Equal("An unexpected error occurred.", body.RootElement.GetProperty("message").GetString());
     }
 
-    [Fact]
+    // ── Response Format ──
+
+    [Fact(DisplayName = "Error response includes a timestamp")]
     public async Task ExceptionResponse_HasTimestamp()
     {
         var middleware = CreateMiddleware(_ => throw new Exception("test"));
@@ -101,7 +105,7 @@ public class ErrorHandlerMiddlewareTests
         Assert.True(body.RootElement.TryGetProperty("timestamp", out _));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Error response content type is application/json")]
     public async Task ExceptionResponse_ContentTypeIsJson()
     {
         var middleware = CreateMiddleware(_ => throw new Exception("test"));

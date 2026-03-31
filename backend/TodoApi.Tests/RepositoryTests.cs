@@ -30,9 +30,9 @@ public class RepositoryTests
         return user;
     }
 
-    // ── Task Repository ──
+    // ── Task Repository: CRUD ──
 
-    [Fact]
+    [Fact(DisplayName = "Create and retrieve a task by ID")]
     public async Task TaskRepo_CreateAndGet_RoundTrips()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -47,7 +47,7 @@ public class RepositoryTests
         Assert.Equal("Buy milk", fetched!.Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get task by ID respects user isolation")]
     public async Task TaskRepo_GetById_RespectsUserIsolation()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -60,7 +60,7 @@ public class RepositoryTests
         Assert.Null(result);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Delete task sets IsDeleted flag (soft delete)")]
     public async Task TaskRepo_Delete_SoftDeletes()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -75,7 +75,9 @@ public class RepositoryTests
         Assert.True(raw.IsDeleted);
     }
 
-    [Fact]
+    // ── Task Repository: Filtering & Pagination ──
+
+    [Fact(DisplayName = "Get tasks filters by priority and paginates")]
     public async Task TaskRepo_GetTasks_FiltersAndPaginates()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -96,7 +98,7 @@ public class RepositoryTests
         Assert.Equal(2, items.Count());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get tasks filters by search keyword in title")]
     public async Task TaskRepo_GetTasks_SearchFilter()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -109,7 +111,7 @@ public class RepositoryTests
         Assert.Equal("Buy groceries", items.First().Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Delete all tasks by user ID removes everything")]
     public async Task TaskRepo_DeleteAllByUserId_RemovesAllTasks()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -122,9 +124,9 @@ public class RepositoryTests
         Assert.Empty(await db.Tasks.IgnoreQueryFilters().Where(t => t.UserId == user.Id).ToListAsync());
     }
 
-    // ── List Repository ──
+    // ── List Repository: CRUD ──
 
-    [Fact]
+    [Fact(DisplayName = "Create and list user's lists")]
     public async Task ListRepo_CreateAndGetLists()
     {
         var (db, _, lists, _, _, _) = CreateRepos();
@@ -138,7 +140,7 @@ public class RepositoryTests
         Assert.Equal("Work", result[0].List.Name);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get list by ID includes task count")]
     public async Task ListRepo_GetById_ReturnsTaskCount()
     {
         var (db, tasks, lists, _, _, _) = CreateRepos();
@@ -153,7 +155,7 @@ public class RepositoryTests
         Assert.Equal(1, count);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Delete list moves orphaned tasks to inbox")]
     public async Task ListRepo_Delete_MovesTasksToInbox()
     {
         var (db, tasks, lists, _, _, _) = CreateRepos();
@@ -172,7 +174,7 @@ public class RepositoryTests
 
     // ── User Repository ──
 
-    [Fact]
+    [Fact(DisplayName = "Create user and retrieve by email")]
     public async Task UserRepo_CreateAndGetByEmail()
     {
         var (db, _, _, users, _, _) = CreateRepos();
@@ -184,7 +186,7 @@ public class RepositoryTests
         Assert.Equal("Hello", fetched!.DisplayName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get stale demo users filters by age and email pattern")]
     public async Task UserRepo_GetStaleDemoUsers_FiltersCorrectly()
     {
         var (db, _, _, users, _, _) = CreateRepos();
@@ -211,7 +213,7 @@ public class RepositoryTests
 
     // ── AuthCode Repository ──
 
-    [Fact]
+    [Fact(DisplayName = "Get valid code finds unused, non-expired code")]
     public async Task AuthCodeRepo_GetValidCode_FindsUnused()
     {
         var (db, _, _, _, authCodes, _) = CreateRepos();
@@ -226,7 +228,7 @@ public class RepositoryTests
         Assert.NotNull(found);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get valid code ignores already-used codes")]
     public async Task AuthCodeRepo_GetValidCode_IgnoresUsed()
     {
         var (db, _, _, _, authCodes, _) = CreateRepos();
@@ -242,7 +244,7 @@ public class RepositoryTests
         Assert.Null(found);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get valid code ignores expired codes")]
     public async Task AuthCodeRepo_GetValidCode_IgnoresExpired()
     {
         var (db, _, _, _, authCodes, _) = CreateRepos();
@@ -259,7 +261,7 @@ public class RepositoryTests
 
     // ── ApiKey Repository ──
 
-    [Fact]
+    [Fact(DisplayName = "Get API key by hash finds active key")]
     public async Task ApiKeyRepo_GetByHash_FindsActiveKey()
     {
         var (db, _, _, _, _, apiKeys) = CreateRepos();
@@ -277,7 +279,7 @@ public class RepositoryTests
         Assert.Equal("My Key", found!.Name);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get API key by hash ignores revoked keys")]
     public async Task ApiKeyRepo_GetByHash_IgnoresRevoked()
     {
         var (db, _, _, _, _, apiKeys) = CreateRepos();
@@ -295,7 +297,7 @@ public class RepositoryTests
         Assert.Null(found);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Delete all API keys by user ID")]
     public async Task ApiKeyRepo_DeleteByUserId_RemovesAll()
     {
         var (db, _, _, _, _, apiKeys) = CreateRepos();
@@ -307,7 +309,7 @@ public class RepositoryTests
         Assert.Empty(await db.ApiKeys.Where(k => k.UserId == user.Id).ToListAsync());
     }
 
-    // ── Task Repository: Sorting Tests ──
+    // ── Task Repository: Sorting ──
 
     private static async Task SeedSortTasks(AppDbContext db, EfTaskRepository tasks, int userId)
     {
@@ -344,7 +346,7 @@ public class RepositoryTests
         });
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by title ascending: Alpha < Beta < Gamma")]
     public async Task TaskRepo_SortByTitleAsc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -358,7 +360,7 @@ public class RepositoryTests
         Assert.Equal("Gamma", list[2].Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by title descending: Gamma first")]
     public async Task TaskRepo_SortByTitleDesc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -370,7 +372,7 @@ public class RepositoryTests
         Assert.Equal("Gamma", list[0].Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by due date ascending: earliest first")]
     public async Task TaskRepo_SortByDueDateAsc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -382,7 +384,7 @@ public class RepositoryTests
         Assert.Equal("Beta", list[0].Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by due date descending: latest first")]
     public async Task TaskRepo_SortByDueDateDesc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -394,7 +396,7 @@ public class RepositoryTests
         Assert.Equal("Alpha", list[0].Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by priority ascending: Low first")]
     public async Task TaskRepo_SortByPriorityAsc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -406,7 +408,7 @@ public class RepositoryTests
         Assert.Equal(TaskPriority.Low, list[0].Priority);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by priority descending: High first")]
     public async Task TaskRepo_SortByPriorityDesc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -418,7 +420,7 @@ public class RepositoryTests
         Assert.Equal(TaskPriority.High, list[0].Priority);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by status ascending: Todo first")]
     public async Task TaskRepo_SortByStatusAsc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -430,7 +432,7 @@ public class RepositoryTests
         Assert.Equal(Models.TaskStatus.Todo, list[0].Status);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by status descending: Done first")]
     public async Task TaskRepo_SortByStatusDesc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -442,7 +444,7 @@ public class RepositoryTests
         Assert.Equal(Models.TaskStatus.Done, list[0].Status);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Sort by created date ascending: oldest first")]
     public async Task TaskRepo_SortByCreatedAtAsc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -454,7 +456,7 @@ public class RepositoryTests
         Assert.Equal("Alpha", list[0].Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Unknown sort field falls back to created date descending")]
     public async Task TaskRepo_DefaultSort_CreatedAtDesc()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -466,7 +468,7 @@ public class RepositoryTests
         Assert.Equal("Gamma", list[0].Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Search matches task description text")]
     public async Task TaskRepo_SearchByDescription()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -478,7 +480,7 @@ public class RepositoryTests
         Assert.Equal("Gamma", items.First().Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Filter tasks by status")]
     public async Task TaskRepo_FilterByStatus()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();
@@ -490,7 +492,7 @@ public class RepositoryTests
         Assert.Equal("Gamma", items.First().Title);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update task persists changes")]
     public async Task TaskRepo_UpdateAsync_Persists()
     {
         var (db, tasks, _, _, _, _) = CreateRepos();

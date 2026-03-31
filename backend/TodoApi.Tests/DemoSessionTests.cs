@@ -16,7 +16,9 @@ public class DemoSessionTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
-    [Fact]
+    // ── Dev Login ──
+
+    [Fact(DisplayName = "Dev login creates ephemeral session with @functionflow.local email")]
     public async Task DevLogin_CreatesEphemeralSession()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/dev-login",
@@ -31,7 +33,7 @@ public class DemoSessionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("Demo User", result.User.DisplayName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Two dev logins create separate users")]
     public async Task DevLogin_TwoSessions_DifferentUsers()
     {
         var res1 = await _client.PostAsJsonAsync("/api/auth/dev-login",
@@ -46,7 +48,7 @@ public class DemoSessionTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotEqual(user1.Id, user2.Id);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Dev login seeds 10 example tasks")]
     public async Task DevLogin_SeedsExampleTasks()
     {
         var loginRes = await _client.PostAsJsonAsync("/api/auth/dev-login",
@@ -63,7 +65,9 @@ public class DemoSessionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(10, tasks.TotalCount);
     }
 
-    [Fact]
+    // ── Demo Logout ──
+
+    [Fact(DisplayName = "Demo logout destroys session data")]
     public async Task DemoLogout_DestroysSessionData()
     {
         // Create demo session
@@ -84,7 +88,7 @@ public class DemoSessionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, logoutRes.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Demo logout on non-demo account returns 400")]
     public async Task DemoLogout_NonDemoAccount_ReturnsBadRequest()
     {
         // Create a real user

@@ -28,7 +28,9 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
     private void SetAuth(string token) =>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-    [Fact]
+    // ── Create List ──
+
+    [Fact(DisplayName = "Create list with name, emoji, and color returns 201")]
     public async Task CreateList_ValidInput_ReturnsCreated()
     {
         var token = await GetAuthTokenAsync("createlist@example.com");
@@ -49,7 +51,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("emerald", list.Color);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Create list with empty name returns 400")]
     public async Task CreateList_EmptyName_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("badlist@example.com");
@@ -59,7 +61,9 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    // ── Get Lists ──
+
+    [Fact(DisplayName = "Get lists returns all user lists including seeded")]
     public async Task GetLists_ReturnsUserLists()
     {
         var token = await GetAuthTokenAsync("getlists@example.com");
@@ -77,7 +81,9 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(5, lists.Length);
     }
 
-    [Fact]
+    // ── Update List ──
+
+    [Fact(DisplayName = "Update list name and emoji returns updated data")]
     public async Task UpdateList_ValidInput_ReturnsUpdated()
     {
         var token = await GetAuthTokenAsync("updatelist@example.com");
@@ -98,7 +104,9 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("📝", updated.Emoji);
     }
 
-    [Fact]
+    // ── Delete List ──
+
+    [Fact(DisplayName = "Delete list moves its tasks to inbox")]
     public async Task DeleteList_MovesTasksToInbox()
     {
         var token = await GetAuthTokenAsync("deletelist@example.com");
@@ -126,7 +134,9 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Single(tasks!.Items);
     }
 
-    [Fact]
+    // ── User Isolation ──
+
+    [Fact(DisplayName = "Users cannot see other users' lists")]
     public async Task Lists_UserIsolation_CantSeeOtherUsersLists()
     {
         var tokenA = await GetAuthTokenAsync("listusera@example.com");
@@ -142,7 +152,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.DoesNotContain(lists, l => l.Name == "User A List");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get list by valid ID returns the list")]
     public async Task GetList_ValidId_ReturnsList()
     {
         var token = await GetAuthTokenAsync("getlistbyid@example.com");
@@ -159,7 +169,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("Fetch Me", list.Name);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get list with non-existent ID returns 404")]
     public async Task GetList_NotFound_Returns404()
     {
         var token = await GetAuthTokenAsync("listnotfound@example.com");
@@ -169,7 +179,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update non-existent list returns 404")]
     public async Task UpdateList_NotFound_Returns404()
     {
         var token = await GetAuthTokenAsync("listupdate404@example.com");
@@ -179,7 +189,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Delete non-existent list returns 404")]
     public async Task DeleteList_NotFound_Returns404()
     {
         var token = await GetAuthTokenAsync("listdelete404@example.com");
@@ -189,7 +199,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Partial update only changes provided fields")]
     public async Task UpdateList_PartialUpdate_OnlyChangesProvidedFields()
     {
         var token = await GetAuthTokenAsync("listpartial@example.com");
@@ -210,7 +220,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(5, updated.SortOrder);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Create list without color assigns a default")]
     public async Task CreateList_NoColor_AssignsDefault()
     {
         var token = await GetAuthTokenAsync("listnocolor@example.com");
@@ -224,7 +234,7 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.False(string.IsNullOrEmpty(list.Color));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update list with name too long returns 400")]
     public async Task UpdateList_InvalidInput_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("listbadinput@example.com");

@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  ListTodo,
-  ExternalLink,
-  Heart,
-  Database,
-  Server,
-} from "lucide-react";
+import { ListTodo, ExternalLink, Heart, Database, Server } from "lucide-react";
 
 /**
  * Response shape from the `/api/version` health-check endpoint.

@@ -17,7 +17,9 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
-    [Fact]
+    // ── Health Check Endpoint ──
+
+    [Fact(DisplayName = "GET /api/version returns 200")]
     public async Task GetVersion_ReturnsOk()
     {
         var response = await _client.GetAsync("/api/version");
@@ -25,7 +27,7 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Response includes name, version, status, and database fields")]
     public async Task GetVersion_ReturnsExpectedShape()
     {
         var result = await _client.GetFromJsonAsync<VersionResponse>("/api/version");
@@ -37,7 +39,7 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("connected", result.Database);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Version endpoint is publicly accessible without auth")]
     public async Task GetVersion_DoesNotRequireAuth()
     {
         // Use a fresh client with no auth headers
@@ -48,7 +50,7 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Response includes a timestamp")]
     public async Task GetVersion_HasTimestamp()
     {
         var result = await _client.GetFromJsonAsync<VersionResponse>("/api/version");
@@ -56,7 +58,9 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
         Assert.False(string.IsNullOrEmpty(result.Timestamp));
     }
 
-    [Fact]
+    // ── Degraded Database States ──
+
+    [Fact(DisplayName = "Unreachable database returns degraded status")]
     public async Task GetVersion_DbUnreachable_ReturnsDegradedStatus()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -75,7 +79,7 @@ public class VersionTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("unreachable", dbProp);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Disposed database context returns degraded status")]
     public async Task GetVersion_DbThrows_ReturnsDegradedStatus()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

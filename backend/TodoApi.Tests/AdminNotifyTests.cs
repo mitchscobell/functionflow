@@ -13,7 +13,9 @@ public class AdminNotifyTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
-    [Fact]
+    // ── Auth Code Notifications ──
+
+    [Fact(DisplayName = "Request code sends admin notification")]
     public async Task RequestCode_SendsAdminNotification()
     {
         var before = _factory.AdminNotifications.Count;
@@ -25,7 +27,7 @@ public class AdminNotifyTests : IClassFixture<TestWebApplicationFactory>
             n => n.Subject == "Code Requested" && n.Body.Contains("notify-test@example.com"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Successful login sends admin notification")]
     public async Task VerifyCode_SendsLoginNotification()
     {
         var email = "login-notify@example.com";
@@ -40,7 +42,9 @@ public class AdminNotifyTests : IClassFixture<TestWebApplicationFactory>
                  && n.Body.Contains(email));
     }
 
-    [Fact]
+    // ── Demo Session Notifications ──
+
+    [Fact(DisplayName = "Dev login sends 'Demo Session Started' notification")]
     public async Task DevLogin_SendsAdminNotification()
     {
         await _client.PostAsJsonAsync("/api/auth/dev-login",
@@ -51,7 +55,7 @@ public class AdminNotifyTests : IClassFixture<TestWebApplicationFactory>
                  && n.Body.Contains("@functionflow.local"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Demo logout sends 'Demo Session Ended' notification")]
     public async Task DemoLogout_SendsAdminNotification()
     {
         // Start a demo session

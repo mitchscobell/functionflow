@@ -17,7 +17,7 @@ public class SmtpServiceTests
         return new SmtpEmailService(config, NullLogger<SmtpEmailService>.Instance);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Email service with no SMTP credentials logs warning and returns")]
     public async Task EmailService_NoSmtpCredentials_LogsWarningAndReturns()
     {
         var service = CreateEmailService();
@@ -26,7 +26,7 @@ public class SmtpServiceTests
         await service.SendAuthCodeAsync("test@example.com", "123456");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Email service with empty SMTP user logs warning")]
     public async Task EmailService_EmptyUser_LogsWarningAndReturns()
     {
         var service = CreateEmailService(new Dictionary<string, string?>
@@ -38,7 +38,7 @@ public class SmtpServiceTests
         await service.SendAuthCodeAsync("test@example.com", "123456");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Email service with empty SMTP password logs warning")]
     public async Task EmailService_EmptyPass_LogsWarningAndReturns()
     {
         var service = CreateEmailService(new Dictionary<string, string?>
@@ -50,7 +50,7 @@ public class SmtpServiceTests
         await service.SendAuthCodeAsync("test@example.com", "123456");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Email service with custom SMTP settings attempts connection")]
     public async Task EmailService_WithCustomSmtpSettings_ReadsConfig()
     {
         // Configured but will fail to connect (no real server) — validates the code path
@@ -79,7 +79,7 @@ public class SmtpServiceTests
         return new SmtpAdminNotifier(config, NullLogger<SmtpAdminNotifier>.Instance);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Admin notifier with no admin email returns immediately")]
     public async Task AdminNotifier_NoAdminEmail_ReturnsImmediately()
     {
         var notifier = CreateAdminNotifier();
@@ -88,7 +88,7 @@ public class SmtpServiceTests
         await notifier.SendAsync("Subject", "Body");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Admin notifier with empty admin email returns immediately")]
     public async Task AdminNotifier_EmptyAdminEmail_ReturnsImmediately()
     {
         var notifier = CreateAdminNotifier(new Dictionary<string, string?>
@@ -99,7 +99,7 @@ public class SmtpServiceTests
         await notifier.SendAsync("Subject", "Body");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Admin notifier with admin email but no SMTP credentials logs")]
     public async Task AdminNotifier_AdminEmailSet_NoSmtpCredentials_Logs()
     {
         var notifier = CreateAdminNotifier(new Dictionary<string, string?>
@@ -113,7 +113,7 @@ public class SmtpServiceTests
         await notifier.SendAsync("Test Subject", "Test Body");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Admin notifier with admin email but no SMTP user logs")]
     public async Task AdminNotifier_AdminEmailSet_NoSmtpUser_Logs()
     {
         var notifier = CreateAdminNotifier(new Dictionary<string, string?>
@@ -124,7 +124,7 @@ public class SmtpServiceTests
         await notifier.SendAsync("Test Subject", "Test Body");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Admin notifier with full config catches SMTP failures gracefully")]
     public async Task AdminNotifier_FullConfig_FailsGracefully()
     {
         // With full config but unreachable SMTP server, should catch and log

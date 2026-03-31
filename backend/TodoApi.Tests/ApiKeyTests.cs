@@ -31,7 +31,9 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
     private void SetAuth(string token) =>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-    [Fact]
+    // ── Key Management ──
+
+    [Fact(DisplayName = "Create API key returns key with ff_ prefix")]
     public async Task CreateKey_ValidInput_ReturnsKeyOnce()
     {
         var token = await GetAuthTokenAsync("createkey@example.com");
@@ -47,7 +49,7 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(key.Key[..11], key.KeyPrefix);
     }
 
-    [Fact]
+    [Fact(DisplayName = "List API keys returns only key prefixes, not full keys")]
     public async Task GetKeys_ReturnsOnlyPrefixes()
     {
         var token = await GetAuthTokenAsync("listkeys@example.com");
@@ -65,7 +67,7 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(keys[0].KeyPrefix.Length <= 20);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Revoke API key returns 204")]
     public async Task RevokeKey_ReturnsNoContent()
     {
         var token = await GetAuthTokenAsync("revokekey@example.com");
@@ -78,7 +80,9 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
-    [Fact]
+    // ── API Key Authentication ──
+
+    [Fact(DisplayName = "Valid API key can access tasks via X-Api-Key header")]
     public async Task ApiKeyAuth_ValidKey_CanAccessTasks()
     {
         var token = await GetAuthTokenAsync("keyauth@example.com");
@@ -99,7 +103,7 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
         _client.DefaultRequestHeaders.Remove("X-Api-Key");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Invalid API key returns 401")]
     public async Task ApiKeyAuth_InvalidKey_ReturnsUnauthorized()
     {
         _client.DefaultRequestHeaders.Authorization = null;
@@ -112,7 +116,7 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
         _client.DefaultRequestHeaders.Remove("X-Api-Key");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Create API key with empty name returns 400")]
     public async Task CreateKey_EmptyName_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("badkey@example.com");
@@ -122,7 +126,7 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Whitespace-only API key returns 401")]
     public async Task ApiKeyAuth_WhitespaceKey_ReturnsUnauthorized()
     {
         _client.DefaultRequestHeaders.Authorization = null;
@@ -135,7 +139,7 @@ public class ApiKeyTests : IClassFixture<TestWebApplicationFactory>
         _client.DefaultRequestHeaders.Remove("X-Api-Key");
     }
 
-    [Fact]
+    [Fact(DisplayName = "Expired API key returns 401")]
     public async Task ApiKeyAuth_ExpiredKey_ReturnsUnauthorized()
     {
         var token = await GetAuthTokenAsync("expiredkey@example.com");

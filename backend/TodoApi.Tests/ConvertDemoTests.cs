@@ -30,9 +30,9 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
     private void SetAuth(string token) =>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-    // ── ConvertDemo ──
+    // ── Request Conversion ──
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo with valid email sends code and returns 200")]
     public async Task ConvertDemo_ValidDemo_SendsCodeAndReturnsOk()
     {
         var (token, _) = await CreateDemoSession();
@@ -45,7 +45,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(_factory.SentCodes.ContainsKey("convert-valid@example.com"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo with invalid email returns 400")]
     public async Task ConvertDemo_InvalidEmail_ReturnsBadRequest()
     {
         var (token, _) = await CreateDemoSession();
@@ -57,7 +57,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo with empty email returns 400")]
     public async Task ConvertDemo_EmptyEmail_ReturnsBadRequest()
     {
         var (token, _) = await CreateDemoSession();
@@ -69,7 +69,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo to @functionflow.local email returns 400")]
     public async Task ConvertDemo_DemoEmailTarget_ReturnsBadRequest()
     {
         var (token, _) = await CreateDemoSession();
@@ -81,7 +81,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert from a non-demo account returns 400")]
     public async Task ConvertDemo_NonDemoAccount_ReturnsBadRequest()
     {
         // Create a real user
@@ -98,7 +98,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo to already-taken email returns 409")]
     public async Task ConvertDemo_EmailAlreadyTaken_ReturnsConflict()
     {
         // Create a real user to claim the email
@@ -117,7 +117,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo without auth returns 401")]
     public async Task ConvertDemo_Unauthenticated_ReturnsUnauthorized()
     {
         _client.DefaultRequestHeaders.Authorization = null;
@@ -128,7 +128,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo with display name succeeds")]
     public async Task ConvertDemo_WithDisplayName_ReturnsOk()
     {
         var (token, _) = await CreateDemoSession();
@@ -140,9 +140,9 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    // ── VerifyConversion ──
+    // ── Verify Conversion ──
 
-    [Fact]
+    [Fact(DisplayName = "Verify conversion with valid code converts account and returns token")]
     public async Task VerifyConversion_ValidCode_ConvertsAccount()
     {
         var (token, _) = await CreateDemoSession();
@@ -166,7 +166,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotEmpty(result.Token);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Verify conversion with wrong code returns 401")]
     public async Task VerifyConversion_InvalidCode_ReturnsUnauthorized()
     {
         var (token, _) = await CreateDemoSession();
@@ -181,7 +181,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Verify conversion on non-demo account returns 400")]
     public async Task VerifyConversion_NonDemoAccount_ReturnsBadRequest()
     {
         await _client.PostAsJsonAsync("/api/auth/request-code", new { email = "real-verify@example.com" });
@@ -197,7 +197,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Verify conversion with bad email format returns 400")]
     public async Task VerifyConversion_InvalidEmailFormat_ReturnsBadRequest()
     {
         var (token, _) = await CreateDemoSession();
@@ -209,7 +209,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Verify conversion when email already taken returns 409")]
     public async Task VerifyConversion_EmailTakenAfterCodeSent_ReturnsConflict()
     {
         // First, create a real user to claim the email BEFORE the demo conversion starts
@@ -233,7 +233,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Verify conversion without auth returns 401")]
     public async Task VerifyConversion_Unauthenticated_ReturnsUnauthorized()
     {
         _client.DefaultRequestHeaders.Authorization = null;
@@ -244,7 +244,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Verify conversion sends admin notification")]
     public async Task VerifyConversion_SendsAdminNotification()
     {
         var (token, _) = await CreateDemoSession();
@@ -261,7 +261,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
             n => n.Subject == "Demo Converted" && n.Body.Contains("notify-conv@example.com"));
     }
 
-    [Fact]
+    [Fact(DisplayName = "Convert demo invalidates previous codes for that email")]
     public async Task ConvertDemo_ExistingCodesForEmail_InvalidatesPrevious()
     {
         await _client.PostAsJsonAsync("/api/auth/request-code",
@@ -276,7 +276,9 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+    // ── Full Conversion Flow ──
+
+    [Fact(DisplayName = "Full happy path: convert demo and verify returns new token")]
     public async Task VerifyConversion_FullHappyPath_ConvertsAndReturnsToken()
     {
         var (token, _) = await CreateDemoSession();
@@ -296,7 +298,7 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("full-convert-path@example.com", result!.User.Email);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Email taken between convert and verify returns 409")]
     public async Task VerifyConversion_EmailTakenBetweenConvertAndVerify_ReturnsConflict()
     {
         var (token, _) = await CreateDemoSession();
@@ -316,7 +318,9 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Conflict, verifyRes.StatusCode);
     }
 
-    [Fact]
+    // ── DTO Construction ──
+
+    [Fact(DisplayName = "ConvertDemoDto constructs with email and display name")]
     public void ConvertDemoDto_Constructs()
     {
         var dto = new ConvertDemoDto("test@example.com", "My Name");
@@ -324,14 +328,14 @@ public class ConvertDemoTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("My Name", dto.DisplayName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "ConvertDemoDto allows null display name")]
     public void ConvertDemoDto_NullDisplayName()
     {
         var dto = new ConvertDemoDto("test@example.com", null);
         Assert.Null(dto.DisplayName);
     }
 
-    [Fact]
+    [Fact(DisplayName = "VerifyConversionDto constructs with email and code")]
     public void VerifyConversionDto_Constructs()
     {
         var dto = new VerifyConversionDto("test@example.com", "123456");

@@ -43,7 +43,9 @@ public class DemoSessionCleanupTests
     private static AppDbContext GetDb(IServiceProvider provider) =>
         provider.GetRequiredService<AppDbContext>();
 
-    [Fact]
+    // ── Stale Session Removal ──
+
+    [Fact(DisplayName = "Cleanup removes stale demo sessions older than max age")]
     public async Task Cleanup_RemovesStaleDemoSessions()
     {
         var (service, provider, _) = CreateService(maxAgeHours: 1);
@@ -75,7 +77,7 @@ public class DemoSessionCleanupTests
         Assert.Empty(await freshDb.Tasks.IgnoreQueryFilters().ToListAsync());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Cleanup preserves recent demo sessions within max age")]
     public async Task Cleanup_PreservesRecentDemoSessions()
     {
         var (service, provider, _) = CreateService(maxAgeHours: 24);
@@ -98,7 +100,7 @@ public class DemoSessionCleanupTests
         Assert.Single(await freshDb.Users.ToListAsync());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Cleanup preserves real (non-demo) users")]
     public async Task Cleanup_PreservesRealUsers()
     {
         var (service, provider, _) = CreateService(maxAgeHours: 1);
@@ -121,7 +123,7 @@ public class DemoSessionCleanupTests
         Assert.Equal("real@example.com", (await freshDb.Users.FirstAsync()).Email);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Cleanup removes all related data (tasks, lists, codes, keys)")]
     public async Task Cleanup_RemovesAllRelatedData()
     {
         var (service, provider, _) = CreateService(maxAgeHours: 1);
@@ -153,14 +155,16 @@ public class DemoSessionCleanupTests
         Assert.Empty(await freshDb.ApiKeys.ToListAsync());
     }
 
-    [Fact]
+    // ── Edge Cases ──
+
+    [Fact(DisplayName = "Cleanup with no stale users is a no-op")]
     public async Task Cleanup_NoStaleUsers_DoesNothing()
     {
         var (service, _, _) = CreateService(maxAgeHours: 24);
         await service.CleanupStaleSessions();
     }
 
-    [Fact]
+    [Fact(DisplayName = "Cleanup with cancelled token handles gracefully")]
     public async Task Cleanup_CancellationRequested_HandlesGracefully()
     {
         var (service, _, _) = CreateService(maxAgeHours: 24);
@@ -169,7 +173,7 @@ public class DemoSessionCleanupTests
         await service.CleanupStaleSessions(cts.Token);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Default config values are used when not provided")]
     public async Task Cleanup_DefaultConfigValues_AreUsed()
     {
         var dbName = "CleanupDefaults_" + Guid.NewGuid();
@@ -194,7 +198,9 @@ public class DemoSessionCleanupTests
         await service.CleanupStaleSessions();
     }
 
-    [Fact]
+    // ── Background Service Lifecycle ──
+
+    [Fact(DisplayName = "Background service stops gracefully when cancelled")]
     public async Task ExecuteAsync_CancelledQuickly_StopsGracefully()
     {
         var (service, _, _) = CreateService();
@@ -207,7 +213,7 @@ public class DemoSessionCleanupTests
         await service.StopAsync(CancellationToken.None);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Cleanup logs error when service provider lacks dependencies")]
     public async Task CleanupStaleSessions_ExceptionDuringCleanup_LogsError()
     {
         var config = new ConfigurationBuilder()

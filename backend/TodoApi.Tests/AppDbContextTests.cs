@@ -6,7 +6,7 @@ namespace TodoApi.Tests;
 
 public class AppDbContextTests
 {
-    [Fact]
+    [Fact(DisplayName = "Synchronous SaveChanges sets CreatedAt timestamp")]
     public void SyncSaveChanges_SetsTimestamps()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

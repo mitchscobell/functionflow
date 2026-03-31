@@ -17,7 +17,9 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
-    [Fact]
+    // ── Request Code ──
+
+    [Fact(DisplayName = "Request code with valid email returns 200")]
     public async Task RequestCode_ValidEmail_ReturnsOk()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/request-code",
@@ -26,7 +28,7 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Request code with invalid email returns 400")]
     public async Task RequestCode_InvalidEmail_ReturnsBadRequest()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/request-code",
@@ -35,7 +37,7 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Request code with empty email returns 400")]
     public async Task RequestCode_EmptyEmail_ReturnsBadRequest()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/request-code",
@@ -44,7 +46,9 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    // ── Verify Code ──
+
+    [Fact(DisplayName = "Verify code with wrong code returns 401")]
     public async Task VerifyCode_InvalidCode_ReturnsUnauthorized()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/verify-code",
@@ -53,7 +57,7 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Verify code with non-numeric code returns 400")]
     public async Task VerifyCode_InvalidFormat_ReturnsBadRequest()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/verify-code",
@@ -62,7 +66,9 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    // ── Full Auth Flow ──
+
+    [Fact(DisplayName = "Full auth flow: request code, verify, and receive JWT")]
     public async Task FullAuthFlow_RequestAndVerify_ReturnsToken()
     {
         // Request code
@@ -84,7 +90,7 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("flow@example.com", result.User.Email);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Used code cannot be reused")]
     public async Task VerifyCode_UsedCode_ReturnsUnauthorized()
     {
         // Request and use a code
@@ -103,7 +109,7 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "New code request invalidates previous codes")]
     public async Task RequestCode_ExistingCodes_InvalidatesPreviousCodes()
     {
         var email = "invalidate-codes@example.com";
@@ -123,7 +129,9 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
     }
 
-    [Fact]
+    // ── Code Generator ──
+
+    [Fact(DisplayName = "Crypto code generator produces valid 6-digit codes")]
     public void CryptoCodeGenerator_GeneratesSixDigitCodes()
     {
         var gen = new CryptoCodeGenerator();
@@ -136,7 +144,9 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         }
     }
 
-    [Fact]
+    // ── Model Properties ──
+
+    [Fact(DisplayName = "AuthCode model properties can be set and read")]
     public void AuthCode_AllProperties_CanBeSet()
     {
         var now = DateTime.UtcNow;
@@ -157,7 +167,7 @@ public class AuthTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(now, code.CreatedAt);
     }
 
-    [Fact]
+    [Fact(DisplayName = "AuthCode default values are correct")]
     public void AuthCode_DefaultValues_AreCorrect()
     {
         var code = new AuthCode();

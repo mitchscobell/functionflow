@@ -25,7 +25,9 @@ public class ProfileTests : IClassFixture<TestWebApplicationFactory>
         return result!.Token;
     }
 
-    [Fact]
+    // ── Get Profile ──
+
+    [Fact(DisplayName = "Get profile when authenticated returns user data")]
     public async Task GetProfile_Authenticated_ReturnsProfile()
     {
         var token = await GetAuthTokenAsync("profile@example.com");
@@ -38,7 +40,9 @@ public class ProfileTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("profile@example.com", profile!.Email);
     }
 
-    [Fact]
+    // ── Update Profile ──
+
+    [Fact(DisplayName = "Update display name and theme succeeds")]
     public async Task UpdateProfile_ValidInput_ReturnsUpdated()
     {
         var token = await GetAuthTokenAsync("editprofile@example.com");
@@ -56,7 +60,7 @@ public class ProfileTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("dark", profile.ThemePreference);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Update with invalid theme returns 400")]
     public async Task UpdateProfile_InvalidTheme_ReturnsBadRequest()
     {
         var token = await GetAuthTokenAsync("badtheme@example.com");
@@ -70,7 +74,7 @@ public class ProfileTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Get profile without auth returns 401")]
     public async Task GetProfile_Unauthenticated_ReturnsUnauthorized()
     {
         _client.DefaultRequestHeaders.Authorization = null;
