@@ -225,6 +225,7 @@ describe("DashboardPage", () => {
       pageSize: 100,
     });
     vi.mocked(api.deleteTask).mockResolvedValueOnce(undefined);
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
 
     renderDashboard();
 

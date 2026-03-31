@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
@@ -25,11 +25,19 @@ export default function LoginPage() {
   const [showDemoModal, setShowDemoModal] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   /**
    * Starts a temporary demo session using the dev-login endpoint.
    * Bypasses email verification for quick exploration.
    */
+  // Auto-submit when all 6 digits are entered (e.g. paste)
+  useEffect(() => {
+    if (code.length === 6 && step === "code" && !loading) {
+      formRef.current?.requestSubmit();
+    }
+  }, [code, step, loading]);
+
   const handleDevLogin = async () => {
     setShowDemoModal(false);
     setLoading(true);
@@ -132,7 +140,7 @@ export default function LoginPage() {
               </p>
             </form>
           ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-4">
+            <form ref={formRef} onSubmit={handleVerifyCode} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1.5">
                   Enter verification code

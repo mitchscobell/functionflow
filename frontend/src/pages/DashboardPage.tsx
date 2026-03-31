@@ -77,6 +77,7 @@ export default function DashboardPage() {
   const [emojiPickerListId, setEmojiPickerListId] = useState<number | null>(
     null,
   );
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
 
   const pageSize = 100; // fetch more for swimlane view
 
@@ -160,6 +161,7 @@ export default function DashboardPage() {
    * @param id - The task's database ID.
    */
   const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete this task?")) return;
     try {
       await api.deleteTask(id);
       toast.success("Task deleted");
@@ -180,13 +182,17 @@ export default function DashboardPage() {
       InProgress: "Done",
       Done: "Todo",
     };
+    const newStatus = next[task.status] as Task["status"];
+    // Optimistic update — avoids scroll jump from full refetch
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
+    );
     try {
-      await api.updateTask(task.id, {
-        status: next[task.status] as Task["status"],
-      });
-      fetchTasks();
+      await api.updateTask(task.id, { status: newStatus });
+      fetchLists(); // update task counts
     } catch (err: any) {
       toast.error(err.message || "Failed to update status");
+      fetchTasks(); // revert on failure
     }
   };
 
@@ -220,9 +226,9 @@ export default function DashboardPage() {
   };
 
   /** Creates a new list inline (e.g. from the task modal) and returns it. */
-  const handleCreateListInline = async (name: string) => {
+  const handleCreateListInline = async (name: string, emoji?: string) => {
     try {
-      const created = await api.createList({ name });
+      const created = await api.createList({ name, emoji });
       fetchLists();
       toast.success("List created");
       return created;
@@ -287,6 +293,9 @@ export default function DashboardPage() {
     <Layout>
       {/* Mobile list selector */}
       <div className="md:hidden mb-4 print:hidden">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-1">
+          Lists
+        </label>
         <select
           value={activeListId ?? ""}
           onChange={(e) =>
@@ -294,10 +303,10 @@ export default function DashboardPage() {
           }
           className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         >
-          <option value="">All Tasks</option>
+          <option value="">📋 All Tasks</option>
           {lists.map((l) => (
             <option key={l.id} value={l.id}>
-              {l.emoji ? `${l.emoji} ` : "📋"} {l.name} ({l.taskCount})
+              {l.emoji ? `${l.emoji} ` : "📋 "}{l.name} ({l.taskCount})
             </option>
           ))}
         </select>
@@ -573,34 +582,47 @@ export default function DashboardPage() {
                 const columnTasks = visibleTasks.filter(
                   (t) => t.status === status,
                 );
+                const isCollapsed = collapsedColumns.has(status);
                 return (
                   <div key={status} className="min-w-0">
-                    <div
-                      className={`border-t-2 ${SWIMLANE_COLORS[status]} rounded-t-lg px-3 py-2 bg-[var(--bg-secondary)]`}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCollapsedColumns((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(status)) next.delete(status);
+                          else next.add(status);
+                          return next;
+                        })
+                      }
+                      className={`w-full text-left border-t-2 ${SWIMLANE_COLORS[status]} rounded-t-lg px-3 py-2 bg-[var(--bg-secondary)] md:cursor-default`}
                     >
-                      <h3 className="text-sm font-semibold">
+                      <h3 className="text-sm font-semibold flex items-center gap-1">
+                        <span className="md:hidden text-xs">{isCollapsed ? "▶" : "▼"}</span>
                         {SWIMLANE_LABELS[status]}{" "}
                         <span className="text-xs font-normal text-[var(--muted)]">
                           ({columnTasks.length})
                         </span>
                       </h3>
-                    </div>
-                    <div className="space-y-2 mt-2">
-                      {columnTasks.map((task) => (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          onEdit={openEdit}
-                          onDelete={handleDelete}
-                          onToggleStatus={handleToggleStatus}
-                        />
-                      ))}
-                      {columnTasks.length === 0 && (
-                        <p className="text-xs text-[var(--muted)] text-center py-6">
-                          No tasks
-                        </p>
-                      )}
-                    </div>
+                    </button>
+                    {!isCollapsed && (
+                      <div className="space-y-2 mt-2">
+                        {columnTasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onEdit={openEdit}
+                            onDelete={handleDelete}
+                            onToggleStatus={handleToggleStatus}
+                          />
+                        ))}
+                        {columnTasks.length === 0 && (
+                          <p className="text-xs text-[var(--muted)] text-center py-6">
+                            No tasks
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Task, TaskList } from "../types";
-import { X, FolderPlus } from "lucide-react";
+import { X, FolderPlus, Smile } from "lucide-react";
+import EmojiPicker from "./EmojiPicker";
 
 /** Props for the {@link TaskModal} component. */
 interface Props {
@@ -23,7 +24,7 @@ interface Props {
   activeListId?: number | null;
 
   /** Callback to create a new list inline. Returns the new list. */
-  onCreateList?: (name: string) => Promise<TaskList | undefined>;
+  onCreateList?: (name: string, emoji?: string) => Promise<TaskList | undefined>;
 }
 
 /**
@@ -50,6 +51,8 @@ export default function TaskModal({
   const [listId, setListId] = useState<number | undefined>(undefined);
   const [creatingList, setCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
+  const [newListEmoji, setNewListEmoji] = useState("");
+  const [showNewListEmojiPicker, setShowNewListEmojiPicker] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -261,7 +264,26 @@ export default function TaskModal({
                   </select>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-2 relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewListEmojiPicker((v) => !v)}
+                    className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-sm hover:bg-[var(--hover)] transition-colors"
+                    title="Pick emoji"
+                  >
+                    {newListEmoji || <Smile size={18} />}
+                  </button>
+                  {showNewListEmojiPicker && (
+                    <div className="absolute top-full left-0 z-50 mt-1">
+                      <EmojiPicker
+                        onSelect={(emoji) => {
+                          setNewListEmoji(emoji);
+                          setShowNewListEmojiPicker(false);
+                        }}
+                        onClose={() => setShowNewListEmojiPicker(false)}
+                      />
+                    </div>
+                  )}
                   <input
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
@@ -274,12 +296,14 @@ export default function TaskModal({
                         e.preventDefault();
                         const name = newListName.trim();
                         if (!name || !onCreateList) return;
-                        const created = await onCreateList(name);
+                        const created = await onCreateList(name, newListEmoji || undefined);
                         if (created) setListId(created.id);
                         setNewListName("");
+                        setNewListEmoji("");
                         setCreatingList(false);
                       } else if (e.key === "Escape") {
                         setNewListName("");
+                        setNewListEmoji("");
                         setCreatingList(false);
                       }
                     }}
@@ -289,9 +313,10 @@ export default function TaskModal({
                     onClick={async () => {
                       const name = newListName.trim();
                       if (!name || !onCreateList) return;
-                      const created = await onCreateList(name);
+                      const created = await onCreateList(name, newListEmoji || undefined);
                       if (created) setListId(created.id);
                       setNewListName("");
+                      setNewListEmoji("");
                       setCreatingList(false);
                     }}
                     className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors text-[var(--accent)]"
@@ -303,6 +328,8 @@ export default function TaskModal({
                     type="button"
                     onClick={() => {
                       setNewListName("");
+                      setNewListEmoji("");
+                      setShowNewListEmojiPicker(false);
                       setCreatingList(false);
                     }}
                     className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors"

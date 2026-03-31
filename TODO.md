@@ -68,9 +68,21 @@
 
 33. **Version link on profile** — "Version & Health" link on the Profile page navigates to `/version`.
 
-## Still To Do
+34. **Example task prefix** — Seed tasks are prefixed with `[EXAMPLE]` so new users know they're sample data.
 
-1. Example pre-seeded tasks are prefixed with EXAMPLE or something so people know they're examples.
+35. **Collapsible swimlane columns** — Status column headings in swimlane view are tappable on mobile, toggling the column open/closed with ▶/▼ indicators.
+
+36. **Delete confirmation** — Deleting a task now shows a `confirm()` dialog to prevent accidental deletions from mis-clicks.
+
+37. **No scroll jump on status toggle** — Status changes use optimistic local state update instead of a full refetch, so the page doesn't scroll to the top.
+
+38. **Auto-submit 2FA code** — The verification code form auto-submits when all 6 digits are entered (e.g. from paste). No need to click Verify manually.
+
+39. **Emoji picker for inline list creation** — When creating a new list from the task modal, an emoji picker button lets you choose an emoji alongside the name.
+
+40. **Mobile list label** — The mobile list dropdown now has a "Lists" heading label and emoji prefixes for better visibility.
+
+## Still To Do
 
 ## Out of Scope
 
