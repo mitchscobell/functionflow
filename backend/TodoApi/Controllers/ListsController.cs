@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,15 +36,11 @@ public class ListsController : ControllerBase
         _updateValidator = updateValidator;
     }
 
-    private int GetUserId() =>
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException());
-
     /// <summary>Returns all lists for the authenticated user.</summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ListDto>>> GetLists()
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var results = await _lists.GetListsAsync(userId);
         var dtos = results.Select(r => new ListDto(
             r.List.Id, r.List.Name, r.List.Emoji, r.List.Color, r.List.SortOrder,
@@ -56,7 +51,7 @@ public class ListsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ListDto>> GetList(int id)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var (list, taskCount) = await _lists.GetByIdAsync(id, userId);
         if (list == null) return NotFound(new { message = "List not found." });
         return Ok(new ListDto(list.Id, list.Name, list.Emoji, list.Color, list.SortOrder, taskCount, list.CreatedAt));
@@ -69,7 +64,7 @@ public class ListsController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var existingCount = await _lists.GetCountAsync(userId);
 
         var list = new TaskList
@@ -93,7 +88,7 @@ public class ListsController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var (list, _) = await _lists.GetByIdAsync(id, userId);
         if (list == null) return NotFound(new { message = "List not found." });
 
@@ -110,7 +105,7 @@ public class ListsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteList(int id)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var (list, _) = await _lists.GetByIdAsync(id, userId);
         if (list == null) return NotFound(new { message = "List not found." });
 

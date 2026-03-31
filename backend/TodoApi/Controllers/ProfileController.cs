@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.DTOs;
+using TodoApi.Extensions;
 using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
@@ -25,14 +25,10 @@ public class ProfileController : ControllerBase
         _validator = validator;
     }
 
-    private int GetUserId() =>
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException());
-
     [HttpGet]
     public async Task<ActionResult<UserDto>> GetProfile()
     {
-        var user = await _users.GetByIdAsync(GetUserId());
+        var user = await _users.GetByIdAsync(User.GetUserId());
         if (user == null) return NotFound();
 
         return Ok(new UserDto(user.Id, user.Email, user.DisplayName, user.ThemePreference));
@@ -45,7 +41,7 @@ public class ProfileController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
-        var user = await _users.GetByIdAsync(GetUserId());
+        var user = await _users.GetByIdAsync(User.GetUserId());
         if (user == null) return NotFound();
 
         if (dto.DisplayName != null) user.DisplayName = dto.DisplayName;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../lib/api";
-import type { Task, TaskList, TaskListResponse } from "../types";
+import { getErrorMessage } from "../lib/errorUtils";
+import type { Task, TaskList } from "../types";
 import Layout from "../components/Layout";
 import TaskCard from "../components/TaskCard";
 import TaskModal from "../components/TaskModal";
@@ -110,8 +111,8 @@ export default function DashboardPage() {
       const res = await api.getTasks(params);
       setTasks(res.items);
       setTotalCount(res.totalCount);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load tasks");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -153,8 +154,8 @@ export default function DashboardPage() {
       setEditingTask(null);
       fetchTasks();
       fetchLists();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save task");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -169,8 +170,8 @@ export default function DashboardPage() {
       toast.success("Task deleted");
       fetchTasks();
       fetchLists();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete task");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -192,8 +193,8 @@ export default function DashboardPage() {
     try {
       await api.updateTask(task.id, { status: newStatus });
       fetchLists(); // update task counts
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update status");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
       fetchTasks(); // revert on failure
     }
   };
@@ -222,8 +223,8 @@ export default function DashboardPage() {
       setNewListName("");
       fetchLists();
       toast.success("List created");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create list");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -234,8 +235,8 @@ export default function DashboardPage() {
       fetchLists();
       toast.success("List created");
       return created;
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create list");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
       return undefined;
     }
   };
@@ -251,8 +252,8 @@ export default function DashboardPage() {
       fetchLists();
       fetchTasks();
       toast.success("List deleted — tasks moved to Inbox");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete list");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -268,8 +269,8 @@ export default function DashboardPage() {
       setEditingList(null);
       setEditListName("");
       fetchLists();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to rename list");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

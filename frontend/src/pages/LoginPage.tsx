@@ -8,9 +8,9 @@ import {
   Loader2,
   Zap,
   AlertTriangle,
-  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "../lib/errorUtils";
 
 /**
  * Login page with email/code passwordless authentication and a demo mode option.
@@ -46,8 +46,8 @@ export default function LoginPage() {
       login(res.token, res.user, true);
       toast.success("Demo session started!");
       navigate("/");
-    } catch (err: any) {
-      toast.error(err.message || "Dev login not available");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -65,8 +65,8 @@ export default function LoginPage() {
       await api.requestCode(email);
       setStep("code");
       toast.success("Code sent! Check your email.");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to send code");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -85,8 +85,8 @@ export default function LoginPage() {
       login(res.token, res.user);
       toast.success("Welcome!");
       navigate("/");
-    } catch (err: any) {
-      toast.error(err.message || "Invalid code");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
       setCode("");
     } finally {
       setLoading(false);

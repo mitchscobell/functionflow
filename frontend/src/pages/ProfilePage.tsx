@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import { api } from "../lib/api";
+import { getErrorMessage } from "../lib/errorUtils";
 import type { ApiKey } from "../types";
 import Layout from "../components/Layout";
 import {
@@ -59,8 +60,8 @@ export default function ProfilePage() {
       });
       updateUser(updated);
       toast.success("Profile updated");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update profile");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -81,8 +82,8 @@ export default function ProfilePage() {
       const keys = await api.getApiKeys();
       setApiKeys(keys);
       toast.success("API key created");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create key");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setCreatingKey(false);
     }
@@ -99,8 +100,8 @@ export default function ProfilePage() {
         prev.map((k) => (k.id === id ? { ...k, isRevoked: true } : k)),
       );
       toast.success("API key revoked");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to revoke key");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

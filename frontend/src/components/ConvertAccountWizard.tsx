@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../lib/api";
+import { getErrorMessage } from "../lib/errorUtils";
 import { useAuth } from "../hooks/useAuth";
 import {
   ArrowRight,
@@ -46,8 +47,8 @@ export default function ConvertAccountWizard({
       await api.convertDemo(email);
       setStep("code");
       toast.success("Code sent! Check your email.");
-    } catch (err: any) {
-      setError(err.message || "Failed to send code");
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -67,8 +68,8 @@ export default function ConvertAccountWizard({
       login(res.token, res.user, false);
       setStep("success");
       toast.success("Account converted!");
-    } catch (err: any) {
-      setError(err.message || "Invalid code");
+    } catch (err) {
+      setError(getErrorMessage(err));
       setCode("");
     } finally {
       setLoading(false);

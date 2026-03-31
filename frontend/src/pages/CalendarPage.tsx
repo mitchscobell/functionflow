@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { api } from "../lib/api";
+import { getErrorMessage } from "../lib/errorUtils";
 import type { Task, TaskList } from "../types";
 import Layout from "../components/Layout";
 import TaskCard from "../components/TaskCard";
@@ -93,8 +94,8 @@ export default function CalendarPage() {
       ]);
       setTasks(tasksRes.items.filter((t) => t.dueDate));
       setLists(listsRes);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load data");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -218,8 +219,8 @@ export default function CalendarPage() {
       setModalOpen(false);
       setEditingTask(null);
       fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save task");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -232,8 +233,8 @@ export default function CalendarPage() {
       await api.deleteTask(id);
       toast.success("Task deleted");
       fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete task");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -252,8 +253,8 @@ export default function CalendarPage() {
         status: next[task.status] as Task["status"],
       });
       fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update status");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

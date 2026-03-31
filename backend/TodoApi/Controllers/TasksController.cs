@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,10 +34,6 @@ public class TasksController : ControllerBase
         _updateValidator = updateValidator;
     }
 
-    private int GetUserId() =>
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException());
-
     /// <summary>
     /// List tasks with optional filtering, search, and pagination.
     /// </summary>
@@ -53,7 +48,7 @@ public class TasksController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         pageSize = Math.Clamp(pageSize, 1, 100);
         page = Math.Max(1, page);
 
@@ -71,7 +66,7 @@ public class TasksController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<TaskDto>> GetTask(int id)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var task = await _tasks.GetByIdAsync(id, userId);
         if (task == null) return NotFound(new { message = "Task not found." });
 
@@ -85,7 +80,7 @@ public class TasksController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
-        var userId = GetUserId();
+        var userId = User.GetUserId();
 
         if (dto.ListId.HasValue)
         {
@@ -119,7 +114,7 @@ public class TasksController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var task = await _tasks.GetByIdAsync(id, userId);
         if (task == null) return NotFound(new { message = "Task not found." });
 
@@ -157,7 +152,7 @@ public class TasksController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTask(int id)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var task = await _tasks.GetByIdAsync(id, userId);
         if (task == null) return NotFound(new { message = "Task not found." });
 

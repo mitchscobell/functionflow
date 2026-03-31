@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.DTOs;
+using TodoApi.Extensions;
 using TodoApi.Models;
 using TodoApi.Repositories;
 
@@ -26,15 +26,11 @@ public class ApiKeysController : ControllerBase
         _validator = validator;
     }
 
-    private int GetUserId() =>
-        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException());
-
     /// <summary>List all API keys for the current user (prefix only, never the full key).</summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ApiKeyDto>>> GetKeys()
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var keys = await _apiKeys.GetByUserIdAsync(userId);
         var dtos = keys.Select(k => new ApiKeyDto(k.Id, k.Name, k.KeyPrefix, k.CreatedAt, k.ExpiresAt, k.IsRevoked));
         return Ok(dtos);
@@ -51,7 +47,7 @@ public class ApiKeysController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
 
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var (rawKey, prefix, hash) = ApiKey.Generate();
 
         var key = new ApiKey
@@ -71,7 +67,7 @@ public class ApiKeysController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> RevokeKey(int id)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var key = await _apiKeys.GetByIdAsync(id, userId);
         if (key == null) return NotFound(new { message = "API key not found." });
 
