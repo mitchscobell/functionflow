@@ -2,7 +2,7 @@
 
 ## Assumptions
 
-- **SQLite over EF Core in-memory** — The requirements offered SQLite or EF Core in-memory. I chose SQLite so data persists across restarts, migrations are real, and reviewers can inspect the database file. In-memory would be simpler but non-reproducible and lost on every restart.
+- **SQLite over EF Core in-memory** — The requirements offered SQLite or EF Core in-memory. I chose SQLite so data persists across restarts, migrations are real, and reviewers can inspect the database file. In-memory would be simpler but non-reproducible and lost on every restart. EF Core's in-memory provider is used only in the test suite for fast, isolated integration tests.
 - **Production MVP scope** — The requirements asked to "add any features you feel are required for a Production MVP." I interpreted this as authentication, input validation, error handling, and a polished UI — not a full SaaS platform. Features like multi-tenancy, rich text, and file uploads were deferred.
 - **Passwordless auth is sufficient** — Users authenticate via emailed 6-digit codes rather than passwords. This eliminates password storage, hashing, and reset flows, but assumes users have reliable access to their email. In development, codes log to the console so no SMTP setup is needed.
 - **Demo sessions are ephemeral** — Each demo login creates a throwaway user with seeded data. Everything is destroyed on logout. This keeps the database clean and lets reviewers explore the app without setting up email.
