@@ -102,6 +102,14 @@
 
 ## Still To Do
 
+- Unclear that the clock logo means in progress. I would make the radio button / checkbox more pronounced since it is a main point of interaction for the todo item. Vertically center it and make it bigger.
+
+- Buttons that are just icons should have hover text. Its unclear that the eye icon is for toggling visibility of completed items, “All buttons in the app that have no text, and are just buttons should have title attributes so that when a user hovers over them, they see tool tip text.”
+
+`There is no way to close the get back without hitting the back button when viewing the app version and health
+
+- Probably could sort by completed. Put them at the bottom. Comp
+
 ### Medium Effort
 
 1. **Break up DashboardPage (~720 lines)** — Extract logical sections into sub-components: `TaskFilters`, `TaskFormModal`, `PrintView`. Streamline inline rendering logic.

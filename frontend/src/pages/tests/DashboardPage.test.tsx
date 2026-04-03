@@ -441,12 +441,12 @@ describe("DashboardPage", () => {
 
     fireEvent.click(getFilterButton());
 
-    const sortSelect = screen.getByDisplayValue("Newest First");
-    fireEvent.change(sortSelect, { target: { value: "dueDate" } });
+    const sortSelect = screen.getByDisplayValue("Due Date (Soonest)");
+    fireEvent.change(sortSelect, { target: { value: "createdAt" } });
 
     await waitFor(() => {
       expect(vi.mocked(api.getTasks)).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "dueDate" }),
+        expect.objectContaining({ sortBy: "createdAt" }),
       );
     });
   });
@@ -929,7 +929,7 @@ describe("DashboardPage", () => {
 
     // Open filters to access the sort select
     fireEvent.click(getFilterButton());
-    const sortSelect = screen.getByDisplayValue("Newest First");
+    const sortSelect = screen.getByDisplayValue("Due Date (Soonest)");
     fireEvent.change(sortSelect, { target: { value: "dueDate" } });
 
     await waitFor(() => {

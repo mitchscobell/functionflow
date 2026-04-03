@@ -88,7 +88,7 @@ export default function CalendarPage() {
   };
 
   // --- TanStack Query hooks ---
-  const calendarParams = useMemo(() => ({ page: "1", pageSize: "500", sortBy: "dueDate" }), []);
+  const calendarParams = useMemo(() => ({ page: "1", pageSize: "500", sortBy: "dueDate", sortDir: "asc" }), []);
   const { data: taskData, isLoading: loading } = useTasks(calendarParams);
   const allTasks = taskData?.items ?? [];
   const tasks = useMemo(() => allTasks.filter((t) => t.dueDate), [allTasks]);
