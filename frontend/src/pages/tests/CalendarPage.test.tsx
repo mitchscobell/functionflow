@@ -107,6 +107,7 @@ beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
   document.documentElement.className = "";
+  vi.spyOn(window, "confirm").mockReturnValue(true);
 
   vi.mocked(api.getTasks).mockResolvedValue({
     items: [],

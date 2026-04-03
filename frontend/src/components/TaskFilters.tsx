@@ -63,7 +63,9 @@ export default function TaskFilters({
           >
             <option value="">All Status</option>
             {STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
 
@@ -74,7 +76,9 @@ export default function TaskFilters({
           >
             <option value="">All Priority</option>
             {PRIORITY_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
 

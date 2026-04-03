@@ -135,7 +135,8 @@ TodoApi/
 ├── Middleware/      # Error handling
 ├── Models/          # Domain entities
 ├── Services/        # Business logic (email, tokens, admin notify, cleanup)
-├── Validators/      # FluentValidation rules
+├── Validators/      # FluentValidation rules (use ValidationConstants)
+├── ValidationConstants.cs  # Shared validation limits (max lengths, etc.)
 └── Program.cs       # App startup & DI configuration
 TodoApi.Tests/       # xUnit integration tests
 ```

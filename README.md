@@ -64,7 +64,7 @@ functionflow/
 │   │   ├── Migrations/       # EF Core code-first migrations
 │   │   ├── DTOs/             # Request/response records
 │   │   ├── Services/         # Email, Token, AdminNotifier, ApiKey auth, Cleanup
-│   │   ├── Validators/       # FluentValidation
+│   │   ├── Validators/       # FluentValidation (use ValidationConstants)
 │   │   └── Middleware/       # Global error handler
 │   ├── TodoApi.Tests/        # Integration tests (151 tests)
 │   └── Dockerfile
@@ -72,8 +72,8 @@ functionflow/
 │   ├── src/
 │   │   ├── components/       # Layout, TaskCard, TaskModal, ListSidebar, TaskFilters
 │   │   ├── pages/            # Login, Dashboard, Profile, Calendar, Version
-│   │   ├── hooks/            # useAuth, useTheme, useTasks, useLists, useApiKeys
-│   │   ├── lib/              # API client, errorUtils
+│   │   ├── hooks/            # useAuth, useTheme, useTasks, useLists, useApiKeys, useTaskActions
+│   │   ├── lib/              # API client, constants, errorUtils
 │   │   └── types/            # TypeScript interfaces
 │   ├── nginx.conf
 │   └── Dockerfile

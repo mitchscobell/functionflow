@@ -1,13 +1,13 @@
 import { useState, useMemo, useCallback } from "react";
-import { useTasks, useTaskMutations } from "../hooks/useTasks";
-import { useLists, useCreateListInline } from "../hooks/useLists";
+import { useTasks } from "../hooks/useTasks";
+import { useLists } from "../hooks/useLists";
+import { useTaskActions } from "../hooks/useTaskActions";
+import { sortDoneToBottom } from "../lib/constants";
 
-import type { Task } from "../types";
 import Layout from "../components/Layout";
 import TaskCard from "../components/TaskCard";
 import TaskModal from "../components/TaskModal";
 import { ChevronLeft, ChevronRight, Loader2, CalendarDays, Plus } from "lucide-react";
-import toast from "react-hot-toast";
 
 /** Calendar display granularity: single day, week, or full month. */
 type ViewRange = "today" | "week" | "month";
@@ -72,19 +72,16 @@ export default function CalendarPage() {
   const [viewRange, setViewRange] = useState<ViewRange>("month");
   const [refDate, setRefDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [newTaskDueDate, setNewTaskDueDate] = useState<string | undefined>(undefined);
 
   /** Opens the task modal in create mode, optionally pre-filling a due date. */
   const openNewTask = (date?: Date) => {
-    setEditingTask(null);
     setNewTaskDueDate(
       date
         ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
         : undefined,
     );
-    setModalOpen(true);
+    openNew();
   };
 
   // --- TanStack Query hooks ---
@@ -97,8 +94,17 @@ export default function CalendarPage() {
   const tasks = useMemo(() => allTasks.filter((t) => t.dueDate), [allTasks]);
 
   const { data: lists = [] } = useLists();
-  const { createTask, updateTask, deleteTask } = useTaskMutations();
-  const createListInline = useCreateListInline();
+  const {
+    modalOpen,
+    editingTask,
+    openEdit,
+    openNew,
+    closeModal,
+    handleSave,
+    handleDelete,
+    handleToggleStatus,
+    handleCreateListInline,
+  } = useTaskActions();
 
   /**
    * Navigates forward or backward by one day, week, or month depending on the view.
@@ -142,11 +148,7 @@ export default function CalendarPage() {
     const filtered = selectedDate
       ? tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate))
       : viewTasks;
-    return [...filtered].sort((a, b) => {
-      if (a.status === "Done" && b.status !== "Done") return 1;
-      if (a.status !== "Done" && b.status === "Done") return -1;
-      return 0;
-    });
+    return [...filtered].sort(sortDoneToBottom);
   }, [tasks, selectedDate, viewTasks]);
 
   /** 2D array of dates representing the month grid (weeks × days, null for empty cells). */
@@ -177,47 +179,6 @@ export default function CalendarPage() {
     (date: Date) => tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), date)),
     [tasks],
   );
-
-  /**
-   * Creates or updates a task via TanStack Query mutations.
-   * @param data - Partial task fields from the modal form.
-   */
-  const handleSave = async (data: Partial<Task>) => {
-    if (editingTask) {
-      updateTask.mutate(
-        { id: editingTask.id, data },
-        { onSuccess: () => toast.success("Task updated") },
-      );
-    } else {
-      createTask.mutate(data);
-    }
-    setModalOpen(false);
-    setEditingTask(null);
-  };
-
-  /**
-   * Deletes a task via mutation.
-   * @param id - The task's database ID.
-   */
-  const handleDelete = (id: number) => {
-    deleteTask.mutate(id);
-  };
-
-  /**
-   * Cycles a task's status: Todo → InProgress → Done → Todo.
-   * @param task - The task whose status should be toggled.
-   */
-  const handleToggleStatus = (task: Task) => {
-    const next: Record<string, string> = {
-      Todo: "InProgress",
-      InProgress: "Done",
-      Done: "Todo",
-    };
-    updateTask.mutate({
-      id: task.id,
-      data: { status: next[task.status] as Task["status"] },
-    });
-  };
 
   const headerLabel = useMemo(() => {
     if (viewRange === "today")
@@ -390,10 +351,7 @@ export default function CalendarPage() {
                   <TaskCard
                     key={task.id}
                     task={task}
-                    onEdit={(t) => {
-                      setEditingTask(t);
-                      setModalOpen(true);
-                    }}
+                    onEdit={openEdit}
                     onDelete={handleDelete}
                     onToggleStatus={handleToggleStatus}
                   />
@@ -408,14 +366,13 @@ export default function CalendarPage() {
         task={editingTask}
         open={modalOpen}
         onClose={() => {
-          setModalOpen(false);
-          setEditingTask(null);
+          closeModal();
           setNewTaskDueDate(undefined);
         }}
         onSave={handleSave}
         lists={lists}
         defaultDueDate={editingTask ? undefined : newTaskDueDate}
-        onCreateList={createListInline}
+        onCreateList={handleCreateListInline}
       />
     </Layout>
   );

@@ -1,46 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useTasks, taskKeys, useTaskMutations } from "../hooks/useTasks";
-import { useLists, useListMutations, useCreateListInline } from "../hooks/useLists";
-import { api } from "../lib/api";
-import { getErrorMessage } from "../lib/errorUtils";
+import { useTasks } from "../hooks/useTasks";
+import { useLists, useListMutations } from "../hooks/useLists";
+import { useTaskActions } from "../hooks/useTaskActions";
 import type { Task } from "../types";
+import type { StatusFilter, PriorityFilter, SortField } from "../lib/constants";
+import { STATUSES, STATUS_LABELS, SWIMLANE_COLORS, sortDoneToBottom } from "../lib/constants";
 import Layout from "../components/Layout";
 import TaskCard from "../components/TaskCard";
 import TaskModal from "../components/TaskModal";
 import ListSidebar from "../components/ListSidebar";
 import TaskFilters from "../components/TaskFilters";
 import { Plus, Loader2, LayoutList, Columns3, Eye, EyeOff, Printer } from "lucide-react";
-import toast from "react-hot-toast";
-
-/** Filter value for task status — empty string means no filter. */
-type StatusFilter = "" | "Todo" | "InProgress" | "Done";
-
-/** Filter value for task priority — empty string means no filter. */
-type PriorityFilter = "" | "Low" | "Medium" | "High";
-
-/** Sortable field options for the task list. */
-type SortField = "createdAt" | "dueDate" | "priority";
 
 /** Display mode for the task list. */
 type ViewMode = "list" | "swimlane";
-
-/** Ordered status columns used in swimlane view. */
-const SWIMLANE_STATUSES: Task["status"][] = ["Todo", "InProgress", "Done"];
-
-/** Human-readable labels for each swimlane column. */
-const SWIMLANE_LABELS: Record<string, string> = {
-  Todo: "To Do",
-  InProgress: "In Progress",
-  Done: "Done",
-};
-
-/** Border color classes for each swimlane column header. */
-const SWIMLANE_COLORS: Record<string, string> = {
-  Todo: "border-gray-400",
-  InProgress: "border-blue-500",
-  Done: "border-[var(--success)]",
-};
 
 /**
  * Main task management page. Features a list sidebar, search and filter controls,
@@ -53,8 +26,6 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("");
   const [sortBy, setSortBy] = useState<SortField>("dueDate");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [showCompleted, setShowCompleted] = useState(true);
@@ -67,9 +38,6 @@ export default function DashboardPage() {
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
 
   const pageSize = 100;
-
-  // --- TanStack Query hooks ---
-  const queryClient = useQueryClient();
 
   const params = useMemo(() => {
     const p: Record<string, string> = {
@@ -90,9 +58,19 @@ export default function DashboardPage() {
   const totalCount = taskData?.totalCount ?? 0;
 
   const { data: lists = [] } = useLists();
-  const { createTask, updateTask, deleteTask } = useTaskMutations();
   const { createList, updateList, deleteList: deleteListMutation } = useListMutations();
-  const createListInline = useCreateListInline();
+
+  const {
+    modalOpen,
+    editingTask,
+    openEdit,
+    openNew,
+    closeModal,
+    handleSave,
+    handleDelete,
+    handleToggleStatus,
+    handleCreateListInline,
+  } = useTaskActions({ activeListId, listParams: params });
 
   // Debounced search
   const [searchInput, setSearchInput] = useState("");
@@ -103,80 +81,6 @@ export default function DashboardPage() {
     }, 300);
     return () => clearTimeout(t);
   }, [searchInput]);
-
-  /**
-   * Creates or updates a task via TanStack Query mutations.
-   * @param data - Partial task fields from the modal form.
-   */
-  const handleSave = async (data: Partial<Task>) => {
-    if (editingTask) {
-      updateTask.mutate(
-        { id: editingTask.id, data },
-        { onSuccess: () => toast.success("Task updated") },
-      );
-    } else {
-      if (activeListId !== null && !data.listId) {
-        data = { ...data, listId: activeListId };
-      }
-      createTask.mutate(data);
-    }
-    setModalOpen(false);
-    setEditingTask(null);
-  };
-
-  /**
-   * Deletes a task via mutation.
-   * @param id - The task's database ID.
-   */
-  const handleDelete = (id: number) => {
-    if (!window.confirm("Delete this task?")) return;
-    deleteTask.mutate(id);
-  };
-
-  /**
-   * Cycles a task's status: Todo → InProgress → Done → Todo.
-   * Uses optimistic update to avoid scroll jump.
-   * @param task - The task whose status should be toggled.
-   */
-  const handleToggleStatus = async (task: Task) => {
-    const next: Record<string, string> = {
-      Todo: "InProgress",
-      InProgress: "Done",
-      Done: "Todo",
-    };
-    const newStatus = next[task.status] as Task["status"];
-    // Optimistic update — avoid scroll jump from full refetch
-    queryClient.setQueryData(taskKeys.list(params), (old: typeof taskData) =>
-      old
-        ? {
-            ...old,
-            items: old.items.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
-          }
-        : old,
-    );
-    try {
-      await api.updateTask(task.id, { status: newStatus });
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-      queryClient.invalidateQueries({ queryKey: taskKeys.list(params) });
-    }
-  };
-
-  /**
-   * Opens the task modal in edit mode for the given task.
-   * @param task - The task to edit.
-   */
-  const openEdit = (task: Task) => {
-    setEditingTask(task);
-    setModalOpen(true);
-  };
-
-  /** Opens the task modal in create mode. */
-  const openNew = () => {
-    setEditingTask(null);
-    setModalOpen(true);
-  };
 
   /** Creates a new task list from the sidebar input. */
   const handleCreateList = () => {
@@ -216,11 +120,7 @@ export default function DashboardPage() {
     const filtered = showCompleted
       ? filteredByList
       : filteredByList.filter((t) => t.status !== "Done");
-    return [...filtered].sort((a, b) => {
-      if (a.status === "Done" && b.status !== "Done") return 1;
-      if (a.status !== "Done" && b.status === "Done") return -1;
-      return 0;
-    });
+    return [...filtered].sort(sortDoneToBottom);
   }, [filteredByList, showCompleted]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -381,7 +281,7 @@ export default function DashboardPage() {
           ) : viewMode === "swimlane" ? (
             /* Swimlane / Kanban view */
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {SWIMLANE_STATUSES.map((status) => {
+              {STATUSES.map((status) => {
                 const columnTasks = visibleTasks.filter((t) => t.status === status);
                 const isCollapsed = collapsedColumns.has(status);
                 return (
@@ -400,7 +300,7 @@ export default function DashboardPage() {
                     >
                       <h3 className="text-sm font-semibold flex items-center gap-1">
                         <span className="md:hidden text-xs">{isCollapsed ? "▶" : "▼"}</span>
-                        {SWIMLANE_LABELS[status]}{" "}
+                        {STATUS_LABELS[status]}{" "}
                         <span className="text-xs font-normal text-[var(--muted)]">
                           ({columnTasks.length})
                         </span>
@@ -506,14 +406,11 @@ export default function DashboardPage() {
       <TaskModal
         task={editingTask}
         open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditingTask(null);
-        }}
+        onClose={closeModal}
         onSave={handleSave}
         lists={lists}
         activeListId={activeListId}
-        onCreateList={createListInline}
+        onCreateList={handleCreateListInline}
       />
     </Layout>
   );

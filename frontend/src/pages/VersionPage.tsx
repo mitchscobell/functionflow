@@ -31,11 +31,8 @@ export default function VersionPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/version")
-      .then((res) => {
-        if (!res.ok) throw new Error("API unreachable");
-        return res.json();
-      })
+    api
+      .getVersion()
       .then((data) => {
         setApiHealth(data);
         setApiError(false);

@@ -51,12 +51,15 @@ src/
 ├── components/      # Reusable UI components
 │   ├── Layout.tsx       # App shell (header, nav, theme toggle)
 │   ├── TaskCard.tsx     # Task list item with status/priority/tags
+│   ├── TaskFilters.tsx  # Search bar + status/priority/sort filters
 │   └── TaskModal.tsx    # Create/edit task form dialog
 ├── hooks/           # Custom React hooks
 │   ├── useAuth.tsx      # Auth context (JWT, demo mode)
-│   └── useTheme.tsx     # Theme preference (5 themes)
+│   ├── useTaskActions.ts # Shared task CRUD (save, delete, toggle status)
+│   └── useTheme.tsx     # Theme preference (5 themes + custom)
 ├── lib/             # Utilities
-│   └── api.ts           # REST API client (typed, auto-redirect on 401)
+│   ├── api.ts           # REST API client (typed, auto-redirect on 401)
+│   └── constants.ts     # Shared constants, types, and validation limits
 ├── pages/           # Route-level components
 │   ├── CalendarPage.tsx     # Today/week/month calendar views
 │   ├── DashboardPage.tsx    # Main task view (list + swimlane)
@@ -71,7 +74,7 @@ src/
 
 ## Features
 
-- **Five themes**: Function (terracotta), Dark (indigo), Light (blue), Vaporwave (neon pink), Cyberpunk (cyan)
+- **Six themes**: Function (terracotta), Dark (indigo), Light (blue), Vaporwave (neon pink), Cyberpunk (cyan), Custom (user-defined)
 - **Swimlane view**: Kanban-style board with To Do / In Progress / Done columns
 - **List view**: Traditional task list with search, filter, and sort
 - **Calendar view**: Month grid with colored dots per list, plus today/week views

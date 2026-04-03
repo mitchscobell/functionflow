@@ -99,9 +99,7 @@ export function useTaskActions(options: UseTaskActionsOptions = {}) {
             old
               ? {
                   ...old,
-                  items: old.items.map((t) =>
-                    t.id === task.id ? { ...t, status: newStatus } : t,
-                  ),
+                  items: old.items.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
                 }
               : old,
         );
