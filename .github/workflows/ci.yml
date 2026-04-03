@@ -130,3 +130,19 @@ jobs:
             Auto-generated release v${{ steps.increment_version.outputs.new_version }}
           draft: false
           prerelease: false
+
+  deploy:
+    name: Deploy to Portainer
+    needs: [backend, frontend, version-bump]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Portainer webhook
+        run: |
+          if [ -z "${{ secrets.PORTAINER_WEBHOOK_URL }}" ]; then
+            echo "⚠ PORTAINER_WEBHOOK_URL not set — skipping deploy"
+            exit 0
+          fi
+          echo "▶ Triggering Portainer redeploy…"
+          curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+          echo "✓ Deploy triggered"
