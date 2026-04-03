@@ -132,17 +132,20 @@ jobs:
           prerelease: false
 
   deploy:
-    name: Deploy to Portainer
+    name: Push to deploy branch
     needs: [backend, frontend, version-bump]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Portainer webhook
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fast-forward deploy branch to main
         run: |
-          if [ -z "${{ secrets.PORTAINER_WEBHOOK_URL }}" ]; then
-            echo "⚠ PORTAINER_WEBHOOK_URL not set — skipping deploy"
-            exit 0
-          fi
-          echo "▶ Triggering Portainer redeploy…"
-          curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
-          echo "✓ Deploy triggered"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git fetch origin main
+          git push origin origin/main:refs/heads/deploy --force
+          echo "✓ deploy branch updated to $(git rev-parse origin/main)"
