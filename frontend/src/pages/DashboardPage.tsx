@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useTasks } from "../hooks/useTasks";
 import { useLists, useListMutations } from "../hooks/useLists";
 import { useTaskActions } from "../hooks/useTaskActions";
-import type { Task } from "../types";
 import type { StatusFilter, PriorityFilter, SortField } from "../lib/constants";
 import { STATUSES, STATUS_LABELS, SWIMLANE_COLORS, sortDoneToBottom } from "../lib/constants";
 import Layout from "../components/Layout";

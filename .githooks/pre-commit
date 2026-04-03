@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+
+# ── Frontend type-check ─────────────────────────────────────────
+if git diff --cached --name-only | grep -qE '^frontend/src/.*\.(ts|tsx)$'; then
+  echo "▶ Running TypeScript type-check…"
+  (cd frontend && npx tsc --noEmit)
+  echo "✓ Type-check passed"
+fi
+
+# ── Backend build check ─────────────────────────────────────────
+if git diff --cached --name-only | grep -qE '^backend/.*\.cs$'; then
+  echo "▶ Building backend…"
+  (cd backend && dotnet build --no-restore -v quiet)
+  echo "✓ Backend build passed"
+fi
