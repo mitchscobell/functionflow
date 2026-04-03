@@ -130,22 +130,3 @@ jobs:
             Auto-generated release v${{ steps.increment_version.outputs.new_version }}
           draft: false
           prerelease: false
-
-  deploy:
-    name: Push to deploy branch
-    needs: [backend, frontend, version-bump]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Fast-forward deploy branch to main
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git fetch origin main
-          git push origin origin/main:refs/heads/deploy --force
-          echo "✓ deploy branch updated to $(git rev-parse origin/main)"
