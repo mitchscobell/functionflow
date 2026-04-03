@@ -28,9 +28,9 @@ const statusIcons: Record<string, React.ReactNode> = {
 
 /** Human-readable labels for status toggle tooltip. */
 const statusLabels: Record<string, string> = {
-  Todo: "Mark in progress",
-  InProgress: "Mark done",
-  Done: "Mark to do",
+  Todo: "To Do — Mark in progress",
+  InProgress: "In Progress — Mark done",
+  Done: "Done — Mark to do",
 };
 
 /** Props for the {@link TaskCard} component. */

@@ -6,6 +6,8 @@ namespace TodoApi.Models;
 /// </summary>
 public enum Theme
 {
+    // NOTE: When adding a new theme, the ValidNames list updates automatically
+    // from the enum values. No other changes needed on the backend.
     /// <summary>Warm terracotta tones (#B67B5E accent, #FEF9EF bg).</summary>
     Function,
 
@@ -19,5 +21,16 @@ public enum Theme
     Vaporwave,
 
     /// <summary>Electric cyan/magenta on deep dark (#00F0FF accent, #0A0A12 bg).</summary>
-    Cyberpunk
+    Cyberpunk,
+
+    /// <summary>User-defined colors via CSS variable overrides stored in localStorage.</summary>
+    Custom
+}
+
+/// <summary>Helper exposing the canonical list of valid theme name strings.</summary>
+public static class ThemeNames
+{
+    /// <summary>Lowercase theme names derived from the <see cref="Theme"/> enum.</summary>
+    public static readonly string[] Valid =
+        Enum.GetNames<Theme>().Select(n => n.ToLowerInvariant()).ToArray();
 }

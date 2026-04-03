@@ -108,7 +108,6 @@
 
 ## Still To Do
 
-
 ### Medium Effort
 
 1. **Break up DashboardPage (~720 lines)** — Extract logical sections into sub-components: `TaskFilters`, `TaskFormModal`, `PrintView`. Streamline inline rendering logic.
