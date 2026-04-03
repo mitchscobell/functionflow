@@ -4,9 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.39</Version>
-    <AssemblyVersion>1.0.39</AssemblyVersion>
-    <FileVersion>1.0.39</FileVersion>
+    <Version>1.0.40</Version>
+    <AssemblyVersion>1.0.40</AssemblyVersion>
+    <FileVersion>1.0.40</FileVersion>
     <UserSecretsId>33d9cd00-c756-4db9-98b8-25aa601fd6e7</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
