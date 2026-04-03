@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import VersionPage from "../VersionPage";
+
+function renderVersion() {
+  return render(
+    <MemoryRouter>
+      <VersionPage />
+    </MemoryRouter>,
+  );
+}
 
 beforeEach(() => {
   vi.restoreAllMocks();
@@ -11,7 +20,7 @@ describe("VersionPage", () => {
     // Make fetch hang forever
     vi.stubGlobal("fetch", () => new Promise(() => {}));
 
-    render(<VersionPage />);
+    renderVersion();
 
     expect(screen.getAllByText("Checking...").length).toBeGreaterThan(0);
   });
@@ -32,7 +41,7 @@ describe("VersionPage", () => {
       }),
     );
 
-    render(<VersionPage />);
+    renderVersion();
 
     await waitFor(() => {
       expect(screen.getByText("healthy")).toBeInTheDocument();
@@ -44,7 +53,7 @@ describe("VersionPage", () => {
   it("shows error state when fetch fails", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
 
-    render(<VersionPage />);
+    renderVersion();
 
     await waitFor(() => {
       expect(screen.getByText("API unreachable")).toBeInTheDocument();
@@ -62,7 +71,7 @@ describe("VersionPage", () => {
       }),
     );
 
-    render(<VersionPage />);
+    renderVersion();
 
     await waitFor(() => {
       expect(screen.getByText("API unreachable")).toBeInTheDocument();
@@ -72,7 +81,7 @@ describe("VersionPage", () => {
   it("renders frontend version", () => {
     vi.stubGlobal("fetch", () => new Promise(() => {}));
 
-    render(<VersionPage />);
+    renderVersion();
 
     expect(screen.getByText(/^v\d+\.\d+\.\d+$/)).toBeInTheDocument();
     expect(screen.getByText("Frontend")).toBeInTheDocument();
@@ -94,7 +103,7 @@ describe("VersionPage", () => {
       }),
     );
 
-    const { container } = render(<VersionPage />);
+    const { container } = renderVersion();
 
     await waitFor(() => {
       expect(screen.getByText("healthy")).toBeInTheDocument();
@@ -108,7 +117,7 @@ describe("VersionPage", () => {
   it("renders red StatusDot when API unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("fail")));
 
-    const { container } = render(<VersionPage />);
+    const { container } = renderVersion();
 
     await waitFor(() => {
       expect(screen.getByText("API unreachable")).toBeInTheDocument();
@@ -121,15 +130,23 @@ describe("VersionPage", () => {
   it("renders credits section", () => {
     vi.stubGlobal("fetch", () => new Promise(() => {}));
 
-    render(<VersionPage />);
+    renderVersion();
 
     expect(screen.getByText("Mitch Scobell")).toBeInTheDocument();
+  });
+
+  it("renders back button", () => {
+    vi.stubGlobal("fetch", () => new Promise(() => {}));
+
+    renderVersion();
+
+    expect(screen.getByTitle("Go back")).toBeInTheDocument();
   });
 
   it("renders GitHub link", () => {
     vi.stubGlobal("fetch", () => new Promise(() => {}));
 
-    render(<VersionPage />);
+    renderVersion();
 
     const link = screen.getByText("View on GitHub").closest("a");
     expect(link).toHaveAttribute("href", "https://github.com/mitchscobell/functionflow");

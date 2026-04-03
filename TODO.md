@@ -98,17 +98,16 @@
 
 48. **Navigation toggle: calendar ↔ tasks** — The calendar icon in the header now toggles contextually. When on the dashboard, it shows a calendar icon linking to `/calendar`. When on the calendar page, it switches to a tasks icon linking back to `/` ("Back to tasks"). Profile and Logout buttons also received title tooltips.
 
-49. **Tooltips on all icon buttons** — Every icon-only button across the app now has a `title` attribute for hover context: "Back to tasks" / "Calendar", "Profile", "Log out", "Edit task", "Delete task", "Toggle status", "Filters", "Previous", "Next", "Hide completed" / "Show completed", "Swimlane view" / "List view", and "Print".
+49. **Tooltips on all icon buttons** — Every icon-only button across the app now has a `title` attribute for hover context: "Back to tasks" / "Calendar", "Profile", "Log out", "Edit task", "Delete task", "Mark in progress" / "Mark done" / "Mark to do", "Filters", "Previous", "Next", "Hide completed" / "Show completed", "Swimlane view" / "List view", and "Print".
+
+50. **Status toggle clarity** — Status toggle icons enlarged from 16px to 20px, vertically centered with `self-center`, and hover scale increased to 125%. Title attributes now show contextual labels per state: "Mark in progress" (Todo), "Mark done" (InProgress), "Mark to do" (Done).
+
+51. **Version page back button** — Added an ArrowLeft "Back" button to the top of the Version & Health page so users can navigate back without relying on the browser back button.
+
+52. **Completed tasks sort to bottom** — Done tasks are now always sorted to the bottom of both the Dashboard and Calendar task lists using a stable client-side sort, preserving the server's sort order for non-completed tasks.
 
 ## Still To Do
 
-- Unclear that the clock logo means in progress. I would make the radio button / checkbox more pronounced since it is a main point of interaction for the todo item. Vertically center it and make it bigger.
-
-- Buttons that are just icons should have hover text. Its unclear that the eye icon is for toggling visibility of completed items, “All buttons in the app that have no text, and are just buttons should have title attributes so that when a user hovers over them, they see tool tip text.”
-
-`There is no way to close the get back without hitting the back button when viewing the app version and health
-
-- Probably could sort by completed. Put them at the bottom. Comp
 
 ### Medium Effort
 

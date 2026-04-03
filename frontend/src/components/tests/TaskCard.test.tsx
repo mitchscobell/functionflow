@@ -129,7 +129,7 @@ describe("TaskCard", () => {
         onToggleStatus={onToggleStatus}
       />,
     );
-    fireEvent.click(screen.getByTitle("Toggle status"));
+    fireEvent.click(screen.getByTitle("Mark in progress"));
     expect(onToggleStatus).toHaveBeenCalledWith(baseTask);
   });
 
@@ -203,8 +203,25 @@ describe("TaskCard", () => {
     render(
       <TaskCard task={baseTask} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
     );
-    expect(screen.getByTitle("Toggle status")).toBeInTheDocument();
+    expect(screen.getByTitle("Mark in progress")).toBeInTheDocument();
     expect(screen.getByTitle("Edit task")).toBeInTheDocument();
     expect(screen.getByTitle("Delete task")).toBeInTheDocument();
+  });
+
+  it("shows contextual status tooltip per state", () => {
+    const { rerender } = render(
+      <TaskCard task={{ ...baseTask, status: "Todo" }} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
+    );
+    expect(screen.getByTitle("Mark in progress")).toBeInTheDocument();
+
+    rerender(
+      <TaskCard task={{ ...baseTask, status: "InProgress" }} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
+    );
+    expect(screen.getByTitle("Mark done")).toBeInTheDocument();
+
+    rerender(
+      <TaskCard task={{ ...baseTask, status: "Done" }} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
+    );
+    expect(screen.getByTitle("Mark to do")).toBeInTheDocument();
   });
 });

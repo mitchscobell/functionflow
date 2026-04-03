@@ -211,10 +211,17 @@ export default function DashboardPage() {
   const filteredByList =
     activeListId === null ? tasks : tasks.filter((t) => t.listId === activeListId);
 
-  /** Tasks visible after applying the completed-tasks toggle. */
-  const visibleTasks = showCompleted
-    ? filteredByList
-    : filteredByList.filter((t) => t.status !== "Done");
+  /** Tasks visible after applying the completed-tasks toggle, with Done tasks sorted to the bottom. */
+  const visibleTasks = useMemo(() => {
+    const filtered = showCompleted
+      ? filteredByList
+      : filteredByList.filter((t) => t.status !== "Done");
+    return [...filtered].sort((a, b) => {
+      if (a.status === "Done" && b.status !== "Done") return 1;
+      if (a.status !== "Done" && b.status === "Done") return -1;
+      return 0;
+    });
+  }, [filteredByList, showCompleted]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 

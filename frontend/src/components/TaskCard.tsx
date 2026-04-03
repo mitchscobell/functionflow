@@ -21,9 +21,16 @@ const priorityColors: Record<string, string> = {
 
 /** Maps task statuses to their corresponding icon elements. */
 const statusIcons: Record<string, React.ReactNode> = {
-  Todo: <Circle size={16} className="text-gray-400" />,
-  InProgress: <Clock size={16} className="text-blue-500" />,
-  Done: <CheckCircle2 size={16} className="text-[var(--success)]" />,
+  Todo: <Circle size={20} className="text-gray-400" />,
+  InProgress: <Clock size={20} className="text-blue-500" />,
+  Done: <CheckCircle2 size={20} className="text-[var(--success)]" />,
+};
+
+/** Human-readable labels for status toggle tooltip. */
+const statusLabels: Record<string, string> = {
+  Todo: "Mark in progress",
+  InProgress: "Mark done",
+  Done: "Mark to do",
 };
 
 /** Props for the {@link TaskCard} component. */
@@ -66,8 +73,8 @@ export default function TaskCard({ task, onEdit, onDelete, onToggleStatus, onTag
               e.stopPropagation();
               onToggleStatus(task);
             }}
-            className="mt-0.5 shrink-0 hover:scale-110 transition-transform"
-            title="Toggle status"
+            className="shrink-0 self-center hover:scale-125 transition-transform"
+            title={statusLabels[task.status] ?? "Toggle status"}
           >
             {statusIcons[task.status]}
           </button>

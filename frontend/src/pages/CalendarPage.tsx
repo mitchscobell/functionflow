@@ -88,7 +88,10 @@ export default function CalendarPage() {
   };
 
   // --- TanStack Query hooks ---
-  const calendarParams = useMemo(() => ({ page: "1", pageSize: "500", sortBy: "dueDate", sortDir: "asc" }), []);
+  const calendarParams = useMemo(
+    () => ({ page: "1", pageSize: "500", sortBy: "dueDate", sortDir: "asc" }),
+    [],
+  );
   const { data: taskData, isLoading: loading } = useTasks(calendarParams);
   const allTasks = taskData?.items ?? [];
   const tasks = useMemo(() => allTasks.filter((t) => t.dueDate), [allTasks]);
@@ -134,11 +137,16 @@ export default function CalendarPage() {
     });
   }, [tasks, refDate, viewRange]);
 
-  /** Tasks for the selected calendar day, or all view tasks if no day is selected. */
-  // Tasks for selected date (click on a calendar day)
+  /** Tasks for the selected calendar day, or all view tasks if no day is selected. Done tasks sorted to the bottom. */
   const selectedDateTasks = useMemo(() => {
-    if (!selectedDate) return viewTasks;
-    return tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate));
+    const filtered = selectedDate
+      ? tasks.filter((t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate))
+      : viewTasks;
+    return [...filtered].sort((a, b) => {
+      if (a.status === "Done" && b.status !== "Done") return 1;
+      if (a.status !== "Done" && b.status === "Done") return -1;
+      return 0;
+    });
   }, [tasks, selectedDate, viewTasks]);
 
   /** 2D array of dates representing the month grid (weeks × days, null for empty cells). */

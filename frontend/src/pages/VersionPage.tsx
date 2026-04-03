@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { ListTodo, ExternalLink, Heart, Database, Server } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ListTodo, ExternalLink, Heart, Database, Server, ArrowLeft } from "lucide-react";
 
 /**
  * Response shape from the `/api/version` health-check endpoint.
@@ -38,6 +39,7 @@ function StatusDot({ healthy }: { healthy: boolean }) {
  * API health status, and database connectivity.
  */
 export default function VersionPage() {
+  const navigate = useNavigate();
   const [apiHealth, setApiHealth] = useState<ApiHealth | null>(null);
   const [apiError, setApiError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,16 @@ export default function VersionPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
       <div className="w-full max-w-md">
+        <div className="mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1 text-sm text-[var(--accent)] hover:underline"
+            title="Go back"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+        </div>
         <div className="mb-6 text-center">
           <div className="inline-flex items-center gap-2 text-[var(--accent)] mb-2">
             <ListTodo size={28} />
