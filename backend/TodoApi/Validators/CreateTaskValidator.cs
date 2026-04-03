@@ -27,9 +27,9 @@ public class CreateTaskValidator : AbstractValidator<CreateTaskDto>
             .IsInEnum().WithMessage("Invalid priority value.");
 
         RuleFor(x => x.DueDate)
-            .GreaterThan(DateTime.UtcNow.AddMinutes(-1))
+            .GreaterThanOrEqualTo(DateTime.UtcNow.Date)
             .When(x => x.DueDate.HasValue)
-            .WithMessage("Due date must be in the future.");
+            .WithMessage("Due date must be today or in the future.");
 
         RuleFor(x => x.Tags)
             .Must(t => t == null || t.Length <= 10)

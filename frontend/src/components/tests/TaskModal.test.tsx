@@ -260,4 +260,39 @@ describe("TaskModal", () => {
       expect(onCreateList).toHaveBeenCalledWith("New List", "🚀");
     });
   });
+
+  // ── defaultDueDate prop ──
+
+  it("pre-fills due date from defaultDueDate prop", () => {
+    render(
+      <TaskModal open={true} onClose={vi.fn()} onSave={vi.fn()} defaultDueDate="2026-12-25" />,
+    );
+    expect(screen.getByDisplayValue("2026-12-25")).toBeInTheDocument();
+  });
+
+  it("sets min attribute on date input for new tasks", () => {
+    render(<TaskModal open={true} onClose={vi.fn()} onSave={vi.fn()} />);
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    expect(dateInput.min).toBe(new Date().toISOString().split("T")[0]);
+  });
+
+  it("does not set min on date input when editing an existing task", () => {
+    render(<TaskModal open={true} task={existingTask} onClose={vi.fn()} onSave={vi.fn()} />);
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    expect(dateInput.min).toBe("");
+  });
+
+  it("sends due date as noon UTC in onSave", () => {
+    const onSave = vi.fn();
+    render(<TaskModal open={true} onClose={vi.fn()} onSave={onSave} defaultDueDate="2026-12-25" />);
+
+    // Fill required title
+    fireEvent.change(screen.getByPlaceholderText("What needs to be done?"), {
+      target: { value: "My Task" },
+    });
+    fireEvent.click(screen.getByText("Create"));
+
+    const data = onSave.mock.calls[0][0];
+    expect(data.dueDate).toBe("2026-12-25T12:00:00.000Z");
+  });
 });

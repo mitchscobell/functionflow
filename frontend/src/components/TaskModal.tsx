@@ -23,6 +23,9 @@ interface Props {
   /** Pre-selected list ID for new tasks created from a list view. */
   activeListId?: number | null;
 
+  /** Pre-filled due date for new tasks (YYYY-MM-DD format). */
+  defaultDueDate?: string;
+
   /** Callback to create a new list inline. Returns the new list. */
   onCreateList?: (name: string, emoji?: string) => Promise<TaskList | undefined>;
 }
@@ -38,6 +41,7 @@ export default function TaskModal({
   onSave,
   lists = [],
   activeListId,
+  defaultDueDate,
   onCreateList,
 }: Props) {
   const [title, setTitle] = useState("");
@@ -73,11 +77,11 @@ export default function TaskModal({
       setUrl("");
       setPriority("Medium");
       setStatus("Todo");
-      setDueDate("");
+      setDueDate(defaultDueDate ?? "");
       setTagsInput("");
       setListId(activeListId ?? undefined);
     }
-  }, [task, open, activeListId]);
+  }, [task, open, activeListId, defaultDueDate]);
 
   if (!open) return null;
 
@@ -99,7 +103,7 @@ export default function TaskModal({
       url: url || undefined,
       priority,
       status: task ? status : undefined,
-      dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+      dueDate: dueDate ? `${dueDate}T12:00:00.000Z` : undefined,
       tags,
       listId: listId ?? undefined,
     });
@@ -208,6 +212,7 @@ export default function TaskModal({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                {...(!task ? { min: new Date().toISOString().split("T")[0] } : {})}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               />
             </div>

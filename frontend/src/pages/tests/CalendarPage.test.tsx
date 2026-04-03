@@ -5,6 +5,7 @@ import CalendarPage from "../CalendarPage";
 import type { Task } from "../../types";
 import { AuthProvider } from "../../hooks/useAuth";
 import { ThemeProvider } from "../../hooks/useTheme";
+import { TestQueryProvider } from "../../test-utils";
 
 // Mock api
 vi.mock("../../lib/api", () => ({
@@ -57,14 +58,16 @@ vi.mock("../../components/TaskModal", () => ({
     onClose,
     onSave,
     task,
+    defaultDueDate,
   }: {
     open: boolean;
     onClose: () => void;
     onSave: (data: { title: string }) => void;
     task: { title: string } | null;
+    defaultDueDate?: string;
   }) =>
     open ? (
-      <div data-testid="task-modal">
+      <div data-testid="task-modal" data-default-due-date={defaultDueDate ?? ""}>
         <span>{task ? "Edit" : "Create"}</span>
         <button onClick={() => onSave({ title: "New Task" })}>save-modal</button>
         <button onClick={onClose}>close-modal</button>
@@ -89,11 +92,13 @@ function renderCalendarPage() {
 
   return render(
     <MemoryRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <CalendarPage />
-        </ThemeProvider>
-      </AuthProvider>
+      <TestQueryProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <CalendarPage />
+          </ThemeProvider>
+        </AuthProvider>
+      </TestQueryProvider>
     </MemoryRouter>,
   );
 }
@@ -576,9 +581,9 @@ describe("CalendarPage", () => {
     });
   });
 
-  // ── List color mapping ──
+  // ── Priority color dots ──
 
-  it("uses list colors for task dots on calendar", async () => {
+  it("uses priority colors for task dots on calendar", async () => {
     const today = new Date();
     vi.mocked(api.getTasks).mockResolvedValue({
       items: [
@@ -586,7 +591,7 @@ describe("CalendarPage", () => {
           id: 1,
           title: "Colored Task",
           dueDate: today.toISOString(),
-          priority: "Medium" as const,
+          priority: "High" as const,
           status: "Todo" as const,
           tags: [],
           listId: 5,
@@ -614,8 +619,82 @@ describe("CalendarPage", () => {
       expect(screen.getByText("Colored Task")).toBeInTheDocument();
     });
 
-    // Find color dot in the month grid
-    const dots = document.querySelectorAll(".bg-violet-500");
+    // Find color dot — should be red for High priority, not violet for list
+    const dots = document.querySelectorAll(".bg-red-500");
     expect(dots.length).toBeGreaterThanOrEqual(1);
+  });
+
+  // ── New Task button ──
+
+  it("shows New Task button in calendar header", async () => {
+    renderCalendarPage();
+    await waitFor(() => {
+      expect(screen.getByText("New Task")).toBeInTheDocument();
+    });
+  });
+
+  it("opens task modal when New Task button clicked", async () => {
+    renderCalendarPage();
+    await waitFor(() => {
+      expect(screen.getByText("New Task")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("New Task"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("task-modal")).toBeInTheDocument();
+      expect(screen.getByText("Create")).toBeInTheDocument();
+    });
+  });
+
+  it("shows Add Task button when a date is selected", async () => {
+    const today = new Date();
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [],
+      totalCount: 0,
+      page: 1,
+      pageSize: 500,
+    });
+
+    renderCalendarPage();
+    await waitFor(() => {
+      expect(screen.getByText(String(today.getDate()))).toBeInTheDocument();
+    });
+
+    // Click on today's date in the month grid
+    fireEvent.click(screen.getByText(String(today.getDate())));
+
+    await waitFor(() => {
+      expect(screen.getByText("Add Task")).toBeInTheDocument();
+    });
+  });
+
+  it("passes defaultDueDate to TaskModal when creating from a selected date", async () => {
+    const today = new Date();
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [],
+      totalCount: 0,
+      page: 1,
+      pageSize: 500,
+    });
+
+    renderCalendarPage();
+    await waitFor(() => {
+      expect(screen.getByText(String(today.getDate()))).toBeInTheDocument();
+    });
+
+    // Click on today's date, then click "Add Task"
+    fireEvent.click(screen.getByText(String(today.getDate())));
+    await waitFor(() => {
+      expect(screen.getByText("Add Task")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText("Add Task"));
+
+    const expectedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    await waitFor(() => {
+      const modal = screen.getByTestId("task-modal");
+      expect(modal).toBeInTheDocument();
+      expect(modal.getAttribute("data-default-due-date")).toBe(expectedDate);
+    });
   });
 });

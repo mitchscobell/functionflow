@@ -36,8 +36,8 @@ public class EfTaskRepository : ITaskRepository
         {
             ("title", "asc") => query.OrderBy(t => t.Title),
             ("title", _) => query.OrderByDescending(t => t.Title),
-            ("duedate", "asc") => query.OrderBy(t => t.DueDate),
-            ("duedate", _) => query.OrderByDescending(t => t.DueDate),
+            ("duedate", "asc") => query.OrderBy(t => t.DueDate == null).ThenBy(t => t.DueDate),
+            ("duedate", _) => query.OrderBy(t => t.DueDate == null).ThenByDescending(t => t.DueDate),
             ("priority", "asc") => query.OrderBy(t => t.Priority),
             ("priority", _) => query.OrderByDescending(t => t.Priority),
             ("status", "asc") => query.OrderBy(t => t.Status),

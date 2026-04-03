@@ -82,7 +82,27 @@
 
 40. **Mobile list label** — The mobile list dropdown now has a "Lists" heading label and emoji prefixes for better visibility.
 
+41. **Allow today as due date** — Fixed the `CreateTaskValidator` to use `GreaterThanOrEqualTo(DateTime.UtcNow.Date)` so tasks due today pass validation. Frontend date input now sets `min` to today for new tasks and serializes as noon UTC to avoid timezone issues.
+
+42. **Calendar: new task button + click date to add** — Added a "New Task" button in the calendar header and an "Add Task" button next to the selected date heading. The `TaskModal` receives a `defaultDueDate` prop so the date is pre-filled when creating from the calendar.
+
+43. **Due date sort order (ascending/soonest first)** — Backend due-date sorting now pushes null dates to the end and defaults to ascending order. Frontend sends `sortDir: "asc"` when sorting by due date. Sort option label updated to "Due Date (Soonest)".
+
+44. **Calendar: edit tasks / access notes** — Task cards on the calendar are now clickable to open the edit modal. Action buttons use `stopPropagation` to avoid conflicts. Mobile action buttons are always visible.
+
+45. **Tags: filter by tag on click** — Clicking a tag badge on any task card filters the dashboard to that tag. An active tag badge with a dismiss button appears above the task list.
+
+46. **Calendar dots colored by priority** — Calendar month-view dots are now colored by task priority (red for High, yellow for Medium, green for Low) instead of list color. Dots include a title tooltip with task name and priority.
+
+47. **Custom color scheme editor** — Added a "Custom" theme option to the profile page. When selected, a color picker panel lets users customize all 12 CSS variables. Colors are persisted to localStorage and applied as inline styles. Dark backgrounds are auto-detected for text contrast.
+
 ## Still To Do
+
+_All items completed and moved to Done!_
+
+- I know that I can press the logo to get back to the home screen, but maybe a home button to go back to task view (or it could be that the calendar button changes when you are in calendar view to take you back)
+
+- I always like context for the shortcut buttons like a mouse over or long press on mobile that says "Hide Completed" or something on the eyeball
 
 ### Medium Effort
 

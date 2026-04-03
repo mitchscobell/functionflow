@@ -1,28 +1,22 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { api } from "../lib/api";
-import { getErrorMessage } from "../lib/errorUtils";
-import type { Task, TaskList } from "../types";
+import { useState, useMemo, useCallback } from "react";
+import { useTasks, useTaskMutations } from "../hooks/useTasks";
+import { useLists, useCreateListInline } from "../hooks/useLists";
+
+import type { Task } from "../types";
 import Layout from "../components/Layout";
 import TaskCard from "../components/TaskCard";
 import TaskModal from "../components/TaskModal";
-import { ChevronLeft, ChevronRight, Loader2, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, CalendarDays, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
 /** Calendar display granularity: single day, week, or full month. */
 type ViewRange = "today" | "week" | "month";
 
-/** Maps task-list color keys to their Tailwind background classes. */
-const LIST_COLORS: Record<string, string> = {
-  blue: "bg-blue-500",
-  violet: "bg-violet-500",
-  rose: "bg-rose-500",
-  amber: "bg-amber-500",
-  emerald: "bg-emerald-500",
-  cyan: "bg-cyan-500",
-  fuchsia: "bg-fuchsia-500",
-  orange: "bg-orange-500",
-  lime: "bg-lime-500",
-  sky: "bg-sky-500",
+/** Maps task priority levels to dot color classes for the month grid. */
+const PRIORITY_DOT_COLORS: Record<string, string> = {
+  High: "bg-red-500",
+  Medium: "bg-yellow-500",
+  Low: "bg-green-500",
 };
 
 /**
@@ -75,54 +69,33 @@ function getDaysInMonth(year: number, month: number) {
  * clicking individual days to see their tasks.
  */
 export default function CalendarPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [lists, setLists] = useState<TaskList[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewRange, setViewRange] = useState<ViewRange>("month");
   const [refDate, setRefDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [newTaskDueDate, setNewTaskDueDate] = useState<string | undefined>(undefined);
 
-  /** Fetches all tasks (with due dates) and all lists from the API. */
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [tasksRes, listsRes] = await Promise.all([
-        api.getTasks({ page: "1", pageSize: "500", sortBy: "dueDate" }),
-        api.getLists(),
-      ]);
-      setTasks(tasksRes.items.filter((t) => t.dueDate));
-      setLists(listsRes);
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  /** Maps list IDs to their Tailwind background color classes. */
-  const listColorMap = useMemo(() => {
-    const map: Record<number, string> = {};
-    lists.forEach((l) => {
-      map[l.id] = LIST_COLORS[l.color] || "bg-[var(--accent)]";
-    });
-    return map;
-  }, [lists]);
-
-  /**
-   * Returns the Tailwind background color class for a task based on its list.
-   * Falls back to the accent color for tasks without a list.
-   * @param task - The task to get the color for.
-   */
-  const getListColor = (task: Task) => {
-    if (task.listId && listColorMap[task.listId]) return listColorMap[task.listId];
-    return "bg-[var(--accent)]";
+  /** Opens the task modal in create mode, optionally pre-filling a due date. */
+  const openNewTask = (date?: Date) => {
+    setEditingTask(null);
+    setNewTaskDueDate(
+      date
+        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+        : undefined,
+    );
+    setModalOpen(true);
   };
+
+  // --- TanStack Query hooks ---
+  const calendarParams = useMemo(() => ({ page: "1", pageSize: "500", sortBy: "dueDate" }), []);
+  const { data: taskData, isLoading: loading } = useTasks(calendarParams);
+  const allTasks = taskData?.items ?? [];
+  const tasks = useMemo(() => allTasks.filter((t) => t.dueDate), [allTasks]);
+
+  const { data: lists = [] } = useLists();
+  const { createTask, updateTask, deleteTask } = useTaskMutations();
+  const createListInline = useCreateListInline();
 
   /**
    * Navigates forward or backward by one day, week, or month depending on the view.
@@ -198,58 +171,44 @@ export default function CalendarPage() {
   );
 
   /**
-   * Creates or updates a task and refreshes the calendar data.
+   * Creates or updates a task via TanStack Query mutations.
    * @param data - Partial task fields from the modal form.
    */
   const handleSave = async (data: Partial<Task>) => {
-    try {
-      if (editingTask) {
-        await api.updateTask(editingTask.id, data);
-        toast.success("Task updated");
-      } else {
-        await api.createTask(data);
-        toast.success("Task created");
-      }
-      setModalOpen(false);
-      setEditingTask(null);
-      fetchData();
-    } catch (err) {
-      toast.error(getErrorMessage(err));
+    if (editingTask) {
+      updateTask.mutate(
+        { id: editingTask.id, data },
+        { onSuccess: () => toast.success("Task updated") },
+      );
+    } else {
+      createTask.mutate(data);
     }
+    setModalOpen(false);
+    setEditingTask(null);
   };
 
   /**
-   * Deletes a task and refreshes the calendar data.
+   * Deletes a task via mutation.
    * @param id - The task's database ID.
    */
-  const handleDelete = async (id: number) => {
-    try {
-      await api.deleteTask(id);
-      toast.success("Task deleted");
-      fetchData();
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
+  const handleDelete = (id: number) => {
+    deleteTask.mutate(id);
   };
 
   /**
    * Cycles a task's status: Todo → InProgress → Done → Todo.
    * @param task - The task whose status should be toggled.
    */
-  const handleToggleStatus = async (task: Task) => {
+  const handleToggleStatus = (task: Task) => {
     const next: Record<string, string> = {
       Todo: "InProgress",
       InProgress: "Done",
       Done: "Todo",
     };
-    try {
-      await api.updateTask(task.id, {
-        status: next[task.status] as Task["status"],
-      });
-      fetchData();
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
+    updateTask.mutate({
+      id: task.id,
+      data: { status: next[task.status] as Task["status"] },
+    });
   };
 
   const headerLabel = useMemo(() => {
@@ -280,21 +239,30 @@ export default function CalendarPage() {
           <CalendarDays size={24} className="text-[var(--accent)]" />
           <h1 className="text-2xl font-bold">Calendar</h1>
         </div>
-        <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
-          {(["today", "week", "month"] as const).map((range) => (
-            <button
-              key={range}
-              onClick={() => {
-                setViewRange(range);
-                setSelectedDate(null);
-              }}
-              className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                viewRange === range ? "bg-[var(--accent)] text-white" : "hover:bg-[var(--hover)]"
-              }`}
-            >
-              {range === "today" ? "Today" : range === "week" ? "Week" : "Month"}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => openNewTask(selectedDate ?? undefined)}
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--accent-hover)] transition-colors"
+          >
+            <Plus size={16} />
+            New Task
+          </button>
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] p-0.5">
+            {(["today", "week", "month"] as const).map((range) => (
+              <button
+                key={range}
+                onClick={() => {
+                  setViewRange(range);
+                  setSelectedDate(null);
+                }}
+                className={`rounded-md px-3 py-1 text-sm transition-colors ${
+                  viewRange === range ? "bg-[var(--accent)] text-white" : "hover:bg-[var(--hover)]"
+                }`}
+              >
+                {range === "today" ? "Today" : range === "week" ? "Week" : "Month"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -367,7 +335,8 @@ export default function CalendarPage() {
                           {dayTasks.slice(0, 4).map((t) => (
                             <span
                               key={t.id}
-                              className={`h-1.5 w-1.5 rounded-full ${getListColor(t)}`}
+                              className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT_COLORS[t.priority] || "bg-[var(--accent)]"}`}
+                              title={`${t.title} (${t.priority})`}
                             />
                           ))}
                           {dayTasks.length > 4 && (
@@ -386,11 +355,23 @@ export default function CalendarPage() {
 
           {/* Task list for the selected range/day */}
           <div>
-            <h3 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
-              {selectedDate
-                ? `Tasks for ${selectedDate.toLocaleDateString(undefined, { month: "long", day: "numeric" })}`
-                : `${viewTasks.length} task${viewTasks.length !== 1 ? "s" : ""} with due dates`}
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
+                {selectedDate
+                  ? `Tasks for ${selectedDate.toLocaleDateString(undefined, { month: "long", day: "numeric" })}`
+                  : `${viewTasks.length} task${viewTasks.length !== 1 ? "s" : ""} with due dates`}
+              </h3>
+              {selectedDate && (
+                <button
+                  onClick={() => openNewTask(selectedDate)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[var(--accent-hover)] transition-colors"
+                  title={`Add task for ${selectedDate.toLocaleDateString()}`}
+                >
+                  <Plus size={14} />
+                  Add Task
+                </button>
+              )}
+            </div>
             {selectedDateTasks.length === 0 ? (
               <p className="text-sm text-[var(--muted)] py-6 text-center">No tasks scheduled.</p>
             ) : (
@@ -419,9 +400,12 @@ export default function CalendarPage() {
         onClose={() => {
           setModalOpen(false);
           setEditingTask(null);
+          setNewTaskDueDate(undefined);
         }}
         onSave={handleSave}
         lists={lists}
+        defaultDueDate={editingTask ? undefined : newTaskDueDate}
+        onCreateList={createListInline}
       />
     </Layout>
   );

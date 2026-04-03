@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import ProfilePage from "../ProfilePage";
 import { AuthProvider } from "../../hooks/useAuth";
 import { ThemeProvider } from "../../hooks/useTheme";
+import { TestQueryProvider } from "../../test-utils";
 
 // Mock api
 vi.mock("../../lib/api", () => ({
@@ -43,11 +44,13 @@ function renderProfilePage() {
 
   return render(
     <MemoryRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <ProfilePage />
-        </ThemeProvider>
-      </AuthProvider>
+      <TestQueryProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <ProfilePage />
+          </ThemeProvider>
+        </AuthProvider>
+      </TestQueryProvider>
     </MemoryRouter>,
   );
 }
@@ -75,13 +78,14 @@ describe("ProfilePage", () => {
     expect(screen.getByDisplayValue("Test User")).toBeInTheDocument();
   });
 
-  it("renders theme picker with all 5 themes", () => {
+  it("renders theme picker with all 6 themes", () => {
     renderProfilePage();
     expect(screen.getByText("Function")).toBeInTheDocument();
     expect(screen.getByText("Dark")).toBeInTheDocument();
     expect(screen.getByText("Light")).toBeInTheDocument();
     expect(screen.getByText("Vaporwave")).toBeInTheDocument();
     expect(screen.getByText("Cyberpunk")).toBeInTheDocument();
+    expect(screen.getByText("Custom")).toBeInTheDocument();
   });
 
   it("saves profile on form submit", async () => {
@@ -205,5 +209,16 @@ describe("ProfilePage", () => {
       expect(api.revokeApiKey).toHaveBeenCalledWith(1);
     });
     expect(toast.success).toHaveBeenCalledWith("API key revoked");
+  });
+
+  // ── Custom color scheme editor ──
+
+  it("shows color editor when Custom theme is selected", async () => {
+    renderProfilePage();
+    // Click the Custom theme option
+    fireEvent.click(screen.getByText("Custom"));
+    await waitFor(() => {
+      expect(screen.getByText("Customize Colors")).toBeInTheDocument();
+    });
   });
 });

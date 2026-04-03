@@ -184,11 +184,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// --- Auto-create database on startup ---
+// --- Apply pending EF Core migrations on startup ---
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+    }
+    else
+    {
+        db.Database.EnsureCreated();
+    }
 }
 
 app.Run();

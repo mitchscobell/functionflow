@@ -39,26 +39,33 @@ interface Props {
 
   /** Callback invoked when the user toggles the task's completion status. */
   onToggleStatus: (task: Task) => void;
+
+  /** Callback invoked when the user clicks a tag badge to filter by it. */
+  onTagClick?: (tag: string) => void;
 }
 
 /**
  * Renders an individual task as a card with status toggle, priority badge,
  * due date, tags, and action buttons for editing and deleting.
  */
-export default function TaskCard({ task, onEdit, onDelete, onToggleStatus }: Props) {
+export default function TaskCard({ task, onEdit, onDelete, onToggleStatus, onTagClick }: Props) {
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "Done";
 
   return (
     <div
       className={clsx(
-        "group rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition-all hover:shadow-md",
+        "group rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition-all hover:shadow-md cursor-pointer",
         task.status === "Done" && "opacity-60",
       )}
+      onClick={() => onEdit(task)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <button
-            onClick={() => onToggleStatus(task)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleStatus(task);
+            }}
             className="mt-0.5 shrink-0 hover:scale-110 transition-transform"
             title="Toggle status"
           >
@@ -102,13 +109,18 @@ export default function TaskCard({ task, onEdit, onDelete, onToggleStatus }: Pro
               )}
 
               {task.tags.map((tag) => (
-                <span
+                <button
                   key={tag}
-                  className="flex items-center gap-1 rounded-full bg-[var(--hover)] px-2 py-0.5 text-xs text-[var(--muted)]"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTagClick?.(tag);
+                  }}
+                  className="flex items-center gap-1 rounded-full bg-[var(--hover)] px-2 py-0.5 text-xs text-[var(--muted)] hover:bg-[var(--accent)] hover:text-white transition-colors"
                 >
                   <Tag size={10} />
                   {tag}
-                </span>
+                </button>
               ))}
 
               {task.url && (
@@ -134,15 +146,21 @@ export default function TaskCard({ task, onEdit, onDelete, onToggleStatus }: Pro
           </div>
         </div>
 
-        <div className="flex shrink-0 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex shrink-0 gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
           <button
-            onClick={() => onEdit(task)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(task);
+            }}
             className="rounded-lg p-1.5 hover:bg-[var(--hover)] transition-colors"
           >
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(task.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task.id);
+            }}
             className="rounded-lg p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors"
           >
             <Trash2 size={14} />

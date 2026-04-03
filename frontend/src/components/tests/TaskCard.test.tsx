@@ -147,4 +147,53 @@ describe("TaskCard", () => {
     const title = screen.getByText("Test Task");
     expect(title).toHaveClass("line-through");
   });
+
+  // ── Click-to-edit ──
+
+  it("opens edit when the card body is clicked", () => {
+    const onEdit = vi.fn();
+    const { container } = render(
+      <TaskCard task={baseTask} onEdit={onEdit} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
+    );
+    // Click the card's root div
+    fireEvent.click(container.firstChild as HTMLElement);
+    expect(onEdit).toHaveBeenCalledWith(baseTask);
+  });
+
+  // ── Tag click ──
+
+  it("calls onTagClick when a tag badge is clicked", () => {
+    const onTagClick = vi.fn();
+    const task = { ...baseTask, tags: ["work", "urgent"] };
+    render(
+      <TaskCard
+        task={task}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onToggleStatus={vi.fn()}
+        onTagClick={onTagClick}
+      />,
+    );
+    fireEvent.click(screen.getByText("work"));
+    expect(onTagClick).toHaveBeenCalledWith("work");
+  });
+
+  it("does not call onEdit when tag is clicked (stopPropagation)", () => {
+    const onEdit = vi.fn();
+    const onTagClick = vi.fn();
+    const task = { ...baseTask, tags: ["work"] };
+    render(
+      <TaskCard
+        task={task}
+        onEdit={onEdit}
+        onDelete={vi.fn()}
+        onToggleStatus={vi.fn()}
+        onTagClick={onTagClick}
+      />,
+    );
+    fireEvent.click(screen.getByText("work"));
+    expect(onTagClick).toHaveBeenCalledWith("work");
+    // onEdit should NOT be called because tag click stops propagation
+    expect(onEdit).not.toHaveBeenCalled();
+  });
 });

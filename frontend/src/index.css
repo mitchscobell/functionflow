@@ -80,6 +80,11 @@
   --input-bg: #12121e;
 }
 
+/* ── Theme: Custom (colors applied via inline styles) ── */
+.theme-custom {
+  /* Custom colors set dynamically via document.documentElement.style */
+}
+
 /* ── Base reset ── */
 *,
 *::before,

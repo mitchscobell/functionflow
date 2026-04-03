@@ -14,13 +14,13 @@ A clean, themeable task management app built with .NET 8 and React.
 
 ## Tech Stack
 
-| Layer    | Technology                                                  |
-| -------- | ----------------------------------------------------------- |
-| Backend  | .NET 8 Web API, Entity Framework Core, SQLite               |
-| Auth     | JWT + API Key (dual scheme), passwordless email via MailKit |
-| Frontend | React 19, Vite 8, TypeScript 5.9, Tailwind CSS 4            |
-| Testing  | xUnit, WebApplicationFactory, in-memory database            |
-| Infra    | Docker, docker-compose, nginx, GitHub Actions CI            |
+| Layer    | Technology                                                                   |
+| -------- | ---------------------------------------------------------------------------- |
+| Backend  | .NET 8 Web API, Entity Framework Core + Migrations, SQLite                   |
+| Auth     | JWT + API Key (dual scheme), passwordless email via MailKit                  |
+| Frontend | React 19, Vite 8, TypeScript 5.9, Tailwind CSS 4, TanStack Query 5           |
+| Testing  | xUnit + WebApplicationFactory (backend), Vitest + Testing Library (frontend) |
+| Infra    | Docker, docker-compose, nginx, GitHub Actions CI                             |
 
 ## Quick Start
 
@@ -61,18 +61,19 @@ functionflow/
 │   │   ├── Controllers/      # Auth, Tasks, Lists, ApiKeys, Profile
 │   │   ├── Models/           # User, TodoTask, TaskList, ApiKey, AuthCode
 │   │   ├── Data/             # EF Core DbContext
+│   │   ├── Migrations/       # EF Core code-first migrations
 │   │   ├── DTOs/             # Request/response records
 │   │   ├── Services/         # Email, Token, AdminNotifier, ApiKey auth, Cleanup
 │   │   ├── Validators/       # FluentValidation
 │   │   └── Middleware/       # Global error handler
-│   ├── TodoApi.Tests/        # Integration tests
+│   ├── TodoApi.Tests/        # Integration tests (151 tests)
 │   └── Dockerfile
 ├── frontend/                 # React SPA → see frontend/README.md
 │   ├── src/
-│   │   ├── components/       # Layout, TaskCard, TaskModal
+│   │   ├── components/       # Layout, TaskCard, TaskModal, ListSidebar, TaskFilters
 │   │   ├── pages/            # Login, Dashboard, Profile, Calendar, Version
-│   │   ├── hooks/            # useAuth, useTheme
-│   │   ├── lib/              # API client
+│   │   ├── hooks/            # useAuth, useTheme, useTasks, useLists, useApiKeys
+│   │   ├── lib/              # API client, errorUtils
 │   │   └── types/            # TypeScript interfaces
 │   ├── nginx.conf
 │   └── Dockerfile

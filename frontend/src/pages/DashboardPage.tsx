@@ -1,26 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTasks, taskKeys, useTaskMutations } from "../hooks/useTasks";
+import { useLists, useListMutations, useCreateListInline } from "../hooks/useLists";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../lib/errorUtils";
-import type { Task, TaskList } from "../types";
+import type { Task } from "../types";
 import Layout from "../components/Layout";
 import TaskCard from "../components/TaskCard";
 import TaskModal from "../components/TaskModal";
-import EmojiPicker from "../components/EmojiPicker";
-import {
-  Plus,
-  Search,
-  Filter,
-  Loader2,
-  LayoutList,
-  Columns3,
-  Eye,
-  EyeOff,
-  Printer,
-  FolderPlus,
-  Inbox,
-  Trash2,
-  Pencil,
-} from "lucide-react";
+import ListSidebar from "../components/ListSidebar";
+import TaskFilters from "../components/TaskFilters";
+import { Plus, Loader2, LayoutList, Columns3, Eye, EyeOff, Printer } from "lucide-react";
 import toast from "react-hot-toast";
 
 /** Filter value for task status — empty string means no filter. */
@@ -57,10 +47,8 @@ const SWIMLANE_COLORS: Record<string, string> = {
  * list and swimlane view modes, pagination, and a print-friendly layout.
  */
 export default function DashboardPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  // --- Local UI state ---
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("");
@@ -70,54 +58,41 @@ export default function DashboardPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [showCompleted, setShowCompleted] = useState(true);
-  const [lists, setLists] = useState<TaskList[]>([]);
-  const [activeListId, setActiveListId] = useState<number | null>(null); // null = inbox
+  const [activeListId, setActiveListId] = useState<number | null>(null);
+  const [activeTag, setActiveTag] = useState<string>("");
   const [newListName, setNewListName] = useState("");
   const [editingList, setEditingList] = useState<number | null>(null);
   const [editListName, setEditListName] = useState("");
   const [emojiPickerListId, setEmojiPickerListId] = useState<number | null>(null);
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
 
-  const pageSize = 100; // fetch more for swimlane view
+  const pageSize = 100;
 
-  /** Fetches all task lists for the sidebar. */
-  const fetchLists = useCallback(async () => {
-    try {
-      const res = await api.getLists();
-      setLists(res);
-    } catch {
-      // non-critical
-    }
-  }, []);
+  // --- TanStack Query hooks ---
+  const queryClient = useQueryClient();
 
-  /** Fetches tasks from the API with current filter, sort, and pagination state. */
-  const fetchTasks = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, string> = {
-        page: String(page),
-        pageSize: String(pageSize),
-        sortBy,
-        sortDescending: "true",
-      };
-      if (search) params.search = search;
-      if (statusFilter) params.status = statusFilter;
-      if (priorityFilter) params.priority = priorityFilter;
+  const params = useMemo(() => {
+    const p: Record<string, string> = {
+      page: String(page),
+      pageSize: String(pageSize),
+      sortBy,
+      sortDir: sortBy === "dueDate" ? "asc" : "desc",
+    };
+    if (search) p.search = search;
+    if (statusFilter) p.status = statusFilter;
+    if (priorityFilter) p.priority = priorityFilter;
+    if (activeTag) p.tag = activeTag;
+    return p;
+  }, [page, sortBy, search, statusFilter, priorityFilter, activeTag]);
 
-      const res = await api.getTasks(params);
-      setTasks(res.items);
-      setTotalCount(res.totalCount);
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, statusFilter, priorityFilter, sortBy]);
+  const { data: taskData, isLoading: loading } = useTasks(params);
+  const tasks = taskData?.items ?? [];
+  const totalCount = taskData?.totalCount ?? 0;
 
-  useEffect(() => {
-    fetchTasks();
-    fetchLists();
-  }, [fetchTasks, fetchLists]);
+  const { data: lists = [] } = useLists();
+  const { createTask, updateTask, deleteTask } = useTaskMutations();
+  const { createList, updateList, deleteList: deleteListMutation } = useListMutations();
+  const createListInline = useCreateListInline();
 
   // Debounced search
   const [searchInput, setSearchInput] = useState("");
@@ -130,49 +105,37 @@ export default function DashboardPage() {
   }, [searchInput]);
 
   /**
-   * Creates or updates a task and refreshes both the task list and sidebar counts.
+   * Creates or updates a task via TanStack Query mutations.
    * @param data - Partial task fields from the modal form.
    */
   const handleSave = async (data: Partial<Task>) => {
-    try {
-      if (editingTask) {
-        await api.updateTask(editingTask.id, data);
-        toast.success("Task updated");
-      } else {
-        // Assign to active list if one is selected
-        if (activeListId !== null && !data.listId) {
-          data = { ...data, listId: activeListId };
-        }
-        await api.createTask(data);
-        toast.success("Task created");
+    if (editingTask) {
+      updateTask.mutate(
+        { id: editingTask.id, data },
+        { onSuccess: () => toast.success("Task updated") },
+      );
+    } else {
+      if (activeListId !== null && !data.listId) {
+        data = { ...data, listId: activeListId };
       }
-      setModalOpen(false);
-      setEditingTask(null);
-      fetchTasks();
-      fetchLists();
-    } catch (err) {
-      toast.error(getErrorMessage(err));
+      createTask.mutate(data);
     }
+    setModalOpen(false);
+    setEditingTask(null);
   };
 
   /**
-   * Deletes a task and refreshes the list.
+   * Deletes a task via mutation.
    * @param id - The task's database ID.
    */
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!window.confirm("Delete this task?")) return;
-    try {
-      await api.deleteTask(id);
-      toast.success("Task deleted");
-      fetchTasks();
-      fetchLists();
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
+    deleteTask.mutate(id);
   };
 
   /**
    * Cycles a task's status: Todo → InProgress → Done → Todo.
+   * Uses optimistic update to avoid scroll jump.
    * @param task - The task whose status should be toggled.
    */
   const handleToggleStatus = async (task: Task) => {
@@ -182,14 +145,21 @@ export default function DashboardPage() {
       Done: "Todo",
     };
     const newStatus = next[task.status] as Task["status"];
-    // Optimistic update — avoids scroll jump from full refetch
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)));
+    // Optimistic update — avoid scroll jump from full refetch
+    queryClient.setQueryData(taskKeys.list(params), (old: typeof taskData) =>
+      old
+        ? {
+            ...old,
+            items: old.items.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
+          }
+        : old,
+    );
     try {
       await api.updateTask(task.id, { status: newStatus });
-      fetchLists(); // update task counts
+      queryClient.invalidateQueries({ queryKey: ["lists"] });
     } catch (err) {
       toast.error(getErrorMessage(err));
-      fetchTasks(); // revert on failure
+      queryClient.invalidateQueries({ queryKey: taskKeys.list(params) });
     }
   };
 
@@ -209,63 +179,32 @@ export default function DashboardPage() {
   };
 
   /** Creates a new task list from the sidebar input. */
-  const handleCreateList = async () => {
+  const handleCreateList = () => {
     const name = newListName.trim();
     if (!name) return;
-    try {
-      await api.createList({ name });
-      setNewListName("");
-      fetchLists();
-      toast.success("List created");
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
-  };
-
-  /** Creates a new list inline (e.g. from the task modal) and returns it. */
-  const handleCreateListInline = async (name: string, emoji?: string) => {
-    try {
-      const created = await api.createList({ name, emoji });
-      fetchLists();
-      toast.success("List created");
-      return created;
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-      return undefined;
-    }
+    createList.mutate({ name });
+    setNewListName("");
   };
 
   /**
    * Deletes a task list. Tasks in the list are moved to the inbox.
    * @param id - The list's database ID.
    */
-  const handleDeleteList = async (id: number) => {
-    try {
-      await api.deleteList(id);
-      if (activeListId === id) setActiveListId(null);
-      fetchLists();
-      fetchTasks();
-      toast.success("List deleted — tasks moved to Inbox");
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
+  const handleDeleteList = (id: number) => {
+    if (activeListId === id) setActiveListId(null);
+    deleteListMutation.mutate(id);
   };
 
   /**
    * Renames a task list currently being edited inline.
    * @param id - The list's database ID.
    */
-  const handleRenameList = async (id: number) => {
+  const handleRenameList = (id: number) => {
     const name = editListName.trim();
     if (!name) return;
-    try {
-      await api.updateList(id, { name });
-      setEditingList(null);
-      setEditListName("");
-      fetchLists();
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
+    updateList.mutate({ id, data: { name } });
+    setEditingList(null);
+    setEditListName("");
   };
 
   /** Tasks filtered to the currently selected list (or all tasks if no list is active). */
@@ -308,117 +247,27 @@ export default function DashboardPage() {
 
       <div className="flex gap-6">
         {/* List sidebar */}
-        <aside className="hidden md:block w-52 shrink-0 print:hidden">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-2">
-            Lists
-          </h2>
-          <nav className="space-y-0.5">
-            <button
-              onClick={() => setActiveListId(null)}
-              className={`flex items-center gap-2 w-full rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                activeListId === null ? "bg-[var(--accent)] text-white" : "hover:bg-[var(--hover)]"
-              }`}
-            >
-              <Inbox size={14} />
-              All Tasks
-            </button>
-            {lists.map((list) => (
-              <div
-                key={list.id}
-                className={`group flex items-center ${emojiPickerListId === list.id ? "relative z-50" : ""}`}
-              >
-                {editingList === list.id ? (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleRenameList(list.id);
-                    }}
-                    className="flex-1 flex gap-1"
-                  >
-                    <input
-                      value={editListName}
-                      onChange={(e) => setEditListName(e.target.value)}
-                      className="flex-1 rounded border border-[var(--border)] bg-[var(--input-bg)] px-2 py-1 text-xs"
-                      autoFocus
-                      onBlur={() => setEditingList(null)}
-                    />
-                  </form>
-                ) : (
-                  <button
-                    onClick={() => setActiveListId(list.id)}
-                    className={`flex items-center gap-2 flex-1 rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                      activeListId === list.id
-                        ? "bg-[var(--accent)] text-white"
-                        : "hover:bg-[var(--hover)]"
-                    }`}
-                  >
-                    <span
-                      className="relative cursor-pointer hover:scale-125 transition-transform"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEmojiPickerListId(emojiPickerListId === list.id ? null : list.id);
-                      }}
-                      title="Change emoji"
-                    >
-                      {list.emoji || "📋"}
-                      {emojiPickerListId === list.id && (
-                        <div className="absolute top-6 left-0 z-50">
-                          <EmojiPicker
-                            onSelect={async (emoji) => {
-                              try {
-                                await api.updateList(list.id, { emoji });
-                                fetchLists();
-                              } catch {
-                                toast.error("Failed to update emoji");
-                              }
-                              setEmojiPickerListId(null);
-                            }}
-                            onClose={() => setEmojiPickerListId(null)}
-                          />
-                        </div>
-                      )}
-                    </span>
-                    <span className="truncate flex-1 text-left">{list.name}</span>
-                    <span className="text-xs opacity-60">{list.taskCount}</span>
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    setEditingList(list.id);
-                    setEditListName(list.name);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[var(--hover)] rounded transition-all"
-                  title="Rename"
-                >
-                  <Pencil size={12} />
-                </button>
-                <button
-                  onClick={() => handleDeleteList(list.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[var(--hover)] rounded text-red-500 transition-all"
-                  title="Delete list"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-          </nav>
-          <div className="mt-3 flex gap-1">
-            <input
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              placeholder="New list..."
-              className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 py-1 text-xs"
-              onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
-            />
-            <button
-              onClick={handleCreateList}
-              className="rounded-lg p-1 hover:bg-[var(--hover)] transition-colors text-[var(--accent)]"
-              title="Create list"
-            >
-              <FolderPlus size={16} />
-            </button>
-          </div>
-        </aside>
+        <ListSidebar
+          lists={lists}
+          activeListId={activeListId}
+          onSelectList={setActiveListId}
+          onRenameList={handleRenameList}
+          onDeleteList={handleDeleteList}
+          onUpdateEmoji={(id, emoji) => updateList.mutate({ id, data: { emoji } })}
+          onCreateList={handleCreateList}
+          editingList={editingList}
+          editListName={editListName}
+          onEditListChange={setEditListName}
+          onStartEditing={(id, name) => {
+            setEditingList(id);
+            setEditListName(name);
+          }}
+          onStopEditing={() => setEditingList(null)}
+          emojiPickerListId={emojiPickerListId}
+          onToggleEmojiPicker={setEmojiPickerListId}
+          newListName={newListName}
+          onNewListNameChange={setNewListName}
+        />
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
@@ -470,75 +319,43 @@ export default function DashboardPage() {
           </div>
 
           {/* Search + filter bar */}
-          <div className="mb-4 space-y-3 print:hidden">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
-                />
-                <input
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Search tasks..."
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-shadow"
-                />
-              </div>
+          <TaskFilters
+            searchInput={searchInput}
+            onSearchChange={setSearchInput}
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(!showFilters)}
+            statusFilter={statusFilter}
+            onStatusChange={(v) => {
+              setStatusFilter(v);
+              setPage(1);
+            }}
+            priorityFilter={priorityFilter}
+            onPriorityChange={(v) => {
+              setPriorityFilter(v);
+              setPage(1);
+            }}
+            sortBy={sortBy}
+            onSortChange={(v) => {
+              setSortBy(v);
+              setPage(1);
+            }}
+          />
+
+          {/* Active tag filter badge */}
+          {activeTag && (
+            <div className="mb-3 flex items-center gap-2 print:hidden">
+              <span className="text-sm text-[var(--muted)]">Filtered by tag:</span>
               <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`rounded-lg border border-[var(--border)] p-2 hover:bg-[var(--hover)] transition-colors ${
-                  showFilters ? "bg-[var(--hover)]" : ""
-                }`}
+                onClick={() => {
+                  setActiveTag("");
+                  setPage(1);
+                }}
+                className="inline-flex items-center gap-1 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-medium text-white hover:bg-[var(--accent-hover)] transition-colors"
               >
-                <Filter size={16} />
+                {activeTag} ✕
               </button>
             </div>
-
-            {showFilters && (
-              <div className="flex flex-wrap gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-3">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value as StatusFilter);
-                    setPage(1);
-                  }}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-sm"
-                >
-                  <option value="">All Status</option>
-                  <option value="Todo">To Do</option>
-                  <option value="InProgress">In Progress</option>
-                  <option value="Done">Done</option>
-                </select>
-
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => {
-                    setPriorityFilter(e.target.value as PriorityFilter);
-                    setPage(1);
-                  }}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-sm"
-                >
-                  <option value="">All Priority</option>
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
-
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value as SortField);
-                    setPage(1);
-                  }}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-sm"
-                >
-                  <option value="createdAt">Newest First</option>
-                  <option value="dueDate">Due Date</option>
-                  <option value="priority">Priority</option>
-                </select>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Task views */}
           {loading ? (
@@ -591,6 +408,10 @@ export default function DashboardPage() {
                             onEdit={openEdit}
                             onDelete={handleDelete}
                             onToggleStatus={handleToggleStatus}
+                            onTagClick={(tag) => {
+                              setActiveTag(tag);
+                              setPage(1);
+                            }}
                           />
                         ))}
                         {columnTasks.length === 0 && (
@@ -613,6 +434,10 @@ export default function DashboardPage() {
                     onEdit={openEdit}
                     onDelete={handleDelete}
                     onToggleStatus={handleToggleStatus}
+                    onTagClick={(tag) => {
+                      setActiveTag(tag);
+                      setPage(1);
+                    }}
                   />
                 ))}
               </div>
@@ -681,7 +506,7 @@ export default function DashboardPage() {
         onSave={handleSave}
         lists={lists}
         activeListId={activeListId}
-        onCreateList={handleCreateListInline}
+        onCreateList={createListInline}
       />
     </Layout>
   );

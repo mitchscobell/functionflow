@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import { api } from "../lib/api";
 import { getErrorMessage } from "../lib/errorUtils";
-import type { ApiKey } from "../types";
+import { useApiKeys, useApiKeyMutations } from "../hooks/useApiKeys";
 import Layout from "../components/Layout";
 import {
   Save,
@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   ExternalLink,
   Info,
+  Palette,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -25,26 +26,19 @@ import toast from "react-hot-toast";
  */
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, customColors, setCustomColors } = useTheme();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [saving, setSaving] = useState(false);
 
-  // API keys state
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  // API keys via TanStack Query
+  const { data: apiKeys = [] } = useApiKeys();
+  const { createApiKey, revokeApiKey } = useApiKeyMutations();
   const [newKeyName, setNewKeyName] = useState("");
-  const [creatingKey, setCreatingKey] = useState(false);
   const [newKeyValue, setNewKeyValue] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) setDisplayName(user.displayName);
   }, [user]);
-
-  useEffect(() => {
-    api
-      .getApiKeys()
-      .then(setApiKeys)
-      .catch(() => {});
-  }, []);
 
   /**
    * Persists the display name and theme preference to the server.
@@ -71,36 +65,23 @@ export default function ProfilePage() {
    * Creates a new API key with the entered name.
    * Displays the raw key value once for the user to copy.
    */
-  const handleCreateKey = async () => {
+  const handleCreateKey = () => {
     const name = newKeyName.trim();
     if (!name) return;
-    setCreatingKey(true);
-    try {
-      const res = await api.createApiKey(name);
-      setNewKeyValue(res.key);
-      setNewKeyName("");
-      const keys = await api.getApiKeys();
-      setApiKeys(keys);
-      toast.success("API key created");
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setCreatingKey(false);
-    }
+    createApiKey.mutate(name, {
+      onSuccess: (res) => {
+        setNewKeyValue(res.key);
+        setNewKeyName("");
+      },
+    });
   };
 
   /**
    * Revokes an API key so it can no longer be used.
    * @param id - Database ID of the key to revoke.
    */
-  const handleRevokeKey = async (id: number) => {
-    try {
-      await api.revokeApiKey(id);
-      setApiKeys((prev) => prev.map((k) => (k.id === id ? { ...k, isRevoked: true } : k)));
-      toast.success("API key revoked");
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
+  const handleRevokeKey = (id: number) => {
+    revokeApiKey.mutate(id);
   };
 
   /**
@@ -143,6 +124,12 @@ export default function ProfilePage() {
       label: "Cyberpunk",
       desc: "Electric neon edge",
       swatches: ["#00F0FF", "#0A0A12", "#FF2A6D"],
+    },
+    {
+      value: "custom" as const,
+      label: "Custom",
+      desc: "Your own colors",
+      swatches: [],
     },
   ];
 
@@ -191,18 +178,68 @@ export default function ProfilePage() {
                   <div className="text-sm font-medium">{t.label}</div>
                   <div className="text-xs text-[var(--muted)] mt-0.5">{t.desc}</div>
                   <div className="mt-2 flex gap-1">
-                    {t.swatches.map((color, i) => (
-                      <span
-                        key={i}
-                        className="h-3 w-3 rounded-full border border-[var(--border)]"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
+                    {t.value === "custom"
+                      ? [
+                          customColors["--accent"],
+                          customColors["--bg"],
+                          customColors["--success"],
+                        ].map((color, i) => (
+                          <span
+                            key={i}
+                            className="h-3 w-3 rounded-full border border-[var(--border)]"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))
+                      : t.swatches.map((color, i) => (
+                          <span
+                            key={i}
+                            className="h-3 w-3 rounded-full border border-[var(--border)]"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
                   </div>
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Custom Color Editor */}
+          {theme === "custom" && (
+            <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Palette size={16} />
+                <h3 className="text-sm font-semibold">Customize Colors</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {(
+                  [
+                    ["--bg", "Background"],
+                    ["--bg-secondary", "Secondary BG"],
+                    ["--text", "Text"],
+                    ["--text-secondary", "Muted Text"],
+                    ["--accent", "Accent"],
+                    ["--accent-hover", "Accent Hover"],
+                    ["--card", "Card"],
+                    ["--border", "Border"],
+                    ["--hover", "Hover"],
+                    ["--muted", "Muted"],
+                    ["--success", "Success"],
+                    ["--input-bg", "Input BG"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={customColors[key] || "#000000"}
+                      onChange={(e) => setCustomColors({ ...customColors, [key]: e.target.value })}
+                      className="h-8 w-8 cursor-pointer rounded border border-[var(--border)] bg-transparent p-0"
+                    />
+                    <span className="text-xs">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"
@@ -264,10 +301,14 @@ export default function ProfilePage() {
             />
             <button
               onClick={handleCreateKey}
-              disabled={creatingKey || !newKeyName.trim()}
+              disabled={createApiKey.isPending || !newKeyName.trim()}
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
             >
-              {creatingKey ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+              {createApiKey.isPending ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Plus size={14} />
+              )}
               Create
             </button>
           </div>

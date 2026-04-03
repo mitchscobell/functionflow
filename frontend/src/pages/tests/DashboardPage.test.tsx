@@ -5,6 +5,7 @@ import DashboardPage from "../DashboardPage";
 import type { Task } from "../../types";
 import { AuthProvider } from "../../hooks/useAuth";
 import { ThemeProvider } from "../../hooks/useTheme";
+import { TestQueryProvider } from "../../test-utils";
 
 // Mock api
 vi.mock("../../lib/api", () => ({
@@ -38,17 +39,24 @@ vi.mock("../../components/TaskCard", () => ({
     onEdit,
     onDelete,
     onToggleStatus,
+    onTagClick,
   }: {
-    task: { id: number; title: string };
+    task: { id: number; title: string; tags?: string[] };
     onEdit: (task: { id: number; title: string }) => void;
     onDelete: (id: number) => void;
     onToggleStatus: (task: { id: number; title: string }) => void;
+    onTagClick?: (tag: string) => void;
   }) => (
     <div data-testid="task-card">
       <span>{task.title}</span>
       <button onClick={() => onEdit(task)}>edit</button>
       <button onClick={() => onDelete(task.id)}>delete</button>
       <button onClick={() => onToggleStatus(task)}>toggle</button>
+      {task.tags?.map((tag) => (
+        <button key={tag} onClick={() => onTagClick?.(tag)}>
+          {tag}
+        </button>
+      ))}
     </div>
   ),
 }));
@@ -102,11 +110,13 @@ function renderDashboard() {
 
   return render(
     <MemoryRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <DashboardPage />
-        </ThemeProvider>
-      </AuthProvider>
+      <TestQueryProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <DashboardPage />
+          </ThemeProvider>
+        </AuthProvider>
+      </TestQueryProvider>
     </MemoryRouter>,
   );
 }
@@ -857,6 +867,75 @@ describe("DashboardPage", () => {
     renderDashboard();
     await waitFor(() => {
       expect(screen.getByText("1 task")).toBeInTheDocument();
+    });
+  });
+
+  // ── Tag filtering ──
+
+  it("shows active tag badge when a tag is clicked and clears on dismiss", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          title: "Tagged Task",
+          priority: "Medium" as const,
+          status: "Todo" as const,
+          tags: ["urgent"],
+          createdAt: "2024-01-01T00:00:00Z",
+          updatedAt: "2024-01-01T00:00:00Z",
+        },
+      ],
+      totalCount: 1,
+      page: 1,
+      pageSize: 100,
+    });
+
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getAllByText("Tagged Task").length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Click the tag on the TaskCard
+    const tagButtons = screen.getAllByText("urgent");
+    fireEvent.click(tagButtons[0]);
+
+    // Active tag badge should appear
+    await waitFor(() => {
+      expect(screen.getByText("Filtered by tag:")).toBeInTheDocument();
+      expect(screen.getByText("urgent ✕")).toBeInTheDocument();
+    });
+
+    // getTasks should be called with tag param
+    await waitFor(() => {
+      const calls = vi.mocked(api.getTasks).mock.calls;
+      const lastCall = calls[calls.length - 1]?.[0];
+      expect(lastCall).toEqual(expect.objectContaining({ tag: "urgent" }));
+    });
+
+    // Clear the tag filter
+    fireEvent.click(screen.getByText("urgent ✕"));
+    await waitFor(() => {
+      expect(screen.queryByText("Filtered by tag:")).not.toBeInTheDocument();
+    });
+  });
+
+  // ── Due date sort direction ──
+
+  it("sends ascending sort direction when sorting by due date", async () => {
+    renderDashboard();
+    await waitFor(() => {
+      expect(vi.mocked(api.getTasks)).toHaveBeenCalled();
+    });
+
+    // Open filters to access the sort select
+    fireEvent.click(getFilterButton());
+    const sortSelect = screen.getByDisplayValue("Newest First");
+    fireEvent.change(sortSelect, { target: { value: "dueDate" } });
+
+    await waitFor(() => {
+      const calls = vi.mocked(api.getTasks).mock.calls;
+      const lastCall = calls[calls.length - 1]?.[0];
+      expect(lastCall).toEqual(expect.objectContaining({ sortBy: "dueDate", sortDir: "asc" }));
     });
   });
 });

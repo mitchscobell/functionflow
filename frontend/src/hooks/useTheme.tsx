@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 /** Available UI color themes. */
-type Theme = "function" | "dark" | "light" | "vaporwave" | "cyberpunk";
+type Theme = "function" | "dark" | "light" | "vaporwave" | "cyberpunk" | "custom";
 
 /**
  * Shape of the theme context value shared via React context.
@@ -12,6 +12,12 @@ interface ThemeContextType {
 
   /** Updates the active theme, persisting the choice to localStorage. */
   setTheme: (t: Theme) => void;
+
+  /** Custom theme color overrides (only used when theme === "custom"). */
+  customColors: Record<string, string>;
+
+  /** Updates the custom color palette and persists to localStorage. */
+  setCustomColors: (colors: Record<string, string>) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | null>(null);
@@ -23,10 +29,38 @@ const themeClasses: Record<Theme, string> = {
   light: "theme-light",
   vaporwave: "theme-vaporwave",
   cyberpunk: "theme-cyberpunk",
+  custom: "theme-custom",
 };
 
 /** Set of themes that use a dark background and require Tailwind's dark mode class. */
 const darkThemes: ReadonlySet<Theme> = new Set(["dark", "vaporwave", "cyberpunk"]);
+
+/** Default colors used by the custom theme. */
+const DEFAULT_CUSTOM_COLORS: Record<string, string> = {
+  "--bg": "#fafafa",
+  "--bg-secondary": "#f4f4f5",
+  "--text": "#18181b",
+  "--text-secondary": "#52525b",
+  "--accent": "#2563eb",
+  "--accent-hover": "#1d4ed8",
+  "--card": "#ffffff",
+  "--border": "#e4e4e7",
+  "--hover": "#f4f4f5",
+  "--muted": "#71717a",
+  "--success": "#16a34a",
+  "--input-bg": "#ffffff",
+};
+
+/** Determines if a set of custom colors uses a dark background. */
+function isCustomDark(colors: Record<string, string>): boolean {
+  const bg = colors["--bg"] || "#fafafa";
+  // Parse hex and check luminance — dark if average RGB < 128
+  const hex = bg.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  return (r + g + b) / 3 < 128;
+}
 
 /**
  * Context provider that manages the active UI theme.
@@ -40,6 +74,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return (localStorage.getItem("theme") as Theme) || "function";
   });
 
+  const [customColors, setCustomColorsState] = useState<Record<string, string>>(() => {
+    try {
+      const stored = localStorage.getItem("customThemeColors");
+      return stored ? JSON.parse(stored) : DEFAULT_CUSTOM_COLORS;
+    } catch {
+      return DEFAULT_CUSTOM_COLORS;
+    }
+  });
+
   /**
    * Updates the active theme, persists to localStorage, and triggers a re-render.
    * @param t - The new theme to apply.
@@ -49,6 +92,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(t);
   };
 
+  const setCustomColors = (colors: Record<string, string>) => {
+    localStorage.setItem("customThemeColors", JSON.stringify(colors));
+    setCustomColorsState(colors);
+  };
+
   useEffect(() => {
     const root = document.documentElement;
     // Remove all theme classes
@@ -56,15 +104,34 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Add current
     root.classList.add(themeClasses[theme]);
 
-    // Set dark mode for Tailwind
-    if (darkThemes.has(theme)) {
-      root.classList.add("dark");
+    // Apply/remove custom CSS variables
+    if (theme === "custom") {
+      Object.entries(customColors).forEach(([key, value]) => {
+        root.style.setProperty(key, value);
+      });
+      if (isCustomDark(customColors)) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
     } else {
-      root.classList.remove("dark");
+      // Clean up any inline custom vars
+      Object.keys(DEFAULT_CUSTOM_COLORS).forEach((key) => {
+        root.style.removeProperty(key);
+      });
+      if (darkThemes.has(theme)) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
     }
-  }, [theme]);
+  }, [theme, customColors]);
 
-  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, customColors, setCustomColors }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 /**
