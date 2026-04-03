@@ -23,7 +23,7 @@ public class JwtTokenService : ITokenService
     /// <param name="userId">User primary key placed in the NameIdentifier claim.</param>
     /// <param name="email">User email placed in the Email claim.</param>
     /// <param name="rememberMe">If <c>true</c>, extends the token lifetime.</param>
-    /// <returns>The serialised JWT string.</returns>
+    /// <returns>The serialized JWT string.</returns>
     public string GenerateToken(int userId, string email, bool rememberMe = false)
     {
         var key = new SymmetricSecurityKey(

@@ -2,7 +2,7 @@ namespace TodoApi;
 
 /// <summary>
 /// Shared validation constants referenced by Create and Update validators.
-/// Centralises magic numbers so they only need to be changed in one place.
+/// Centralizes magic numbers so they only need to be changed in one place.
 /// </summary>
 public static class ValidationConstants
 {

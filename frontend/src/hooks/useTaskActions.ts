@@ -24,7 +24,7 @@ interface UseTaskActionsOptions {
 
 /**
  * Shared task CRUD actions used by DashboardPage and CalendarPage.
- * Centralises save, delete, toggle-status, and modal state so both
+ * Centralizes save, delete, toggle-status, and modal state so both
  * pages behave identically (confirm dialog, optimistic updates, etc.).
  */
 export function useTaskActions(options: UseTaskActionsOptions = {}) {

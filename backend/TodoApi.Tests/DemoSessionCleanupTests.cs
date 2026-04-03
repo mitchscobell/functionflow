@@ -164,7 +164,7 @@ public class DemoSessionCleanupTests
         await service.CleanupStaleSessions();
     }
 
-    [Fact(DisplayName = "Cleanup with cancelled token handles gracefully")]
+    [Fact(DisplayName = "Cleanup with canceled token handles gracefully")]
     public async Task Cleanup_CancellationRequested_HandlesGracefully()
     {
         var (service, _, _) = CreateService(maxAgeHours: 24);
@@ -200,7 +200,7 @@ public class DemoSessionCleanupTests
 
     // ── Background Service Lifecycle ──
 
-    [Fact(DisplayName = "Background service stops gracefully when cancelled")]
+    [Fact(DisplayName = "Background service stops gracefully when canceled")]
     public async Task ExecuteAsync_CancelledQuickly_StopsGracefully()
     {
         var (service, _, _) = CreateService();

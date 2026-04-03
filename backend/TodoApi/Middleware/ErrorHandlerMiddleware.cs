@@ -13,7 +13,7 @@ public class ErrorHandlerMiddleware
     private readonly ILogger<ErrorHandlerMiddleware> _logger;
 
     /// <summary>
-    /// Initialises the middleware with the next delegate in the pipeline.
+    /// Initializes the middleware with the next delegate in the pipeline.
     /// </summary>
     public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
     {

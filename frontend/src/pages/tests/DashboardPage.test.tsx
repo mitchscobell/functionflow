@@ -281,7 +281,7 @@ describe("DashboardPage", () => {
     });
   });
 
-  it("does not delete task when confirm is cancelled", async () => {
+  it("does not delete task when confirm is canceled", async () => {
     vi.mocked(api.getTasks).mockResolvedValue({
       items: [
         {
