@@ -141,6 +141,8 @@ Integration tests covering auth, task CRUD, lists, API keys, demo sessions, prof
 - **Ephemeral demo sessions** — each demo login creates a unique user with sample lists and tasks; all data is destroyed on logout.
 - **Rate limiting** — auth endpoints are rate-limited (10 req/min per IP) to prevent abuse.
 
+For a deeper look at assumptions, trade-offs, and what I'd tackle next, see [ASSUMPTIONS.md](ASSUMPTIONS.md).
+
 ## License
 
 MIT
