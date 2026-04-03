@@ -10,7 +10,7 @@ public class UpdateProfileValidator : AbstractValidator<UpdateProfileDto>
     public UpdateProfileValidator()
     {
         RuleFor(x => x.DisplayName)
-            .MaximumLength(100)
+            .MaximumLength(ValidationConstants.DisplayNameMaxLength)
             .When(x => x.DisplayName != null);
 
         RuleFor(x => x.ThemePreference)

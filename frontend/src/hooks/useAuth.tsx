@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import type { User } from "../types";
+import { STORAGE_KEYS } from "../lib/constants";
 
 /**
  * Shape of the authentication context value shared via React context.
@@ -34,11 +35,11 @@ const AuthContext = createContext<AuthContextType | null>(null);
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem("user");
+    const stored = localStorage.getItem(STORAGE_KEYS.USER);
     return stored ? JSON.parse(stored) : null;
   });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
-  const [isDemo, setIsDemo] = useState(() => localStorage.getItem("isDemo") === "true");
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.TOKEN));
+  const [isDemo, setIsDemo] = useState(() => localStorage.getItem(STORAGE_KEYS.IS_DEMO) === "true");
 
   /**
    * Stores the JWT and user profile in localStorage and React state.
@@ -47,10 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * @param demo - Whether this is a temporary demo session.
    */
   const login = (token: string, user: User, demo = false) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    if (demo) localStorage.setItem("isDemo", "true");
-    else localStorage.removeItem("isDemo");
+    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    if (demo) localStorage.setItem(STORAGE_KEYS.IS_DEMO, "true");
+    else localStorage.removeItem(STORAGE_KEYS.IS_DEMO);
     setToken(token);
     setUser(user);
     setIsDemo(demo);
@@ -58,9 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /** Clears all authentication data from localStorage and resets React state. */
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("isDemo");
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem(STORAGE_KEYS.IS_DEMO);
     setToken(null);
     setUser(null);
     setIsDemo(false);
@@ -71,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * @param updated - The new user profile data.
    */
   const updateUser = (updated: User) => {
-    localStorage.setItem("user", JSON.stringify(updated));
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
     setUser(updated);
   };
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../lib/api";
+import { LIMITS } from "../lib/constants";
 import { getErrorMessage } from "../lib/errorUtils";
 import { useAuth } from "../hooks/useAuth";
 import { ArrowRight, ArrowLeft, Loader2, Mail, Sparkles, ShieldCheck, X } from "lucide-react";
@@ -223,7 +224,7 @@ export default function ConvertAccountWizard({ onClose }: { onClose: () => void 
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || code.length < 6}
+                  disabled={loading || code.length < LIMITS.AUTH_CODE}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
                 >
                   {loading ? (

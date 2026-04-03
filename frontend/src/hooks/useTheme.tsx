@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { STORAGE_KEYS } from "../lib/constants";
 
 /** Available UI color themes. */
 type Theme = "function" | "dark" | "light" | "vaporwave" | "cyberpunk" | "custom";
@@ -71,12 +72,12 @@ function isCustomDark(colors: Record<string, string>): boolean {
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (localStorage.getItem("theme") as Theme) || "function";
+    return (localStorage.getItem(STORAGE_KEYS.THEME) as Theme) || "function";
   });
 
   const [customColors, setCustomColorsState] = useState<Record<string, string>>(() => {
     try {
-      const stored = localStorage.getItem("customThemeColors");
+      const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_COLORS);
       return stored ? JSON.parse(stored) : DEFAULT_CUSTOM_COLORS;
     } catch {
       return DEFAULT_CUSTOM_COLORS;
@@ -88,12 +89,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
    * @param t - The new theme to apply.
    */
   const setTheme = (t: Theme) => {
-    localStorage.setItem("theme", t);
+    localStorage.setItem(STORAGE_KEYS.THEME, t);
     setThemeState(t);
   };
 
   const setCustomColors = (colors: Record<string, string>) => {
-    localStorage.setItem("customThemeColors", JSON.stringify(colors));
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_COLORS, JSON.stringify(colors));
     setCustomColorsState(colors);
   };
 

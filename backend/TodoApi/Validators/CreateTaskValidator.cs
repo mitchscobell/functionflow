@@ -10,16 +10,16 @@ public class CreateTaskValidator : AbstractValidator<CreateTaskDto>
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")
-            .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
+            .MaximumLength(ValidationConstants.TitleMaxLength).WithMessage($"Title must not exceed {ValidationConstants.TitleMaxLength} characters.");
 
         RuleFor(x => x.Description)
-            .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters.");
+            .MaximumLength(ValidationConstants.DescriptionMaxLength).WithMessage($"Description must not exceed {ValidationConstants.DescriptionMaxLength} characters.");
 
         RuleFor(x => x.Notes)
-            .MaximumLength(10000).WithMessage("Notes must not exceed 10,000 characters.");
+            .MaximumLength(ValidationConstants.NotesMaxLength).WithMessage($"Notes must not exceed {ValidationConstants.NotesMaxLength:N0} characters.");
 
         RuleFor(x => x.Url)
-            .MaximumLength(2048).WithMessage("URL must not exceed 2048 characters.")
+            .MaximumLength(ValidationConstants.UrlMaxLength).WithMessage($"URL must not exceed {ValidationConstants.UrlMaxLength} characters.")
             .Must(u => u == null || Uri.TryCreate(u, UriKind.Absolute, out _))
             .WithMessage("URL must be a valid absolute URL.");
 
@@ -32,7 +32,7 @@ public class CreateTaskValidator : AbstractValidator<CreateTaskDto>
             .WithMessage("Due date must be today or in the future.");
 
         RuleFor(x => x.Tags)
-            .Must(t => t == null || t.Length <= 10)
-            .WithMessage("Maximum 10 tags allowed.");
+            .Must(t => t == null || t.Length <= ValidationConstants.MaxTags)
+            .WithMessage($"Maximum {ValidationConstants.MaxTags} tags allowed.");
     }
 }

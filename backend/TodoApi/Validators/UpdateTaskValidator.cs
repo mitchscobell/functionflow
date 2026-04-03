@@ -9,19 +9,19 @@ public class UpdateTaskValidator : AbstractValidator<UpdateTaskDto>
     public UpdateTaskValidator()
     {
         RuleFor(x => x.Title)
-            .MaximumLength(200)
+            .MaximumLength(ValidationConstants.TitleMaxLength)
             .When(x => x.Title != null);
 
         RuleFor(x => x.Description)
-            .MaximumLength(2000)
+            .MaximumLength(ValidationConstants.DescriptionMaxLength)
             .When(x => x.Description != null);
 
         RuleFor(x => x.Notes)
-            .MaximumLength(10000)
+            .MaximumLength(ValidationConstants.NotesMaxLength)
             .When(x => x.Notes != null);
 
         RuleFor(x => x.Url)
-            .MaximumLength(2048)
+            .MaximumLength(ValidationConstants.UrlMaxLength)
             .Must(u => u == null || Uri.TryCreate(u, UriKind.Absolute, out _))
             .When(x => x.Url != null);
 
@@ -34,7 +34,7 @@ public class UpdateTaskValidator : AbstractValidator<UpdateTaskDto>
             .When(x => x.Status.HasValue);
 
         RuleFor(x => x.Tags)
-            .Must(t => t == null || t.Length <= 10)
-            .WithMessage("Maximum 10 tags allowed.");
+            .Must(t => t == null || t.Length <= ValidationConstants.MaxTags)
+            .WithMessage($"Maximum {ValidationConstants.MaxTags} tags allowed.");
     }
 }

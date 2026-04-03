@@ -1,26 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../lib/api";
 import { ListTodo, ExternalLink, Heart, Database, Server, ArrowLeft } from "lucide-react";
 
 /**
  * Response shape from the `/api/version` health-check endpoint.
  */
-interface ApiHealth {
-  /** Application name. */
-  name: string;
-
-  /** Semantic version string of the backend. */
-  version: string;
-
-  /** Server health status (e.g. "healthy"). */
-  status: string;
-
-  /** Database connectivity status. */
-  database: string;
-
-  /** ISO 8601 timestamp of the health check. */
-  timestamp: string;
-}
+type ApiHealth = Awaited<ReturnType<typeof api.getVersion>>;
 
 /**
  * Small colored dot indicating healthy (green) or unhealthy (red) status.

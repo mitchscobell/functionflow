@@ -10,14 +10,14 @@ public class CreateListValidator : AbstractValidator<CreateListDto>
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("List name is required.")
-            .MaximumLength(100);
+            .MaximumLength(ValidationConstants.ListNameMaxLength);
 
         RuleFor(x => x.Emoji)
-            .MaximumLength(8)
+            .MaximumLength(ValidationConstants.EmojiMaxLength)
             .When(x => x.Emoji != null);
 
         RuleFor(x => x.Color)
-            .MaximumLength(30)
+            .MaximumLength(ValidationConstants.ColorMaxLength)
             .When(x => x.Color != null);
     }
 }

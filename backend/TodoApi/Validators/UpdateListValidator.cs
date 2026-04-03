@@ -9,15 +9,15 @@ public class UpdateListValidator : AbstractValidator<UpdateListDto>
     public UpdateListValidator()
     {
         RuleFor(x => x.Name)
-            .MaximumLength(100)
+            .MaximumLength(ValidationConstants.ListNameMaxLength)
             .When(x => x.Name != null);
 
         RuleFor(x => x.Emoji)
-            .MaximumLength(8)
+            .MaximumLength(ValidationConstants.EmojiMaxLength)
             .When(x => x.Emoji != null);
 
         RuleFor(x => x.Color)
-            .MaximumLength(30)
+            .MaximumLength(ValidationConstants.ColorMaxLength)
             .When(x => x.Color != null);
     }
 }

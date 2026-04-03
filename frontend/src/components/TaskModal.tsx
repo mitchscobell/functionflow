@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { Task, TaskList } from "../types";
+import { LIMITS, STATUS_OPTIONS, PRIORITY_OPTIONS } from "../lib/constants";
 import { X, FolderPlus, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 
@@ -135,7 +136,7 @@ export default function TaskModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              maxLength={200}
+              maxLength={LIMITS.TITLE}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="What needs to be done?"
             />
@@ -146,7 +147,7 @@ export default function TaskModal({
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              maxLength={2000}
+              maxLength={LIMITS.DESCRIPTION}
               rows={3}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none"
               placeholder="Add details..."
@@ -158,7 +159,7 @@ export default function TaskModal({
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              maxLength={10000}
+              maxLength={LIMITS.NOTES}
               rows={3}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-y"
               placeholder="Checklists, extra details, reminders..."
@@ -171,7 +172,7 @@ export default function TaskModal({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               type="url"
-              maxLength={2048}
+              maxLength={LIMITS.URL}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="https://..."
             />
@@ -185,9 +186,9 @@ export default function TaskModal({
                 onChange={(e) => setPriority(e.target.value as "Low" | "Medium" | "High")}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
+                {PRIORITY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
             </div>
 
@@ -199,9 +200,9 @@ export default function TaskModal({
                   onChange={(e) => setStatus(e.target.value as "Todo" | "InProgress" | "Done")}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 >
-                  <option value="Todo">To Do</option>
-                  <option value="InProgress">In Progress</option>
-                  <option value="Done">Done</option>
+                  {STATUS_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
                 </select>
               </div>
             )}
@@ -280,7 +281,7 @@ export default function TaskModal({
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
                     placeholder="List name..."
-                    maxLength={100}
+                    maxLength={LIMITS.LIST_NAME}
                     className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                     autoFocus
                     onKeyDown={async (e) => {

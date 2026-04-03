@@ -1,13 +1,6 @@
 import { Search, Filter } from "lucide-react";
-
-/** Filter value for task status — empty string means no filter. */
-type StatusFilter = "" | "Todo" | "InProgress" | "Done";
-
-/** Filter value for task priority — empty string means no filter. */
-type PriorityFilter = "" | "Low" | "Medium" | "High";
-
-/** Sortable field options for the task list. */
-type SortField = "createdAt" | "dueDate" | "priority";
+import type { StatusFilter, PriorityFilter, SortField } from "../lib/constants";
+import { STATUS_OPTIONS, PRIORITY_OPTIONS } from "../lib/constants";
 
 interface TaskFiltersProps {
   searchInput: string;
@@ -69,9 +62,9 @@ export default function TaskFilters({
             className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-sm"
           >
             <option value="">All Status</option>
-            <option value="Todo">To Do</option>
-            <option value="InProgress">In Progress</option>
-            <option value="Done">Done</option>
+            {STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
 
           <select
@@ -80,9 +73,9 @@ export default function TaskFilters({
             className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-sm"
           >
             <option value="">All Priority</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
+            {PRIORITY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
 
           <select

@@ -14,7 +14,7 @@ public class VerifyConversionValidator : AbstractValidator<VerifyConversionDto>
 
         RuleFor(x => x.Code)
             .NotEmpty().WithMessage("Code is required.")
-            .Length(6).WithMessage("Code must be 6 digits.")
-            .Matches(@"^\d{6}$").WithMessage("Code must contain only digits.");
+            .Length(ValidationConstants.AuthCodeLength).WithMessage($"Code must be {ValidationConstants.AuthCodeLength} digits.")
+            .Matches($@"^\d{{{ValidationConstants.AuthCodeLength}}}$").WithMessage("Code must contain only digits.");
     }
 }

@@ -190,6 +190,32 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     if (db.Database.IsRelational())
     {
+        // If the database already has tables but no migration history
+        // (created by EnsureCreated before migrations were added),
+        // mark the InitialCreate migration as already applied.
+        var conn = db.Database.GetDbConnection();
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE name='Users' AND type='table'";
+        var hasUsers = Convert.ToInt64(cmd.ExecuteScalar()) > 0;
+        cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE name='__EFMigrationsHistory' AND type='table'";
+        var hasHistory = Convert.ToInt64(cmd.ExecuteScalar()) > 0;
+
+        if (hasUsers && (!hasHistory || db.Database.GetPendingMigrations().Any()))
+        {
+            // Ensure the history table exists
+            cmd.CommandText = @"CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
+                ""MigrationId"" TEXT NOT NULL CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY,
+                ""ProductVersion"" TEXT NOT NULL)";
+            cmd.ExecuteNonQuery();
+
+            // Mark InitialCreate as applied if it's pending
+            cmd.CommandText = @"INSERT OR IGNORE INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+                VALUES ('20260402233719_InitialCreate', '8.0.25')";
+            cmd.ExecuteNonQuery();
+        }
+        conn.Close();
+
         db.Database.Migrate();
     }
     else

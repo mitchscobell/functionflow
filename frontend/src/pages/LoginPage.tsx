@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
+import { LIMITS } from "../lib/constants";
 import { useAuth } from "../hooks/useAuth";
 import { ListTodo, ArrowRight, Loader2, Zap, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
@@ -27,7 +28,7 @@ export default function LoginPage() {
    */
   // Auto-submit when all 6 digits are entered (e.g. paste)
   useEffect(() => {
-    if (code.length === 6 && step === "code" && !loading) {
+    if (code.length === LIMITS.AUTH_CODE && step === "code" && !loading) {
       formRef.current?.requestSubmit();
     }
   }, [code, step, loading]);
@@ -139,7 +140,7 @@ export default function LoginPage() {
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   required
                   autoFocus
-                  maxLength={6}
+                  maxLength={LIMITS.AUTH_CODE}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2.5 text-center text-2xl font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-shadow"
                   placeholder="000000"
                 />
@@ -158,7 +159,7 @@ export default function LoginPage() {
               </label>
               <button
                 type="submit"
-                disabled={loading || code.length < 6}
+                disabled={loading || code.length < LIMITS.AUTH_CODE}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
               >
                 {loading ? (

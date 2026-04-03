@@ -1,6 +1,8 @@
 /** Base URL prefix for all API requests. */
 const API_BASE = "/api";
 
+import { STORAGE_KEYS } from "./constants";
+
 /**
  * Internal fetch wrapper that handles authentication headers,
  * token refresh on 401, and JSON parsing.
@@ -12,7 +14,7 @@ const API_BASE = "/api";
  * @throws Error with the server message on non-OK responses.
  */
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -22,8 +24,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (res.status === 401) {
     if (token) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
       window.location.href = "/login";
     }
     const body = await res.json().catch(() => ({}));
