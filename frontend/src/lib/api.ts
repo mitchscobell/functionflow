@@ -60,7 +60,7 @@ export const api = {
    * Verifies the one-time code and returns a JWT + user profile on success.
    * @param email - The email address the code was sent to.
    * @param code - Six-digit verification code.
-   * @param rememberMe - If true, the token lasts 30 days; otherwise 7 days.
+   * @param rememberMe - If true, the token lasts 30 days; otherwise 4 hours.
    */
   verifyCode: (email: string, code: string, rememberMe: boolean = false) =>
     request<{ token: string; user: import("../types").User }>("/auth/verify-code", {

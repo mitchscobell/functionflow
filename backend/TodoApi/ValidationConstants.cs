@@ -48,7 +48,7 @@ public static class ValidationConstants
     public const int DemoSessionIdLength = 8;
 
     /// <summary>Token lifetime (days) when the user checks "Remember Me".</summary>
-    public const int RememberMeExpiryDays = 7;
+    public const int RememberMeExpiryDays = 30;
 
     /// <summary>Token lifetime (hours) for a regular session.</summary>
     public const int RegularTokenExpiryHours = 4;
