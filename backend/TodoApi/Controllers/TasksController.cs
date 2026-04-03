@@ -46,10 +46,10 @@ public class TasksController : ControllerBase
         [FromQuery] string sortBy = "createdAt",
         [FromQuery] string sortDir = "desc",
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = ValidationConstants.DefaultPageSize)
     {
         var userId = User.GetUserId();
-        pageSize = Math.Clamp(pageSize, 1, 100);
+        pageSize = Math.Clamp(pageSize, 1, ValidationConstants.MaxPageSize);
         page = Math.Max(1, page);
 
         var (tasks, totalCount) = await _tasks.GetTasksAsync(

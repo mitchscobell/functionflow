@@ -1,14 +1,20 @@
 import { Component } from "react";
 import type { ReactNode, ErrorInfo } from "react";
 
+/** Props accepted by {@link ErrorBoundary}. */
 interface Props {
   children: ReactNode;
 }
 
+/** Internal state tracked by {@link ErrorBoundary}. */
 interface State {
   hasError: boolean;
 }
 
+/**
+ * React class component that catches JavaScript errors anywhere in its child
+ * tree and renders a fallback UI instead of crashing the whole app.
+ */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
 

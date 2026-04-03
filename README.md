@@ -110,14 +110,14 @@ Authentication supports both `Authorization: Bearer <JWT>` and `X-Api-Key: <key>
 
 ## Email Setup (Production)
 
-To enable real email delivery, set these environment variables:
+To enable real email delivery, set these environment variables with any SMTP provider:
 
 ```bash
-SMTP_HOST=smtp.gmail.com
+SMTP_HOST=smtp.example.com     # e.g. smtp.gmail.com, smtp.mailgun.org, etc.
 SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password    # Gmail App Password, not your regular password
-SMTP_FROM=your-email@gmail.com
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-app-password
+SMTP_FROM=no-reply@example.com
 ```
 
 In development mode, auth codes are logged to the console instead of sent via email.

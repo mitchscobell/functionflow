@@ -4,12 +4,14 @@ using TodoApi.Models;
 
 namespace TodoApi.Repositories;
 
+/// <summary>Entity Framework Core implementation of <see cref="ITaskRepository"/>.</summary>
 public class EfTaskRepository : ITaskRepository
 {
     private readonly AppDbContext _db;
 
     public EfTaskRepository(AppDbContext db) => _db = db;
 
+    /// <inheritdoc />
     public async Task<(IEnumerable<TodoTask> Items, int TotalCount)> GetTasksAsync(
         int userId, string? search, Models.TaskStatus? status, TaskPriority? priority,
         string sortBy, string sortDir, int page, int pageSize)
@@ -54,9 +56,11 @@ public class EfTaskRepository : ITaskRepository
         return (items, totalCount);
     }
 
+    /// <inheritdoc />
     public Task<TodoTask?> GetByIdAsync(int id, int userId) =>
         _db.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
+    /// <inheritdoc />
     public async Task<TodoTask> CreateAsync(TodoTask task)
     {
         _db.Tasks.Add(task);
@@ -64,15 +68,18 @@ public class EfTaskRepository : ITaskRepository
         return task;
     }
 
+    /// <inheritdoc />
     public Task UpdateAsync(TodoTask task) =>
         _db.SaveChangesAsync();
 
+    /// <inheritdoc />
     public async Task DeleteAsync(TodoTask task)
     {
         task.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
 
+    /// <inheritdoc />
     public async Task DeleteAllByUserIdAsync(int userId)
     {
         var tasks = await _db.Tasks.IgnoreQueryFilters()

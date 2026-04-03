@@ -4,12 +4,14 @@ using TodoApi.Models;
 
 namespace TodoApi.Repositories;
 
+/// <summary>Entity Framework Core implementation of <see cref="IListRepository"/>.</summary>
 public class EfListRepository : IListRepository
 {
     private readonly AppDbContext _db;
 
     public EfListRepository(AppDbContext db) => _db = db;
 
+    /// <inheritdoc />
     public async Task<IEnumerable<(TaskList List, int TaskCount)>> GetListsAsync(int userId)
     {
         var lists = await _db.TaskLists
@@ -21,6 +23,7 @@ public class EfListRepository : IListRepository
         return lists.Select(x => (x.List, x.TaskCount));
     }
 
+    /// <inheritdoc />
     public async Task<(TaskList? List, int TaskCount)> GetByIdAsync(int id, int userId)
     {
         var result = await _db.TaskLists
@@ -31,9 +34,11 @@ public class EfListRepository : IListRepository
         return result == null ? (null, 0) : (result.List, result.TaskCount);
     }
 
+    /// <inheritdoc />
     public Task<int> GetCountAsync(int userId) =>
         _db.TaskLists.CountAsync(l => l.UserId == userId);
 
+    /// <inheritdoc />
     public async Task<TaskList> CreateAsync(TaskList list)
     {
         _db.TaskLists.Add(list);
@@ -41,9 +46,11 @@ public class EfListRepository : IListRepository
         return list;
     }
 
+    /// <inheritdoc />
     public Task UpdateAsync(TaskList list) =>
         _db.SaveChangesAsync();
 
+    /// <inheritdoc />
     public async Task DeleteAsync(TaskList list, int userId)
     {
         var fullList = await _db.TaskLists
@@ -60,6 +67,7 @@ public class EfListRepository : IListRepository
         await _db.SaveChangesAsync();
     }
 
+    /// <inheritdoc />
     public async Task DeleteAllByUserIdAsync(int userId)
     {
         var lists = await _db.TaskLists.Where(l => l.UserId == userId).ToListAsync();
@@ -67,6 +75,7 @@ public class EfListRepository : IListRepository
         await _db.SaveChangesAsync();
     }
 
+    /// <inheritdoc />
     public Task<int> GetTaskCountAsync(int listId, int userId) =>
         _db.Tasks.CountAsync(t => t.ListId == listId && t.UserId == userId);
 }

@@ -17,6 +17,13 @@ public class JwtTokenService : ITokenService
         _config = config;
     }
 
+    /// <summary>
+    /// Creates a signed JWT containing the user's ID and email.
+    /// </summary>
+    /// <param name="userId">User primary key placed in the NameIdentifier claim.</param>
+    /// <param name="email">User email placed in the Email claim.</param>
+    /// <param name="rememberMe">If <c>true</c>, extends the token lifetime.</param>
+    /// <returns>The serialised JWT string.</returns>
     public string GenerateToken(int userId, string email, bool rememberMe = false)
     {
         var key = new SymmetricSecurityKey(
@@ -30,7 +37,7 @@ public class JwtTokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var expiry = rememberMe ? TimeSpan.FromDays(7) : TimeSpan.FromHours(4);
+        var expiry = rememberMe ? TimeSpan.FromDays(ValidationConstants.RememberMeExpiryDays) : TimeSpan.FromHours(ValidationConstants.RegularTokenExpiryHours);
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"] ?? "FunctionFlow",

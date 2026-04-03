@@ -12,7 +12,7 @@ public class ConvertDemoValidator : AbstractValidator<ConvertDemoDto>
             .NotEmpty().WithMessage("Email is required.")
             .EmailAddress().WithMessage("A valid email address is required.")
             .MaximumLength(256)
-            .Must(e => !e.EndsWith("@functionflow.local"))
+            .Must(e => !e.EndsWith(ValidationConstants.DemoEmailDomain))
             .WithMessage("Cannot convert to another demo email.");
 
         RuleFor(x => x.DisplayName)

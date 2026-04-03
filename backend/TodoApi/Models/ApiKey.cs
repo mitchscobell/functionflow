@@ -37,9 +37,9 @@ public class ApiKey
     /// </summary>
     public static (string rawKey, string prefix, string hash) Generate()
     {
-        var bytes = RandomNumberGenerator.GetBytes(32);
-        var raw = "ff_" + Convert.ToBase64String(bytes).Replace("+", "").Replace("/", "").Replace("=", "");
-        var prefix = raw[..11]; // "ff_" + 8 chars
+        var bytes = RandomNumberGenerator.GetBytes(ValidationConstants.ApiKeyRandomBytes);
+        var raw = ValidationConstants.ApiKeyPrefix + Convert.ToBase64String(bytes).Replace("+", "").Replace("/", "").Replace("=", "");
+        var prefix = raw[..ValidationConstants.ApiKeyPrefixLength];
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw))).ToLowerInvariant();
         return (raw, prefix, hash);
     }

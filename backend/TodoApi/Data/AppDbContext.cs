@@ -12,10 +12,19 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+    /// <summary>Registered application users.</summary>
     public DbSet<User> Users => Set<User>();
+
+    /// <summary>Tasks (to-do items) owned by users.</summary>
     public DbSet<TodoTask> Tasks => Set<TodoTask>();
+
+    /// <summary>Named task lists that group tasks.</summary>
     public DbSet<TaskList> TaskLists => Set<TaskList>();
+
+    /// <summary>One-time email verification codes.</summary>
     public DbSet<AuthCode> AuthCodes => Set<AuthCode>();
+
+    /// <summary>Personal API keys for programmatic access.</summary>
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -69,18 +78,23 @@ public class AppDbContext : DbContext
         });
     }
 
+    /// <inheritdoc />
     public override int SaveChanges()
     {
         SetTimestamps();
         return base.SaveChanges();
     }
 
+    /// <inheritdoc />
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         SetTimestamps();
         return base.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Sets <c>CreatedAt</c> on newly added entities and <c>UpdatedAt</c> on all modified entities.
+    /// </summary>
     private void SetTimestamps()
     {
         var entries = ChangeTracker.Entries()

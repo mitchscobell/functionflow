@@ -95,7 +95,7 @@ public class AuthController : ControllerBase
         {
             Email = normalizedEmail,
             Code = code,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(10)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(ValidationConstants.AuthCodeExpiryMinutes)
         };
 
         await _authCodes.CreateAsync(authCode);
@@ -178,8 +178,8 @@ public class AuthController : ControllerBase
         [FromServices] IWebHostEnvironment _)
     {
         // Each dev-login creates a unique ephemeral session
-        var sessionId = Guid.NewGuid().ToString("N")[..8];
-        var ephemeralEmail = $"demo-{sessionId}@functionflow.local";
+        var sessionId = Guid.NewGuid().ToString("N")[..ValidationConstants.DemoSessionIdLength];
+        var ephemeralEmail = $"demo-{sessionId}{ValidationConstants.DemoEmailDomain}";
 
         var user = new User
         {
@@ -219,7 +219,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
 
         var user = await _users.GetByIdAsync(userId);
-        if (user == null || !user.Email.EndsWith("@functionflow.local"))
+        if (user == null || !user.Email.EndsWith(ValidationConstants.DemoEmailDomain))
             return BadRequest(new { message = "Only demo accounts can be converted." });
 
         var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
@@ -242,7 +242,7 @@ public class AuthController : ControllerBase
         {
             Email = normalizedEmail,
             Code = code,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(ValidationConstants.AuthCodeExpiryMinutes),
             UserId = user.Id
         };
 
@@ -281,7 +281,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
 
         var user = await _users.GetByIdAsync(userId);
-        if (user == null || !user.Email.EndsWith("@functionflow.local"))
+        if (user == null || !user.Email.EndsWith(ValidationConstants.DemoEmailDomain))
             return BadRequest(new { message = "Only demo accounts can be converted." });
 
         var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
@@ -330,7 +330,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
 
         var user = await _users.GetByIdAsync(userId);
-        if (user == null || !user.Email.EndsWith("@functionflow.local"))
+        if (user == null || !user.Email.EndsWith(ValidationConstants.DemoEmailDomain))
             return BadRequest(new { message = "Not a demo account." });
 
         // Remove all related data
@@ -347,6 +347,10 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Demo session destroyed." });
     }
 
+    /// <summary>
+    /// Seeds example task lists and tasks for a newly created user so the UI
+    /// is not empty on first login.
+    /// </summary>
     private async Task SeedStarterDataAsync(User user)
     {
         var workList = new TaskList { Name = "Work", Emoji = "💼", Color = "blue", SortOrder = 0, UserId = user.Id };

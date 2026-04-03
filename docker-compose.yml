@@ -8,7 +8,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Jwt__Key=${JWT_KEY:?JWT_KEY must be set for production}
-      - Smtp__Host=${SMTP_HOST:-smtp.gmail.com}
+      - Smtp__Host=${SMTP_HOST:-}
       - Smtp__Port=${SMTP_PORT:-587}
       - Smtp__User=${SMTP_USER:-}
       - Smtp__Pass=${SMTP_PASS:-}

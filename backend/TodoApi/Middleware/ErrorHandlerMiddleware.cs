@@ -12,6 +12,9 @@ public class ErrorHandlerMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ErrorHandlerMiddleware> _logger;
 
+    /// <summary>
+    /// Initialises the middleware with the next delegate in the pipeline.
+    /// </summary>
     public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
     {
         _next = next;
@@ -31,6 +34,9 @@ public class ErrorHandlerMiddleware
         }
     }
 
+    /// <summary>
+    /// Maps the exception type to an HTTP status code and writes a JSON error response.
+    /// </summary>
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var (statusCode, message) = exception switch
