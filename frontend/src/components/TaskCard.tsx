@@ -153,6 +153,7 @@ export default function TaskCard({ task, onEdit, onDelete, onToggleStatus, onTag
               onEdit(task);
             }}
             className="rounded-lg p-1.5 hover:bg-[var(--hover)] transition-colors"
+            title="Edit task"
           >
             <Pencil size={14} />
           </button>
@@ -162,6 +163,7 @@ export default function TaskCard({ task, onEdit, onDelete, onToggleStatus, onTag
               onDelete(task.id);
             }}
             className="rounded-lg p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors"
+            title="Delete task"
           >
             <Trash2 size={14} />
           </button>

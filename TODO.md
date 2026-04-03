@@ -96,13 +96,11 @@
 
 47. **Custom color scheme editor** — Added a "Custom" theme option to the profile page. When selected, a color picker panel lets users customize all 12 CSS variables. Colors are persisted to localStorage and applied as inline styles. Dark backgrounds are auto-detected for text contrast.
 
+48. **Navigation toggle: calendar ↔ tasks** — The calendar icon in the header now toggles contextually. When on the dashboard, it shows a calendar icon linking to `/calendar`. When on the calendar page, it switches to a tasks icon linking back to `/` ("Back to tasks"). Profile and Logout buttons also received title tooltips.
+
+49. **Tooltips on all icon buttons** — Every icon-only button across the app now has a `title` attribute for hover context: "Back to tasks" / "Calendar", "Profile", "Log out", "Edit task", "Delete task", "Toggle status", "Filters", "Previous", "Next", "Hide completed" / "Show completed", "Swimlane view" / "List view", and "Print".
+
 ## Still To Do
-
-_All items completed and moved to Done!_
-
-- I know that I can press the logo to get back to the home screen, but maybe a home button to go back to task view (or it could be that the calendar button changes when you are in calendar view to take you back)
-
-- I always like context for the shortcut buttons like a mouse over or long press on mobile that says "Hide Completed" or something on the eyeball
 
 ### Medium Effort
 

@@ -697,4 +697,22 @@ describe("CalendarPage", () => {
       expect(modal.getAttribute("data-default-due-date")).toBe(expectedDate);
     });
   });
+
+  // ── Tooltips ──
+
+  it("has title attributes on navigation chevrons", async () => {
+    vi.mocked(api.getTasks).mockResolvedValue({
+      items: [],
+      totalCount: 0,
+      page: 1,
+      pageSize: 100,
+    });
+    vi.mocked(api.getLists).mockResolvedValue([]);
+    renderCalendarPage();
+
+    await waitFor(() => {
+      expect(screen.getByTitle("Previous")).toBeInTheDocument();
+      expect(screen.getByTitle("Next")).toBeInTheDocument();
+    });
+  });
 });

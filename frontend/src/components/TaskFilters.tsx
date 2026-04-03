@@ -55,6 +55,7 @@ export default function TaskFilters({
           className={`rounded-lg border border-[var(--border)] p-2 hover:bg-[var(--hover)] transition-colors ${
             showFilters ? "bg-[var(--hover)]" : ""
           }`}
+          title="Filters"
         >
           <Filter size={16} />
         </button>

@@ -127,26 +127,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </div>
                 )}
               </div>
-              <Link
-                to="/calendar"
-                className={`rounded-lg p-2 hover:bg-[var(--hover)] transition-colors ${
-                  location.pathname === "/calendar" ? "bg-[var(--hover)]" : ""
-                }`}
-                title="Calendar"
-              >
-                <CalendarDays size={18} />
-              </Link>
+              {location.pathname === "/calendar" ? (
+                <Link
+                  to="/"
+                  className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors bg-[var(--hover)]"
+                  title="Back to tasks"
+                >
+                  <ListTodo size={18} />
+                </Link>
+              ) : (
+                <Link
+                  to="/calendar"
+                  className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors"
+                  title="Calendar"
+                >
+                  <CalendarDays size={18} />
+                </Link>
+              )}
               <Link
                 to="/profile"
                 className={`rounded-lg p-2 hover:bg-[var(--hover)] transition-colors ${
                   location.pathname === "/profile" ? "bg-[var(--hover)]" : ""
                 }`}
+                title="Profile"
               >
                 <User size={18} />
               </Link>
               <button
                 onClick={handleLogout}
                 className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors text-red-500"
+                title="Log out"
               >
                 <LogOut size={18} />
               </button>

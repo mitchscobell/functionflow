@@ -164,4 +164,27 @@ describe("Layout", () => {
       expect(localStorage.getItem("token")).toBeNull();
     });
   });
+
+  // ── Navigation toggle ──
+
+  it("shows Calendar link when on dashboard", () => {
+    renderLayout({ initialRoute: "/" });
+    expect(screen.getByTitle("Calendar")).toBeInTheDocument();
+    expect(screen.queryByTitle("Back to tasks")).not.toBeInTheDocument();
+  });
+
+  it("shows Back to tasks link when on calendar", () => {
+    renderLayout({ initialRoute: "/calendar" });
+    expect(screen.getByTitle("Back to tasks")).toBeInTheDocument();
+    expect(screen.queryByTitle("Calendar")).not.toBeInTheDocument();
+  });
+
+  // ── Tooltips ──
+
+  it("has title attributes on all icon buttons", () => {
+    renderLayout();
+    expect(screen.getByTitle("Profile")).toBeInTheDocument();
+    expect(screen.getByTitle("Log out")).toBeInTheDocument();
+    expect(screen.getByTitle(/Theme:/)).toBeInTheDocument();
+  });
 });

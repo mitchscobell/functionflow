@@ -271,6 +271,7 @@ export default function CalendarPage() {
         <button
           onClick={() => navigate(-1)}
           className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors"
+          title="Previous"
         >
           <ChevronLeft size={20} />
         </button>
@@ -285,6 +286,7 @@ export default function CalendarPage() {
         <button
           onClick={() => navigate(1)}
           className="rounded-lg p-2 hover:bg-[var(--hover)] transition-colors"
+          title="Next"
         >
           <ChevronRight size={20} />
         </button>

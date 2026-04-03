@@ -196,4 +196,15 @@ describe("TaskCard", () => {
     // onEdit should NOT be called because tag click stops propagation
     expect(onEdit).not.toHaveBeenCalled();
   });
+
+  // ── Tooltips ──
+
+  it("has title attributes on action buttons", () => {
+    render(
+      <TaskCard task={baseTask} onEdit={vi.fn()} onDelete={vi.fn()} onToggleStatus={vi.fn()} />,
+    );
+    expect(screen.getByTitle("Toggle status")).toBeInTheDocument();
+    expect(screen.getByTitle("Edit task")).toBeInTheDocument();
+    expect(screen.getByTitle("Delete task")).toBeInTheDocument();
+  });
 });
