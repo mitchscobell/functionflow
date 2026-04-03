@@ -200,6 +200,48 @@ public class TaskTests : IClassFixture<TestWebApplicationFactory>
         Assert.DoesNotContain(result.Items, t => t.Title == "User A Task");
     }
 
+    [Fact(DisplayName = "Users cannot get another user's task by ID")]
+    public async Task Tasks_UserIsolation_CantGetOtherUsersTaskById()
+    {
+        var tokenA = await GetAuthTokenAsync("iso-get-a@example.com");
+        SetAuth(tokenA);
+        var createRes = await _client.PostAsJsonAsync("/api/tasks", new { title = "Private Task", priority = "Low" });
+        var task = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var tokenB = await GetAuthTokenAsync("iso-get-b@example.com");
+        SetAuth(tokenB);
+        var response = await _client.GetAsync($"/api/tasks/{task!.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Users cannot update another user's task")]
+    public async Task Tasks_UserIsolation_CantUpdateOtherUsersTask()
+    {
+        var tokenA = await GetAuthTokenAsync("iso-upd-a@example.com");
+        SetAuth(tokenA);
+        var createRes = await _client.PostAsJsonAsync("/api/tasks", new { title = "Protected Task", priority = "Low" });
+        var task = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var tokenB = await GetAuthTokenAsync("iso-upd-b@example.com");
+        SetAuth(tokenB);
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{task!.Id}", new { title = "Hijacked", priority = "High" });
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Users cannot delete another user's task")]
+    public async Task Tasks_UserIsolation_CantDeleteOtherUsersTask()
+    {
+        var tokenA = await GetAuthTokenAsync("iso-del-a@example.com");
+        SetAuth(tokenA);
+        var createRes = await _client.PostAsJsonAsync("/api/tasks", new { title = "Safe Task", priority = "Low" });
+        var task = await createRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var tokenB = await GetAuthTokenAsync("iso-del-b@example.com");
+        SetAuth(tokenB);
+        var response = await _client.DeleteAsync($"/api/tasks/{task!.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     [Fact(DisplayName = "Update all task fields at once succeeds")]
     public async Task UpdateTask_AllFields_ReturnsUpdated()
     {

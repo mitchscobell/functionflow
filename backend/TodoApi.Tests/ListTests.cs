@@ -152,6 +152,48 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
         Assert.DoesNotContain(lists, l => l.Name == "User A List");
     }
 
+    [Fact(DisplayName = "Users cannot get another user's list by ID")]
+    public async Task Lists_UserIsolation_CantGetOtherUsersListById()
+    {
+        var tokenA = await GetAuthTokenAsync("liso-get-a@example.com");
+        SetAuth(tokenA);
+        var createRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Secret List" });
+        var list = await createRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var tokenB = await GetAuthTokenAsync("liso-get-b@example.com");
+        SetAuth(tokenB);
+        var response = await _client.GetAsync($"/api/lists/{list!.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Users cannot update another user's list")]
+    public async Task Lists_UserIsolation_CantUpdateOtherUsersList()
+    {
+        var tokenA = await GetAuthTokenAsync("liso-upd-a@example.com");
+        SetAuth(tokenA);
+        var createRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Protected List" });
+        var list = await createRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var tokenB = await GetAuthTokenAsync("liso-upd-b@example.com");
+        SetAuth(tokenB);
+        var response = await _client.PutAsJsonAsync($"/api/lists/{list!.Id}", new { name = "Hijacked" });
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact(DisplayName = "Users cannot delete another user's list")]
+    public async Task Lists_UserIsolation_CantDeleteOtherUsersList()
+    {
+        var tokenA = await GetAuthTokenAsync("liso-del-a@example.com");
+        SetAuth(tokenA);
+        var createRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Safe List" });
+        var list = await createRes.Content.ReadFromJsonAsync<ListDto>();
+
+        var tokenB = await GetAuthTokenAsync("liso-del-b@example.com");
+        SetAuth(tokenB);
+        var response = await _client.DeleteAsync($"/api/lists/{list!.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     [Fact(DisplayName = "Get list by valid ID returns the list")]
     public async Task GetList_ValidId_ReturnsList()
     {
