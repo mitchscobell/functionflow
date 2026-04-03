@@ -290,4 +290,77 @@ public class ListTests : IClassFixture<TestWebApplicationFactory>
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact(DisplayName = "Delete list with soft-deleted tasks returns 204")]
+    public async Task DeleteList_WithSoftDeletedTasks_ReturnsNoContent()
+    {
+        var token = await GetAuthTokenAsync("deletelist-softdel@example.com");
+        SetAuth(token);
+
+        // Create list
+        var listRes = await _client.PostAsJsonAsync("/api/lists", new { name = "SoftDel List" });
+        var list = await listRes.Content.ReadFromJsonAsync<ListDto>();
+
+        // Create a task in that list
+        var taskRes = await _client.PostAsJsonAsync("/api/tasks", new
+        {
+            title = "Task To Soft Delete",
+            priority = "Medium",
+            listId = list!.Id
+        });
+        var task = await taskRes.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        // Soft-delete the task
+        var delTaskRes = await _client.DeleteAsync($"/api/tasks/{task!.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, delTaskRes.StatusCode);
+
+        // Now delete the list — should succeed, not 500
+        var delListRes = await _client.DeleteAsync($"/api/lists/{list.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, delListRes.StatusCode);
+
+        // List should be gone
+        var getRes = await _client.GetAsync($"/api/lists/{list.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, getRes.StatusCode);
+    }
+
+    [Fact(DisplayName = "Delete list with mix of active and soft-deleted tasks moves active to inbox")]
+    public async Task DeleteList_WithMixedTasks_MovesActiveToInboxAndSucceeds()
+    {
+        var token = await GetAuthTokenAsync("deletelist-mixed@example.com");
+        SetAuth(token);
+
+        // Create list
+        var listRes = await _client.PostAsJsonAsync("/api/lists", new { name = "Mixed List" });
+        var list = await listRes.Content.ReadFromJsonAsync<ListDto>();
+
+        // Create two tasks
+        var task1Res = await _client.PostAsJsonAsync("/api/tasks", new
+        {
+            title = "Active Task In Mixed",
+            priority = "Low",
+            listId = list!.Id
+        });
+        var task1 = await task1Res.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        var task2Res = await _client.PostAsJsonAsync("/api/tasks", new
+        {
+            title = "Deleted Task In Mixed",
+            priority = "High",
+            listId = list.Id
+        });
+        var task2 = await task2Res.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+
+        // Soft-delete task2
+        await _client.DeleteAsync($"/api/tasks/{task2!.Id}");
+
+        // Delete the list
+        var delRes = await _client.DeleteAsync($"/api/lists/{list.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, delRes.StatusCode);
+
+        // Active task should still exist and have no list (moved to inbox)
+        var getTask = await _client.GetAsync($"/api/tasks/{task1!.Id}");
+        Assert.Equal(HttpStatusCode.OK, getTask.StatusCode);
+        var activeTask = await getTask.Content.ReadFromJsonAsync<TaskDto>(TestHelpers.JsonOptions);
+        Assert.Null(activeTask!.ListId);
+    }
 }

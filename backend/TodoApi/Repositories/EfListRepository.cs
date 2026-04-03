@@ -54,7 +54,8 @@ public class EfListRepository : IListRepository
     public async Task DeleteAsync(TaskList list, int userId)
     {
         var fullList = await _db.TaskLists
-            .Include(l => l.Tasks)
+            .Include(l => l.Tasks.Where(t => t.ListId == list.Id))
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(l => l.Id == list.Id && l.UserId == userId);
 
         if (fullList == null)
